@@ -63,16 +63,28 @@ namespace M1 {
 
 			display = new TextDisplay();
 			display.backColor = new Color(0.31f, 0.11f, 0.86f);
+			display.Clear();
 			display.SetCursor(19, 0);
+			display.backColor = Color.Yellow;
+			display.Print("**** ");
+			display.textColor = Color.Teal;
+			display.Print(" MiniScript");
+			display.backColor = Color.Silver;
+			display.Print(" M-1");
+			display.backColor = new Color(0.31f, 0.11f, 0.86f);
+			display.Print(" Home");
+			display.textColor = Color.White;
+			display.PrintLine(" Computer ***");
+
 			display.PrintLine(" **** MiniScript M-1 Home Computer ****");
 			display.NextLine();
 			display.PrintLine("Ready.");
+			display.backColor = new Color(0.31f, 0.11f, 0.86f);
 
 			keyBuffer = new Queue<char>();
 			history = new List<string>();
 
-			inInputMode = true;
-
+		
 			Game1.keyboardDispatcher.Subscriber = this;
 			this.Selected = true;
 		}
@@ -99,23 +111,16 @@ namespace M1 {
 
 		public override void receiveKeyPress(Keys key) {
 			if (key == Keys.Escape) Exit();
-			/*
-			var inp = ModEntry.instance.Helper.Input;
-			bool control = inp.IsDown(SButton.LeftControl) || inp.IsDown(SButton.RightControl);
-			bool command = inp.IsDown(SButton.LeftWindows) || inp.IsDown(SButton.RightWindows);
-			bool shift = inp.IsDown(SButton.LeftShift) || inp.IsDown(SButton.RightShift);
-			char keyChar = (char)key;
+			ModEntry.instance.print($"receiveKeyPress({key}, int {(int)key})");
 
-			// Yikes.  Getting from the Keys enum value to the character typed
-			// is going to be hard.  See: https://stackoverflow.com/questions/9558690
-
-			if (!shift && keyChar > 32) keyChar = Char.ToLower(keyChar);
-
-			// ToDo: much handling of modifier keys, special keys, etc. here.
-
-			// For now:
-			HandleKey(((char)key));
-			*/
+			// Most keys are handled through one of the misspelled IKeyboardSubscriber
+			// interface methods.  But not these:
+			switch (key) {
+			case Keys.Left:		HandleKey((char)kLeftArrow);		break;
+			case Keys.Right:	HandleKey((char)kRightArrow);		break;
+			case Keys.Down:		HandleKey((char)kDownArrow);		break;
+			case Keys.Up:		HandleKey((char)kUpArrow);		break;
+			}
 		}
 
 		public bool Selected {  get; set; }
@@ -157,12 +162,78 @@ namespace M1 {
 				return;
 			}
 
-			display.Put(keyChar);
+			int keyInt = (int)keyChar;
+			var inp = ModEntry.instance.Helper.Input;
+			bool control = inp.IsDown(SButton.LeftControl) || inp.IsDown(SButton.RightControl);
+			bool alt = inp.IsDown(SButton.LeftAlt) || inp.IsDown(SButton.RightAlt);
+			bool byWord = control || alt;
+			if (keyInt != kTab) ClearAutocomplete();
+			if (keyInt == 3 || keyInt == 10 || keyInt == 13) {
+				CommitInput();
+			} else if ((keyInt == kLeftArrow)) {
+				inputIndex = PrevInputStop(inputIndex, byWord);
+			} else if (keyInt == kRightArrow) {
+				inputIndex = NextInputStop(inputIndex, byWord);
+			} else if (keyInt == kControlA) {
+				inputIndex = 0;
+			} else if (keyInt == kControlE) {
+				inputIndex = inputBuf.Length;
+			} else if (keyInt == kBackspace) {
+				int stop = PrevInputStop(inputIndex, byWord);
+				if (stop < inputIndex) {
+					inputBuf = inputBuf.Substring(0, stop) + inputBuf.Mid(inputIndex);
+					int delCount = inputIndex - stop;
+					for (int i=0; i<delCount; i++) display.Backup();
+					display.Print(inputBuf.Substring(stop));
+					for (int i=0; i<delCount; i++) display.Put(' ');
+					inputIndex = stop;
+					//if (onInputChanged != null) onInputChanged.Invoke(inputBuf);
+				}
+			} else if (keyInt == kFwdDelete) {
+				int stop = NextInputStop(inputIndex, byWord);
+				if (stop > inputIndex) {
+					inputBuf = inputBuf.Substring(0, inputIndex) + inputBuf.Mid(stop);
+					display.Print(inputBuf.Substring(inputIndex));
+					for (int i=0; i<stop-inputIndex; i++) display.Put(' ');
+					//if (onInputChanged != null) onInputChanged.Invoke(inputBuf);
+				}
+			} else if (keyInt == kUpArrow) {
+				if (historyIndex <= 0) {
+					// No can do
+				} else {
+					historyIndex--;
+					ReplaceInput(history[historyIndex]);
+				}
+			} else if (keyInt == kDownArrow) {
+				if (historyIndex >= history.Count) {
+					// No can do				
+				} else {
+					historyIndex++;
+					ReplaceInput(historyIndex < history.Count ? history[historyIndex] : "");
+				}
+			} else if (keyInt == kTab) {
+				if (curSuggestion != null) {
+					inputBuf += curSuggestion;
+					inputIndex += curSuggestion.Length;
+					display.Print(curSuggestion);
+				}
+			} else {
+				if (string.IsNullOrEmpty(inputBuf)) inputBuf = keyChar.ToString();
+				else inputBuf = inputBuf.Substring(0, inputIndex) + keyChar.ToString() + inputBuf.Substring(inputIndex);
+				display.Print(inputBuf.Substring(inputIndex));
+				inputIndex++;			
+				//if (onInputChanged != null) onInputChanged.Invoke(inputBuf);
+			}
+		
+			if (inInputMode) SetCursorForInput();
 		}
 
 		public override void update(GameTime time) {
 			base.update(time);
 			display.Update(time);
+
+			// For testing purposes:
+			if (!inInputMode) StartInput();
 		}
 
 		

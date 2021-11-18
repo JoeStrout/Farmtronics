@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using StardewValley;
+using StardewModdingAPI;
 
 namespace M1 {
 
@@ -62,6 +64,7 @@ namespace M1 {
 	
 		Texture2D fontAtlas;
 		Dictionary<char, int> fontCharToIndex;
+		Texture2D whiteTex;
 
 
 		#endregion
@@ -92,6 +95,9 @@ namespace M1 {
 				int tabPos = lines[i].IndexOf('\t');
 				if (tabPos >= 0) fontCharToIndex[lines[i][tabPos+1]] = i-1;
 			}
+
+			whiteTex = new Texture2D(Game1.graphics.GraphicsDevice, 1, 1);
+			whiteTex.SetData(new[] { Color.White });
 		}
 
 		public void Clear() {
@@ -287,9 +293,38 @@ namespace M1 {
 		}
 
 		public void Render(SpriteBatch b, Rectangle displayArea) {
+			// Start by drawing the background, wherever the background color doesn't
+			// match the current default (which has already been drawn by the caller
+			// in one big go).
+			for (int row=0; row<rows; row++) {
+				int col=0;
+				while (col < cols) {
+					Color cellBg = Color.White;
+					// skip ahead to next cell that's a nonstandard background
+					while (col < cols) {
+						cellBg = cells[row,col].inverse ? cells[row,col].foreColor : cells[row,col].backColor;
+						if (cellBg != backColor) break;
+						col++;
+					}
+					if (col >= cols) break;
+					// Now start a rectangle at this location.
+					Rectangle rect = new Rectangle(displayArea.Left + col*16, displayArea.Bottom - row * 24 - 30, 20, 28);
+					// now skip ahead until a cell that's a different color from this one
+					while (++col < cols) {
+						var newBg = cells[row,col].inverse ? cells[row,col].foreColor : cells[row,col].backColor;
+						if (newBg != cellBg) break;
+						rect.Width += 16;
+					}
+					// And draw!
+					FillRect(b, rect, cellBg);
+				}
+			}
+
+			// Now render the text (foreground)
 			for (int row=0; row<rows; row++) {
 				for (int col=0; col<cols; col++) {
-					DrawFontCell(b, cells[row, col].character, col, row, displayArea);
+					Color c = cells[row, col].inverse ? cells[row,col].backColor : cells[row,col].foreColor;
+					DrawFontCell(b, cells[row, col].character, c, col, row, displayArea);
 				}
 			}
 		}
@@ -357,17 +392,17 @@ namespace M1 {
 			return new Rectangle(col*10, row*14, 10, 14);
 		}
 
-		void DrawFontCell(SpriteBatch b, int atlasIndex, int screenCol, int screenRow, Rectangle displayArea) {
+		void DrawFontCell(SpriteBatch b, int atlasIndex, Color color, int screenCol, int screenRow, Rectangle displayArea) {
 			var srcR = AtlasRectForIndex(atlasIndex);
 
 			float drawX = displayArea.Left + screenCol * 16 + 1;
 			float drawY = displayArea.Bottom - screenRow * 24 - 31; 
 			
-			b.Draw(fontAtlas, new Vector2(drawX, drawY), srcR, Color.White,
+			b.Draw(fontAtlas, new Vector2(drawX, drawY), srcR, color,
 				0, Vector2.Zero, 2, SpriteEffects.None, 0.95f);
 		}
 
-		bool DrawFontCell(SpriteBatch b, char charToDraw, int screenCol, int screenRow, Rectangle displayArea) {
+		bool DrawFontCell(SpriteBatch b, char charToDraw, Color color, int screenCol, int screenRow, Rectangle displayArea) {
 			if (charToDraw == ' ' || charToDraw == 0) return true;
 			int atlasIndex = -1;
 			if (!fontCharToIndex.TryGetValue(charToDraw, out atlasIndex)) {
@@ -376,11 +411,13 @@ namespace M1 {
 				atlasIndex = 5;	// index of [?] character
 			}
 
-			DrawFontCell(b, atlasIndex, screenCol, screenRow, displayArea);
+			DrawFontCell(b, atlasIndex, color, screenCol, screenRow, displayArea);
 			return true;
 		}
 
-
+		void FillRect(SpriteBatch b, Rectangle rect, Color color) {
+			b.Draw(whiteTex, rect, color);
+		}
 	
 		#endregion
 	}
