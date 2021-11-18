@@ -35,9 +35,11 @@ namespace M1 {
 			screenSrcR = new Rectangle(0, 0, 200, 160);
 
 			textDisplay = new TextDisplay();
+			textDisplay.backColor = new Color(0.31f, 0.11f, 0.86f);
 			textDisplay.SetCursor(19, 0);
-			textDisplay.PrintLine("MiniScript M-1 Ready!");
-			textDisplay.PrintLine("Let's go!");
+			textDisplay.PrintLine(" **** MiniScript M-1 Home Computer ****");
+			textDisplay.NextLine();
+			textDisplay.PrintLine("Ready.");
 		}
 
 		private void Exit() {
@@ -87,10 +89,10 @@ namespace M1 {
 			// draw the screen background
 			
 			b.Draw(screenLayers[0], new Vector2(xPositionOnScreen , yPositionOnScreen), screenSrcR,
-				Color.CornflowerBlue,
+				new Color(0.64f, 0.57f, 0.98f),
 				0, Vector2.Zero, drawScale, SpriteEffects.None, 0.5f);
 			b.Draw(screenLayers[1], new Vector2(xPositionOnScreen , yPositionOnScreen), screenSrcR,
-				Color.DeepSkyBlue,
+				textDisplay.backColor,
 				0, Vector2.Zero, drawScale, SpriteEffects.None, 0.5f);
 			
 			// draw content

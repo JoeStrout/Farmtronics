@@ -75,7 +75,7 @@ namespace M1 {
 					cells[row, col] = new Cell(textColor, backColor);
 				}
 			}
-			Fill('.');
+			
 
 			fontAtlas = ModEntry.helper.Content.Load<Texture2D>("assets/fontAtlas.png");
 			ModEntry.instance.print($"Loaded fontAtlas with size {fontAtlas.Width}x{fontAtlas.Height}");
