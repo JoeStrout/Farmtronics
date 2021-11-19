@@ -64,26 +64,24 @@ namespace M1 {
 			display = new TextDisplay();
 			display.backColor = new Color(0.31f, 0.11f, 0.86f);
 			display.Clear();
-			display.SetCursor(19, 0);
-			display.backColor = Color.Yellow;
-			display.Print("**** ");
-			display.textColor = Color.Teal;
-			display.Print(" MiniScript");
-			display.backColor = Color.Silver;
-			display.Print(" M-1");
-			display.backColor = new Color(0.31f, 0.11f, 0.86f);
-			display.Print(" Home");
-			display.textColor = Color.White;
-			display.PrintLine(" Computer ***");
 
-			display.PrintLine(" **** MiniScript M-1 Home Computer ****");
-			display.NextLine();
+			var colors = new Color[] { Color.Red, Color.Yellow, Color.Green, Color.Purple };
+
+			display.SetCursor(19, 1);
+			for (int i=0; i<4; i++) {
+				display.textColor = colors[i]; display.Print("*");
+			}
+			display.textColor = Color.Azure; display.Print(" MiniScript M-1 Home Computer ");
+			for (int i=0; i<4; i++) {
+				display.textColor = colors[3-i]; display.Print("*");
+			}
+			display.textColor = Color.White;
+			display.NextLine(); display.NextLine();
 			display.PrintLine("Ready.");
-			display.backColor = new Color(0.31f, 0.11f, 0.86f);
+			display.NextLine();
 
 			keyBuffer = new Queue<char>();
 			history = new List<string>();
-
 		
 			Game1.keyboardDispatcher.Subscriber = this;
 			this.Selected = true;
@@ -119,8 +117,13 @@ namespace M1 {
 			case Keys.Left:		HandleKey((char)kLeftArrow);		break;
 			case Keys.Right:	HandleKey((char)kRightArrow);		break;
 			case Keys.Down:		HandleKey((char)kDownArrow);		break;
-			case Keys.Up:		HandleKey((char)kUpArrow);		break;
+			case Keys.Up:		HandleKey((char)kUpArrow);			break;
 			}
+
+			var inp = ModEntry.instance.Helper.Input;
+			bool control = inp.IsDown(SButton.LeftControl) || inp.IsDown(SButton.RightControl);
+			if (key == Keys.A && control) HandleKey((char)kControlA);
+			if (key == Keys.E && control) HandleKey((char)kControlE);
 		}
 
 		public bool Selected {  get; set; }

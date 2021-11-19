@@ -330,6 +330,18 @@ namespace M1 {
 		}
 
 		public void Update(GameTime gameTime) {
+			if (cursorShown) {
+				// Make the cursor blink!
+				cursorTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+				if (!cursorBlinking && cursorTime > cursorOnTime) {
+					HideCursor();
+					cursorShown = true;
+					cursorBlinking = true;				
+				} else if (cursorBlinking && cursorTime > cursorOffTime) {
+					ShowCursor();
+					cursorBlinking = false;				
+				}
+			}
 
 		}
 
