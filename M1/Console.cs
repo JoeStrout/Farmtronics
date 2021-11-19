@@ -32,8 +32,8 @@ namespace M1 {
 		Texture2D[] screenLayers;	// 0=background (border); 1=work area background; 2=overlay
 		Rectangle screenSrcR;
 
-		TextDisplay display;
-
+		Shell owner;
+		public TextDisplay display {  get; private set; }
 
 		bool inInputMode;
 		RowCol inputStartPos;		// where on the screen we started taking input
@@ -49,9 +49,10 @@ namespace M1 {
 		RowCol selEnd;
 		Vector2 mouseDownPos;
 
-		public Console()
+		public Console(Shell owner)
 		: base(Game1.uiViewport.Width/2 - width/2, Game1.uiViewport.Height/2 - height/2, width, height) {
-			Game1.player.Halt();
+
+			this.owner = owner;
 
 			screenArea = new Rectangle(20*drawScale, 18*drawScale, 160*drawScale, 120*drawScale);	// 640x480 (VGA)!
 
@@ -82,7 +83,11 @@ namespace M1 {
 
 			keyBuffer = new Queue<char>();
 			history = new List<string>();
-		
+		}
+
+		public void Present() {
+			Game1.player.Halt();
+			Game1.activeClickableMenu = this;
 			Game1.keyboardDispatcher.Subscriber = this;
 			this.Selected = true;
 		}
@@ -233,10 +238,8 @@ namespace M1 {
 
 		public override void update(GameTime time) {
 			base.update(time);
+			owner.Update(time);
 			display.Update(time);
-
-			// For testing purposes:
-			if (!inInputMode) StartInput();
 		}
 
 		
@@ -253,7 +256,8 @@ namespace M1 {
 			display.HideCursor();
 			display.NextLine();		
 			inInputMode = false;
-			//if (onInputDone != null) onInputDone.Invoke(inputBuf);
+
+			if (owner != null) owner.HandleCommand(inputBuf);
 		}
 	
 		public void StartInput() {

@@ -5,5 +5,5 @@ This project is a [Stardew Valley mod](https://stardewvalleywiki.com/Modding:Pla
 This is a computer that connects to the TV in your cabin.  Despite its early-80s appearance, it actually runs a very modern and elegant language, [MiniScript](https://miniscript.org).
 
 
-![Screen shot of the M-1 Home Computer](img/screenshot.png)
+![Screen shot of the M-1 Home Computer](img/Demo-1.gif)
 

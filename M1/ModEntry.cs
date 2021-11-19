@@ -12,6 +12,8 @@ namespace M1
 		public static IModHelper helper;
 		public static ModEntry instance;
 
+		Shell shell;
+
 		public override void Entry(IModHelper helper) {
 			instance = this;
 			ModEntry.helper = helper;
@@ -36,13 +38,14 @@ namespace M1
 			var prevHandler = Game1.currentLocation.afterQuestion;
 			Game1.currentLocation.afterQuestion = (who, whichAnswer) => {
 				print($"{who} selected channel {whichAnswer}");
-				if (whichAnswer == "M1") Boot();
+				if (whichAnswer == "M1") PresentComputer();
 				else prevHandler(who, whichAnswer);
 			};
 		}
 
-		private void Boot() {
-			Game1.activeClickableMenu = new M1.Console();
+		private void PresentComputer() {
+			if (shell == null) shell = new Shell();
+			shell.Present();
 		}
 	}
 }
