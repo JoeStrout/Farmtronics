@@ -101,6 +101,7 @@ namespace M1 {
 		}
 
 		public override void receiveRightClick(int x, int y, bool playSound = true) {
+
 		}
 
 		float Clamp(float x, float min, float max) {
