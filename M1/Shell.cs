@@ -13,7 +13,7 @@ using Microsoft.Xna.Framework;
 
 namespace M1 {
 	public class Shell {
-		Console console;
+		public Console console { get; private set; }
 		Interpreter interpreter;
 		bool runProgram;
 		static bool intrinsicsAdded;
@@ -30,6 +30,7 @@ namespace M1 {
 		}
 
 		public void Present() {
+			M1API.Init(this);
 			console.Present();
 		}
 

@@ -7,3 +7,9 @@ This is a computer that connects to the TV in your cabin.  Despite its early-80s
 
 ![Screen shot of the M-1 Home Computer](img/Demo-1.gif)
 
+
+## Feature Ideas
+
+- APIs to get information about what's in the world (crops, rocks, trees, NPCs, etc.)
+- Display object: can display color/message in the world; tileable to make any size Jumbotron
+- Bots: able to do work in the world (farming, mining, chopping, transporting, etc.)

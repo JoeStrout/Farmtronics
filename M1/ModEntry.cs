@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using StardewValley.BellsAndWhistles;
+using StardewValley.TerrainFeatures;
+
 
 namespace M1
 {
@@ -46,6 +50,35 @@ namespace M1
 		private void PresentComputer() {
 			if (shell == null) shell = new Shell();
 			shell.Present();
+
+			var farm = (Farm)Game1.getLocationFromName("Farm");
+
+			var layer = farm.map.Layers[0];
+			shell.PrintLine($"Farm size: {layer.LayerWidth} x {layer.LayerHeight}");
+			shell.PrintLine($"Farm animals: {farm.getAllFarmAnimals().Count}");
+			shell.PrintLine($"Buildings: {farm.buildings.Count}");
+
+			int featureCount = 0;
+			int trees=0, bushes=0, grasses=0, hoeDirts=0, paths=0;
+			var hoeLocs = new List<string>();
+			foreach (KeyValuePair<Vector2, TerrainFeature> kvp in farm.terrainFeatures.Pairs) {
+				if (kvp.Value is Tree) trees++;
+				else if (kvp.Value is Bush) bushes++;
+				else if (kvp.Value is Grass) grasses++;
+				else if (kvp.Value is HoeDirt) {
+					hoeDirts++;
+					hoeLocs.Add(kvp.Key.ToString());	// locations are integers, X right and Y down from top-left
+				}
+				else if (kvp.Value is Flooring) paths++;
+				featureCount++;
+			}
+			shell.PrintLine($"Trees: {trees}");
+			shell.PrintLine($"Bushes: {bushes}");
+			shell.PrintLine($"Grass: {grasses}");
+			shell.PrintLine($"Tilled Ground: {hoeDirts}");// at: {string.Join(',', hoeLocs)}");
+			shell.PrintLine($"Paved: {paths}");
+			shell.PrintLine($"Total features: {featureCount}");
+
 		}
 	}
 }
