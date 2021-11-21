@@ -30,67 +30,21 @@ namespace M1
             this.Monitor.Log(s, LogLevel.Debug);
 		}
 
-		Farmer robot;
+		Bot bot;
 		public void OnButtonPressed(object sender, ButtonPressedEventArgs e) {
 			if (e.Button == SButton.PageUp) {
-				print("Spawning robot farmer");
-				var initialTools = new List<Item>();
-				initialTools.Add(new StardewValley.Tools.Hoe());
-				Farmer f = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
-					new Vector2(Game1.player.Position.X - 64f, Game1.player.Position.Y), 2,
-					Dialogue.randomName(), initialTools, isMale: true);
-				//f.changeShirt(random.Next(40));
-				//f.changePants(new Color(random.Next(255), random.Next(255), random.Next(255)));
-				//f.changeHairStyle(random.Next(FarmerRenderer.hairStylesTexture.Height / 96 * 8));
-				//if (random.NextDouble() < 0.5)
-				//{
-				//	f.changeHat(random.Next(-1, FarmerRenderer.hatsTexture.Height / 80 * 12));
-				//}
-				//else
-				//{
-				//	player.changeHat(-1);
-				//}
-				//f.changeHairColor(new Color(random.Next(255), random.Next(255), random.Next(255)));
-				//f.changeSkinColor(random.Next(16));
-				f.FarmerSprite.setOwner(f);
-				f.currentLocation = Game1.currentLocation;
-				// Do not add to Game1.otherFarmers... that is for network players,
-				// and causes all manner of failure for our robot farmer.
-				//Game1.otherFarmers.Add(Game1.random.Next(), f);
-				// ...but without that, our farmer does not appear in game. :(
-
-				// Hmm, maybe;
-				//f.setTileLocation(new Vector2(MathF.Floor(f.Position.X/64f), MathF.Floor(f.Position.Y/64f)));
-				// Nope.
-				// OK, how about:
-				//Game1.otherFarmers.Add(Game1.random.Next(), new StardewValley.Network.NetFarmerRoot(f));
-
-				//print("Farmer spawned with name " + f.Name);
-				//print("Game1.serverHost: " + Game1.serverHost);
-				//print("Roots:");
-				//var m = new Multiplayer();
-				//int i=0;
-				//foreach (var farmerRoot in m.farmerRoots()) {
-				//	print($"{i}: {farmerRoot}");
-				//	i++;
-				//}
-
-				robot = f;
-
-				// Also create a visible item at the same location:
-				robot.currentLocation.dropObject(
-					new StardewValley.Object(820, 1, false, -1, 0), robot.position, Game1.viewport, true, (Farmer)null);
+				// Create a bot.
+				bot = new Bot();
+				Vector2 pos = Game1.player.position;
+				pos.X -= 64;
+				Game1.currentLocation.dropObject(
+					bot, pos, Game1.viewport, true, (Farmer)null);
 
 			}
-			if (e.Button == SButton.PageDown) {
+			if (e.Button == SButton.PageDown && bot != null) {
 				// This works!  There's no tool animation, of course, but it does/
 				// have the effect of using that tool on the environment.  Neat!
-				robot.CurrentToolIndex = 0;			
-				Game1.toolAnimationDone(robot);
-				// So!  I think we just need to spawn an item in the world to
-				// represent the robot, and also have an invisible farmer at that
-				// same location.  Then have the farmer use the tools, while the
-				// object moves around going through the motions!
+				bot.UseTool();
 			}
 		}
 
