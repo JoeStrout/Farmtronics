@@ -22,8 +22,12 @@ namespace M1
 			instance = this;
 			ModEntry.helper = helper;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
-
+			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
 			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+		}
+
+		private void UpdateTicking(object sender, UpdateTickingEventArgs e) {
+			if (bot != null) bot.Update();
 		}
 
 		public void print(string s) {
@@ -37,14 +41,15 @@ namespace M1
 				bot = new Bot();
 				Vector2 pos = Game1.player.position;
 				pos.X -= 64;
-				Game1.currentLocation.dropObject(
-					bot, pos, Game1.viewport, true, (Farmer)null);
+				Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
+				bot.NotePosition();
 
 			}
 			if (e.Button == SButton.PageDown && bot != null) {
 				// This works!  There's no tool animation, of course, but it does/
 				// have the effect of using that tool on the environment.  Neat!
 				bot.UseTool();
+				bot.MoveLeft();
 			}
 		}
 
