@@ -49,8 +49,12 @@ namespace M1
 				// This works!  There's no tool animation, of course, but it does/
 				// have the effect of using that tool on the environment.  Neat!
 				bot.UseTool();
-				bot.MoveLeft();
+				bot.Move(-1, 0);
 			}
+			if (e.Button == SButton.Left && bot != null) bot.Move(-1, 0);
+			if (e.Button == SButton.Right && bot != null) bot.Move(1, 0);
+			if (e.Button == SButton.Up && bot != null) bot.Move(0, -1);
+			if (e.Button == SButton.Down && bot != null) bot.Move(0, 1);
 		}
 
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {

@@ -27,9 +27,14 @@ namespace M1 {
 		static int uniqueFarmerID = 1;
 		const float speed = 64;		// pixels/sec
 
+		static Texture2D botSprites;
 
 		public Bot()
 		:base(vanillaObjectTypeId, 1, false, -1, 0) {
+			if (botSprites == null) {
+				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
+			}
+
 			var initialTools = new List<Item>();
 			initialTools.Add(new StardewValley.Tools.Hoe());
 
@@ -60,8 +65,30 @@ namespace M1 {
 			Game1.toolAnimationDone(farmer);
 		}
 
-		public void MoveLeft() {
-			targetPos.X -= 64f;
+		public void Move(int dColumn, int dRow) {
+			Vector2 newTile = farmer.getTileLocation() + new Vector2(dColumn, dRow);
+			// make sure the terrain in that direction isn't blocked
+			var location = Game1.currentLocation;	// ToDo: find correct location!
+			if (!location.isTileLocationTotallyClearAndPlaceableIgnoreFloors(newTile)) {
+				ModEntry.instance.print($"No can do (path blocked)");
+				return;
+			}
+
+			// face and start moving
+			targetPos = newTile * 64;
+			if (dRow < 0) farmer.faceDirection(0);
+			else if (dRow > 0) farmer.faceDirection(2);
+			else if (dColumn < 0) farmer.faceDirection(3);
+			else if (dColumn > 0) farmer.faceDirection(1);
+
+			// Do collision actions (shake the grass, etc.)
+			if (location.terrainFeatures.ContainsKey(newTile)) {
+				ModEntry.instance.print($"Shaking terrain feature at {newTile}");
+				//Rectangle posRect = new Rectangle((int)position.X-16, (int)position.Y-24, 32, 48);
+				var feature = location.terrainFeatures[newTile];
+				var posRect = feature.getBoundingBox(newTile);
+				feature.doCollisionAction(posRect, 4, newTile, null, location);
+			}
 		}
 
 		public void Update() {
@@ -80,14 +107,26 @@ namespace M1 {
 					// Update the invisible farmer
 					farmer.setTileLocation(newTile);
 				}
-				ModEntry.instance.print($"Updated position to {position}, tileLocation to {TileLocation}");
+				ModEntry.instance.print($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
 			}
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1) {
-			//ModEntry.instance.print($"draw 1 at {x},{y}");
-			float base_sort = (float)((y + 1) * 64) / 10000f + tileLocation.X / 50000f;
-			draw(spriteBatch, (int)position.X, (int)position.Y, base_sort, alpha);
+			// draw shadow
+			spriteBatch.Draw(Game1.shadowTexture, Game1.GlobalToLocal(Game1.viewport, new Vector2(position.X + 32, position.Y + 51 + 4)),
+				Game1.shadowTexture.Bounds, Color.White * alpha, 0f,
+				new Vector2(Game1.shadowTexture.Bounds.Center.X, Game1.shadowTexture.Bounds.Center.Y), 4f,
+				SpriteEffects.None, (float)getBoundingBox(new Vector2(x, y)).Bottom / 15000f);
+			// draw sprite
+			Vector2 position3 = Game1.GlobalToLocal(Game1.viewport, new Vector2(
+				position.X + 32 + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0),
+				position.Y + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0)));
+			// Note: FacingDirection 0-3 is Up, Right, Down, Left
+			Rectangle srcRect = new Rectangle(16 * farmer.FacingDirection, 0, 16, 24);
+			Vector2 origin2 = new Vector2(8f, 8f);
+			spriteBatch.Draw(botSprites, position3, srcRect, Color.White * alpha, 0f,
+				origin2,
+				(scale.Y > 1f) ? getScale().Y : 4f, SpriteEffects.None, (float)(getBoundingBox(new Vector2(x, y)).Bottom) / 10000f);
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int xNonTile, int yNonTile, float layerDepth, float alpha = 1) {
