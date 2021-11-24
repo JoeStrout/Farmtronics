@@ -106,10 +106,10 @@ namespace M1 {
 				if (newTile != TileLocation) {
 					// Remove this object from the Objects list at its old position
 					var location = Game1.currentLocation;	// ToDo: find correct location!
-					location.Objects.Remove(TileLocation);
+					location.overlayObjects.Remove(TileLocation);
 					// Update our tile pos, and add this object to the Objects list at the new position
 					TileLocation = newTile;
-					location.Objects.Add(newTile, this);
+					location.overlayObjects.Add(newTile, this);
 					// Update the invisible farmer
 					farmer.setTileLocation(newTile);
 				}
@@ -140,13 +140,35 @@ namespace M1 {
 			base.draw(spriteBatch, xNonTile, yNonTile, layerDepth, alpha);
 		}
 
-		//public override int GetActualCapacity() {
-		//	return 18;
-		//}
+		public override int GetActualCapacity() {
+			return 18;
+		}
 
 		public override void ShowMenu() {
 			ModEntry.instance.print($"{Name} ShowMenu()");
-			base.ShowMenu();
+
+			// So this is what a normal chest does:
+			Game1.activeClickableMenu = new StardewValley.Menus.ItemGrabMenu(
+				GetItemsForPlayer(Game1.player.UniqueMultiplayerID),
+				reverseGrab: false,
+				showReceivingMenu: false,
+				StardewValley.Menus.InventoryMenu.highlightAllItems,
+				grabItemFromInventory,
+				Name,
+				grabItemFromChest,
+				snapToBottom: true,
+				canBeExitedWithKey: false,
+				playRightClickSound: true,
+				allowRightClick: true,
+				showOrganizeButton: true,
+				1,		// int source
+				this,	// sourceItem
+				-1,		// whichSpecialButton
+				this);	// context
+
+			// ...but we're going to need to replace ItemGrabMenu with our own custom
+			// menu.  Fortunately it should be able to leverage the ItemsToGrabMenu
+			// (which is the container inventory space), as ItemGrabMenu does.
 		}
 	}
 }
