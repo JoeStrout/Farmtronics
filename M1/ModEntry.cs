@@ -38,12 +38,16 @@ namespace M1
 		public void OnButtonPressed(object sender, ButtonPressedEventArgs e) {
 			if (e.Button == SButton.PageUp) {
 				// Create a bot.
-				bot = new Bot();
 				Vector2 pos = Game1.player.position;
 				pos.X -= 64;
-				Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
-				bot.NotePosition();
+				Vector2 tilePos = new Vector2((int)(pos.X / 64), (int)(pos.Y / 64));
+				bot = new Bot(tilePos);
 
+				//Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
+				bot.TileLocation = tilePos;
+				Game1.player.currentLocation.overlayObjects[tilePos] = bot;
+
+				bot.NotePosition();
 			}
 			if (e.Button == SButton.PageDown && bot != null) {
 				// This works!  There's no tool animation, of course, but it does/

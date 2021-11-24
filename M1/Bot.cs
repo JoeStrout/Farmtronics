@@ -13,8 +13,9 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 
 namespace M1 {
-	public class Bot : StardewValley.Object {
-		const int vanillaObjectTypeId = 125;	// "Golden Relic"
+	public class Bot : StardewValley.Objects.Chest {
+		const int vanillaObjectTypeId = 130;	// "Chest"
+		//const int vanillaObjectTypeId = 125;	// "Golden Relic"
 
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
@@ -29,8 +30,7 @@ namespace M1 {
 
 		static Texture2D botSprites;
 
-		public Bot()
-		:base(vanillaObjectTypeId, 1, false, -1, 0) {
+		public Bot(Vector2 tileLocation) :base(true, tileLocation) {
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
 			}
@@ -38,11 +38,15 @@ namespace M1 {
 			var initialTools = new List<Item>();
 			initialTools.Add(new StardewValley.Tools.Hoe());
 
+			foreach (Item i in initialTools) addItem(i);
+
+			Name = "Bot " + uniqueFarmerID;
 			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
 				new Vector2(100,100), 2,
-				"Bot " + uniqueFarmerID, initialTools, isMale: true);
+				Name, initialTools, isMale: true);
 			uniqueFarmerID++;
-			this.Type = "Crafting";	// (necessary for performDropDownAction to be called)
+			//this.Type = "Crafting";	// (necessary for performDropDownAction to be called)
+			ModEntry.instance.print($"Type: {this.Type}  bigCraftable:{bigCraftable}");
 		}
 
 
@@ -66,20 +70,22 @@ namespace M1 {
 		}
 
 		public void Move(int dColumn, int dRow) {
-			Vector2 newTile = farmer.getTileLocation() + new Vector2(dColumn, dRow);
+			// Face in the specified direction
+			if (dRow < 0) farmer.faceDirection(0);
+			else if (dRow > 0) farmer.faceDirection(2);
+			else if (dColumn < 0) farmer.faceDirection(3);
+			else if (dColumn > 0) farmer.faceDirection(1);
+
 			// make sure the terrain in that direction isn't blocked
+			Vector2 newTile = farmer.getTileLocation() + new Vector2(dColumn, dRow);
 			var location = Game1.currentLocation;	// ToDo: find correct location!
 			if (!location.isTileLocationTotallyClearAndPlaceableIgnoreFloors(newTile)) {
 				ModEntry.instance.print($"No can do (path blocked)");
 				return;
 			}
 
-			// face and start moving
+			// start moving
 			targetPos = newTile * 64;
-			if (dRow < 0) farmer.faceDirection(0);
-			else if (dRow > 0) farmer.faceDirection(2);
-			else if (dColumn < 0) farmer.faceDirection(3);
-			else if (dColumn > 0) farmer.faceDirection(1);
 
 			// Do collision actions (shake the grass, etc.)
 			if (location.terrainFeatures.ContainsKey(newTile)) {
@@ -132,6 +138,15 @@ namespace M1 {
 		public override void draw(SpriteBatch spriteBatch, int xNonTile, int yNonTile, float layerDepth, float alpha = 1) {
 			//ModEntry.instance.print($"draw 2 at {xNonTile},{yNonTile}");
 			base.draw(spriteBatch, xNonTile, yNonTile, layerDepth, alpha);
+		}
+
+		//public override int GetActualCapacity() {
+		//	return 18;
+		//}
+
+		public override void ShowMenu() {
+			ModEntry.instance.print($"{Name} ShowMenu()");
+			base.ShowMenu();
 		}
 	}
 }
