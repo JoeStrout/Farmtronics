@@ -21,7 +21,6 @@ namespace M1 {
 
 		public Shell() {
 			console = new M1.Console(this);
-			AddIntrinsics();
 
 			// prepare the interpreter
 			interpreter = new Interpreter(null, PrintLine, PrintLine);
@@ -29,9 +28,28 @@ namespace M1 {
 			interpreter.hostData = this;
 		}
 
-		public void Present() {
+		public void Init(Bot botContext=null) {
 			M1API.Init(this);
-			console.Present();
+
+			var display = console.display;
+			display.backColor = new Color(0.31f, 0.11f, 0.86f);
+			display.Clear();
+
+			var colors = new Color[] { Color.Red, Color.Yellow, Color.Green, Color.Purple };
+
+			display.SetCursor(19, 1);
+			for (int i=0; i<4; i++) {
+				display.textColor = colors[i]; display.Print("*");
+			}
+			display.textColor = Color.Azure; display.Print(" MiniScript M-1 " + (botContext==null ? "Home" : "Bot") + " Computer ");
+			for (int i=0; i<4; i++) {
+				display.textColor = colors[3-i]; display.Print("*");
+			}
+			display.textColor = Color.White;
+			display.NextLine(); display.NextLine();
+			display.PrintLine("Ready.");
+			display.NextLine();
+
 		}
 
 		public void Update(GameTime gameTime) {
@@ -104,14 +122,6 @@ namespace M1 {
 				//	MiniMicroAPI.StackList(interpreter.vm));
 				interpreter.Stop();
 			}
-		}
-
-
-
-
-		public static void AddIntrinsics() {
-			if (intrinsicsAdded) return;
-			intrinsicsAdded = true;
 		}
 	
 	}

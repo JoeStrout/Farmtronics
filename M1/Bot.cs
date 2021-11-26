@@ -30,6 +30,8 @@ namespace M1 {
 		static int uniqueFarmerID = 1;
 		const float speed = 64;		// pixels/sec
 
+		public Shell shell { get; private set; }
+
 		static Texture2D botSprites;
 
 		public Bot(Vector2 tileLocation) :base(true, tileLocation) {
@@ -149,7 +151,11 @@ namespace M1 {
 		public override void ShowMenu() {
 			ModEntry.instance.print($"{Name} ShowMenu()");
 
-			Game1.activeClickableMenu = new BotUIMenu(this);
+			if (shell == null) {
+				shell = new Shell();
+				shell.Init(this);
+			}
+			Game1.activeClickableMenu = new BotUIMenu(this, shell);
 
 			/*
 			// So this is what a normal chest does:

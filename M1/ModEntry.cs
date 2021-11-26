@@ -81,8 +81,11 @@ namespace M1
 		}
 
 		private void PresentComputer() {
-			if (shell == null) shell = new Shell();
-			shell.Present();
+			if (shell == null) {
+				shell = new Shell();
+				shell.Init();
+			}
+			shell.console.Present();
 
 			var farm = (Farm)Game1.getLocationFromName("Farm");
 

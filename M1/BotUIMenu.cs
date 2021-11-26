@@ -26,7 +26,7 @@ namespace M1 {
 		const int consoleHeight = 480;
 		const int consoleWidth = 640;
 
-		public BotUIMenu(Bot bot)
+		public BotUIMenu(Bot bot, Shell shell)
 		: base(null, okButton: true, trashCan: true) {
 			print($"Created BotUIMenu. PositionOnScreen:{xPositionOnScreen},{yPositionOnScreen}; viewport:{Game1.uiViewport.Width}, {Game1.uiViewport.Height} ");
 
@@ -77,8 +77,7 @@ namespace M1 {
 				}
 			}
 
-			shell = new Shell();
-			shell.console.RemoveFrameAndPositionAt(consoleLeft + 53, consoleTop + 34);	// (empirical fudge values)
+			bot.shell.console.RemoveFrameAndPositionAt(consoleLeft + 53, consoleTop + 34);	// (empirical fudge values)
 		}
 
 		static void print(string s) {
@@ -87,12 +86,12 @@ namespace M1 {
 
 		public override void update(GameTime time) {
 			base.update(time);
-			shell.console.update(time);
+			bot.shell.console.update(time);
 			botInventoryMenu.update(time);
 		}
 
 		public override void receiveKeyPress(Keys key) {
-			shell.console.receiveKeyPress(key);
+			bot.shell.console.receiveKeyPress(key);
 		}
 
 		public override void draw(SpriteBatch b) {
@@ -120,7 +119,7 @@ namespace M1 {
 				drawHeight,
 				speaker: false, drawOnlyBox: true);
 
-			shell.console.draw(b);
+			bot.shell.console.draw(b);
 
 /*
 			if (poof != null)
