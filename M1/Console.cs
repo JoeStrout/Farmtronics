@@ -31,7 +31,7 @@ namespace M1 {
 		int drawScale = 4;
 		Rectangle screenArea;	// "work area" of the actual TV screen, in dialog coordinates
 
-		Texture2D[] screenLayers;	// 0=background (border); 1=work area background; 2=overlay
+		Texture2D screenOverlay;	// frame and shine
 		Rectangle screenSrcR;		// source rectangle for entire screen, including frame
 		Rectangle innerSrcR;		// source rectangle for just the display area of the screen
 		Texture2D whiteTex;
@@ -60,10 +60,7 @@ namespace M1 {
 
 			screenArea = new Rectangle(20*drawScale, 18*drawScale, 160*drawScale, 120*drawScale);	// 640x480 (VGA)!
 
-			screenLayers = new Texture2D[3];
-			screenLayers[0] = ModEntry.helper.Content.Load<Texture2D>("assets/ScreenBorder.png");
-			screenLayers[1] = ModEntry.helper.Content.Load<Texture2D>("assets/ScreenWorkArea.png");
-			screenLayers[2] = ModEntry.helper.Content.Load<Texture2D>("assets/ScreenOverlay.png");
+			screenOverlay = ModEntry.helper.Content.Load<Texture2D>("assets/ScreenOverlay.png");
 			screenSrcR = new Rectangle(0, 0, 200, 160);
 
 			innerSrcR = new Rectangle(20, 18, 160, 120);
@@ -78,7 +75,6 @@ namespace M1 {
 			for (int i=0; i<4; i++) {
 				display.textColor = colors[i]; display.Print("*");
 			}
-			display.backColor = Color.Yellow;
 			display.textColor = Color.Azure; display.Print(" MiniScript M-1 Home Computer ");
 			for (int i=0; i<4; i++) {
 				display.textColor = colors[3-i]; display.Print("*");
@@ -86,11 +82,8 @@ namespace M1 {
 			display.textColor = Color.White;
 			display.NextLine(); display.NextLine();
 			display.PrintLine("Ready.");
-			display.PrintLine("And willing.");
-			display.backColor = new Color(0.31f, 0.11f, 0.86f);
 			display.NextLine();
-			display.SetCursor(0,0); display.Print("This is row 0, by golly.");
-
+	
 			keyBuffer = new Queue<char>();
 			history = new List<string>();
 
@@ -103,6 +96,9 @@ namespace M1 {
 			xPositionOnScreen = left - screenArea.Left;
 			yPositionOnScreen = top - screenArea.Top;
 			ModEntry.instance.print($"Console.RemoveFrameAndPositionAt({left}, {top})");
+
+			Game1.keyboardDispatcher.Subscriber = this;
+			this.Selected = true;
 		}
 
 		public void Present() {
@@ -516,7 +512,7 @@ namespace M1 {
 
 			
 			// draw bezel/shine on top
-			b.Draw(screenLayers[2], positionOnScreen, drawFrame ? screenSrcR : innerSrcR,
+			b.Draw(screenOverlay, positionOnScreen, drawFrame ? screenSrcR : innerSrcR,
 				Color.White,
 				0, Vector2.Zero, drawScale, SpriteEffects.None, 0.5f);
 		}

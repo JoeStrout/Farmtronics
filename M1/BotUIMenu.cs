@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
@@ -84,6 +85,15 @@ namespace M1 {
 			ModEntry.instance.print(s);
 		}
 
+		public override void update(GameTime time) {
+			base.update(time);
+			shell.console.update(time);
+			botInventoryMenu.update(time);
+		}
+
+		public override void receiveKeyPress(Keys key) {
+			shell.console.receiveKeyPress(key);
+		}
 
 		public override void draw(SpriteBatch b) {
 			// darken the background
