@@ -11,7 +11,7 @@ using StardewValley.BellsAndWhistles;
 
 namespace M1 {
 	public class Console : IClickableMenu, IKeyboardSubscriber {
-		public new const int width = 800;
+		public new const int width = 800;	// total width/height including the frame
 		public new const int height = 640;
 
 		public const int kBackspace = 8;
@@ -24,13 +24,17 @@ namespace M1 {
 		public const int kControlA = 1;
 		public const int kControlE = 5;
 
+		public bool drawFrame = true;
+
 		public Queue<char> keyBuffer;		// keys pressed but not consumed
 
 		int drawScale = 4;
 		Rectangle screenArea;	// "work area" of the actual TV screen, in dialog coordinates
 
 		Texture2D[] screenLayers;	// 0=background (border); 1=work area background; 2=overlay
-		Rectangle screenSrcR;
+		Rectangle screenSrcR;		// source rectangle for entire screen, including frame
+		Rectangle innerSrcR;		// source rectangle for just the display area of the screen
+		Texture2D whiteTex;
 
 		Shell owner;
 		public TextDisplay display {  get; private set; }
@@ -62,6 +66,8 @@ namespace M1 {
 			screenLayers[2] = ModEntry.helper.Content.Load<Texture2D>("assets/ScreenOverlay.png");
 			screenSrcR = new Rectangle(0, 0, 200, 160);
 
+			innerSrcR = new Rectangle(20, 18, 160, 120);
+
 			display = new TextDisplay();
 			display.backColor = new Color(0.31f, 0.11f, 0.86f);
 			display.Clear();
@@ -72,6 +78,7 @@ namespace M1 {
 			for (int i=0; i<4; i++) {
 				display.textColor = colors[i]; display.Print("*");
 			}
+			display.backColor = Color.Yellow;
 			display.textColor = Color.Azure; display.Print(" MiniScript M-1 Home Computer ");
 			for (int i=0; i<4; i++) {
 				display.textColor = colors[3-i]; display.Print("*");
@@ -79,10 +86,23 @@ namespace M1 {
 			display.textColor = Color.White;
 			display.NextLine(); display.NextLine();
 			display.PrintLine("Ready.");
+			display.PrintLine("And willing.");
+			display.backColor = new Color(0.31f, 0.11f, 0.86f);
 			display.NextLine();
+			display.SetCursor(0,0); display.Print("This is row 0, by golly.");
 
 			keyBuffer = new Queue<char>();
 			history = new List<string>();
+
+			whiteTex = new Texture2D(Game1.graphics.GraphicsDevice, 1, 1);
+			whiteTex.SetData(new[] { Color.White });
+		}
+
+		public void RemoveFrameAndPositionAt(int left, int top) {
+			drawFrame = false;
+			xPositionOnScreen = left - screenArea.Left;
+			yPositionOnScreen = top - screenArea.Top;
+			ModEntry.instance.print($"Console.RemoveFrameAndPositionAt({left}, {top})");
 		}
 
 		public void Present() {
@@ -471,30 +491,38 @@ namespace M1 {
 
 	
 		public override void draw(SpriteBatch b) {
-			// fade out the background
-			b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height), Color.Black * 0.5f);
 
-			// draw the screen background
-			
-			b.Draw(screenLayers[0], new Vector2(xPositionOnScreen , yPositionOnScreen), screenSrcR,
-				new Color(0.64f, 0.57f, 0.98f),
-				0, Vector2.Zero, drawScale, SpriteEffects.None, 0.5f);
-			b.Draw(screenLayers[1], new Vector2(xPositionOnScreen , yPositionOnScreen), screenSrcR,
-				display.backColor,
-				0, Vector2.Zero, drawScale, SpriteEffects.None, 0.5f);
+			Vector2 positionOnScreen = new Vector2(xPositionOnScreen, yPositionOnScreen);
+
+			Rectangle displayArea;
+			if (drawFrame) {
+				// fade out the background
+				b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height), Color.Black * 0.5f);
+	
+				// draw the screen background
+				displayArea = new Rectangle(xPositionOnScreen + screenArea.Left,
+					yPositionOnScreen + screenArea.Top, screenArea.Width, screenArea.Height);
+
+				Rectangle border = new Rectangle(displayArea.Left - 32, displayArea.Top - 32, displayArea.Width + 64, displayArea.Height + 64);
+				FillRect(b, border, new Color(0.64f, 0.57f, 0.98f));
+			} else {
+				// draw just the inner portion of the screen background
+				displayArea = new Rectangle(xPositionOnScreen, yPositionOnScreen, screenArea.Width, screenArea.Height);
+			}
 			
 			// draw content
-			Rectangle displayArea = new Rectangle(xPositionOnScreen + screenArea.Left,
-				yPositionOnScreen + screenArea.Top, screenArea.Width, screenArea.Height);
+			FillRect(b, displayArea, display.backColor);
 			display.Render(b, displayArea);
 
 			
 			// draw bezel/shine on top
-			b.Draw(screenLayers[2], new Vector2(xPositionOnScreen , yPositionOnScreen), screenSrcR,
+			b.Draw(screenLayers[2], positionOnScreen, drawFrame ? screenSrcR : innerSrcR,
 				Color.White,
 				0, Vector2.Zero, drawScale, SpriteEffects.None, 0.5f);
-			
 		}
 
+		void FillRect(SpriteBatch b, Rectangle rect, Color color) {
+			b.Draw(whiteTex, rect, color);
+		}
 	}
 }

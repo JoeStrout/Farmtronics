@@ -308,7 +308,8 @@ namespace M1 {
 					}
 					if (col >= cols) break;
 					// Now start a rectangle at this location.
-					Rectangle rect = new Rectangle(displayArea.Left + col*16, displayArea.Bottom - row * 24 - 30, 20, 28);
+					int startCol = col;
+					Rectangle rect = new Rectangle(displayArea.Left + col*16, displayArea.Bottom - row * 24 - 24, 20, 24);
 					// now skip ahead until a cell that's a different color from this one
 					while (++col < cols) {
 						var newBg = cells[row,col].inverse ? cells[row,col].foreColor : cells[row,col].backColor;
@@ -317,6 +318,7 @@ namespace M1 {
 					}
 					// And draw!
 					FillRect(b, rect, cellBg);
+					//ModEntry.instance.print($"Background fill: {rect} in {cellBg} -- row {row}, col {startCol}-{col}");
 				}
 			}
 
@@ -408,7 +410,7 @@ namespace M1 {
 			var srcR = AtlasRectForIndex(atlasIndex);
 
 			float drawX = displayArea.Left + screenCol * 16 + 1;
-			float drawY = displayArea.Bottom - screenRow * 24 - 31; 
+			float drawY = displayArea.Bottom - screenRow * 24 - 27; 
 			
 			b.Draw(fontAtlas, new Vector2(drawX, drawY), srcR, color,
 				0, Vector2.Zero, 2, SpriteEffects.None, 0.95f);

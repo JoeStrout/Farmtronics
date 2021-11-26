@@ -14,6 +14,8 @@ using StardewValley;
 
 namespace M1 {
 	public class Bot : StardewValley.Objects.Chest {
+		public IList<Item> inventory {  get {  return farmer.Items; } }
+
 		const int vanillaObjectTypeId = 130;	// "Chest"
 		//const int vanillaObjectTypeId = 125;	// "Golden Relic"
 
@@ -141,12 +143,15 @@ namespace M1 {
 		}
 
 		public override int GetActualCapacity() {
-			return 18;
+			return 12;
 		}
 
 		public override void ShowMenu() {
 			ModEntry.instance.print($"{Name} ShowMenu()");
 
+			Game1.activeClickableMenu = new BotUIMenu(this);
+
+			/*
 			// So this is what a normal chest does:
 			Game1.activeClickableMenu = new StardewValley.Menus.ItemGrabMenu(
 				GetItemsForPlayer(Game1.player.UniqueMultiplayerID),
@@ -165,6 +170,7 @@ namespace M1 {
 				this,	// sourceItem
 				-1,		// whichSpecialButton
 				this);	// context
+			*/
 
 			// ...but we're going to need to replace ItemGrabMenu with our own custom
 			// menu.  Fortunately it should be able to leverage the ItemsToGrabMenu
