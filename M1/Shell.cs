@@ -5,8 +5,9 @@ the user.
 */
 
 using System;
+using System.IO;
 using StardewValley;
-//using StardewModdingAPI;
+using StardewModdingAPI;
 //using StardewValley.Menus;
 using Miniscript;
 using Microsoft.Xna.Framework;
@@ -14,11 +15,16 @@ using Microsoft.Xna.Framework;
 namespace M1 {
 	public class Shell {
 		public Console console { get; private set; }
+		public Bot bot {  get; private set; }
+		public bool allowControlCBreak = true;
+
 		Interpreter interpreter;
 		bool runProgram;
 		static bool intrinsicsAdded;
 		string inputReceived;		// stores input while app is running, for _input intrinsic
-
+		
+		TextDisplay textDisplay {  get {  return console.display; } }
+		
 		public Shell() {
 			console = new M1.Console(this);
 
@@ -29,6 +35,7 @@ namespace M1 {
 		}
 
 		public void Init(Bot botContext=null) {
+			this.bot = botContext;
 			M1API.Init(this);
 
 			var display = console.display;
@@ -46,9 +53,22 @@ namespace M1 {
 				display.textColor = colors[3-i]; display.Print("*");
 			}
 			display.textColor = Color.White;
-			display.NextLine(); display.NextLine();
-			display.PrintLine("Ready.");
 			display.NextLine();
+
+			RunStartupScripts();
+		}
+
+		void RunStartupScripts() {
+			// load and run the startup script(s)
+			if (!string.IsNullOrEmpty(Constants.CurrentSavePath)) {
+				string path = Path.Combine(Constants.CurrentSavePath, "usrdisk", "startup.ms");
+				Debug.Log($"Path to startup script: {path}");
+				if (File.Exists(path)) {
+					Debug.Log($"About to read {path}");
+					string startupScript = File.ReadAllText(path);
+					if (!string.IsNullOrEmpty(startupScript)) BeginRun(startupScript);
+				} else Debug.Log("No /usr/startup.ms found");
+			} else Debug.Log("CurrentSavePath is empty");
 
 		}
 
@@ -104,10 +124,67 @@ namespace M1 {
 			interpreter.REPL(command, 0.1f);
 		}
 	
-		public void PrintLine(string line) {
-			TextDisplay disp = console.display;
-			disp.Print(line);
-			disp.Print(disp.delimiter);
+		void BeginRun(string source) {
+			Debug.Log("BeginRun; Program source: " + source);
+			System.GC.Collect();
+			if (interpreter.vm == null) interpreter.REPL("", 0);	// (forces creation of a VM)
+			else interpreter.vm.Reset();
+			if (string.IsNullOrEmpty(source)) return;
+		
+			ValMap globals = interpreter.vm.globalContext.variables;
+			if (globals != null) globals.map.Remove(M1API._stackAtBreak);
+		
+			interpreter.Reset(source);
+			try {
+				interpreter.Compile();
+			} catch (MiniscriptException me) {
+				Debug.Log("Caught MiniScript exception: " + me);
+			}
+			if (interpreter.vm == null) interpreter.REPL("", 0);
+			interpreter.vm.globalContext.variables = globals;
+			interpreter.RunUntilDone(0.03f);
+			//lastNonidleTime = Time.time;
+			if (interpreter.NeedMoreInput()) {
+				// If the interpreter wants more input at this point, it's because the program
+				// has an unterminated if/while/for/function block.  Let's just cancel the run.
+				Debug.Log("Canceling run in BeginRun");
+				Break(true);
+			}		
+		}
+
+		public void Break(bool silent=false) {
+			if (!silent && !allowControlCBreak) return;
+		
+			// grab the full stack and tuck it away for future reference
+			ValList stack = M1API.StackList(interpreter.vm);
+		
+			// also find the first non-null entry, to display right away
+			SourceLoc loc = null;
+			if (interpreter.vm != null) {
+				foreach (var stackLoc in interpreter.vm.GetStack()) {
+					loc = stackLoc;
+					if (loc != null) break;
+				}
+			}
+			interpreter.Stop();
+			console.AbortInput();
+			console.keyBuffer.Clear();
+			if (!silent) {
+				string msg = "BREAK";
+				if (loc != null) {
+					msg += " at ";
+					if (loc.context != null) msg += loc.context + " ";
+					msg += "line " + loc.lineNum;
+				}
+				textDisplay.Print(msg + "\n");
+				//Debug.Log("printed: " + msg);
+			}
+			ValMap globals = interpreter.vm.globalContext.variables;
+			interpreter.Reset();
+			interpreter.REPL("");	// (forces creation of a VM)
+			interpreter.vm.globalContext.variables = globals;
+			globals.SetElem(M1API._stackAtBreak, stack);
+			//Debug.Log("Rebuilt VM and restored " + globals.Count + " globals");
 		}
 
 		void Clear() {
@@ -123,6 +200,12 @@ namespace M1 {
 				interpreter.Stop();
 			}
 		}
-	
+
+		public void PrintLine(string line) {
+			TextDisplay disp = console.display;
+			disp.Print(line);
+			disp.Print(disp.delimiter);
+		}
+
 	}
 }

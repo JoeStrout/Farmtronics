@@ -86,7 +86,6 @@ namespace M1 {
 
 		public override void update(GameTime time) {
 			base.update(time);
-			bot.shell.console.update(time);
 			botInventoryMenu.update(time);
 		}
 

@@ -24,24 +24,30 @@ namespace M1
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
 			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+
+			print($"CurrentSavePath: {Constants.CurrentSavePath}");
 		}
 
+		uint prevTicks;
 		private void UpdateTicking(object sender, UpdateTickingEventArgs e) {
-			if (bot != null) bot.Update();
+			uint dTicks = e.Ticks - prevTicks;
+			var gameTime = new GameTime(new TimeSpan(e.Ticks * 10000000 / 60), new TimeSpan(dTicks * 10000000 / 60));
+			Bot.UpdateAll(gameTime);
+			prevTicks = e.Ticks;
 		}
 
 		public void print(string s) {
             this.Monitor.Log(s, LogLevel.Debug);
 		}
 
-		Bot bot;
 		public void OnButtonPressed(object sender, ButtonPressedEventArgs e) {
 			if (e.Button == SButton.PageUp) {
+				print($"CurrentSavePath: {Constants.CurrentSavePath}");
 				// Create a bot.
 				Vector2 pos = Game1.player.position;
 				pos.X -= 64;
 				Vector2 tilePos = new Vector2((int)(pos.X / 64), (int)(pos.Y / 64));
-				bot = new Bot(tilePos);
+				var bot = new Bot(tilePos);
 
 				//Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
 				bot.TileLocation = tilePos;
@@ -49,16 +55,6 @@ namespace M1
 
 				bot.NotePosition();
 			}
-			if (e.Button == SButton.PageDown && bot != null) {
-				// This works!  There's no tool animation, of course, but it does/
-				// have the effect of using that tool on the environment.  Neat!
-				bot.UseTool();
-				bot.Move(-1, 0);
-			}
-			if (e.Button == SButton.Left && bot != null) bot.Move(-1, 0);
-			if (e.Button == SButton.Right && bot != null) bot.Move(1, 0);
-			if (e.Button == SButton.Up && bot != null) bot.Move(0, -1);
-			if (e.Button == SButton.Down && bot != null) bot.Move(0, 1);
 		}
 
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {

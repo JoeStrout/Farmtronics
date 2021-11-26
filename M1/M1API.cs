@@ -24,6 +24,7 @@ namespace M1 {
 		public static Shell shell;		// these should be assigned whenever a shell is accessed
 		public static Console console;	// (usually by calling Init)
 
+		public static ValString _stackAtBreak = new ValString("_stackAtBreak");
 		static ValString _size = new ValString("size");
 		static ValString _name = new ValString("name");
 		static ValString _type = new ValString("type");
@@ -33,6 +34,7 @@ namespace M1 {
 		static ValString _stump = new ValString("stump");
 		static ValString _tapped = new ValString("tapped");
 		static ValString _hasSeed = new ValString("hasSeed");
+
 
 
 		public static void Init(Shell shell) {
@@ -47,7 +49,15 @@ namespace M1 {
 			HostInfo.info = "http://miniscript.org/MiniMicro";
 		
 			Intrinsic f;
-		
+
+			f = Intrinsic.Create("_debugLog");
+			f.AddParam("s");
+			f.code = (context, partialResult) => {
+				string s = context.variables.GetString("s");
+				Debug.Log(s);
+				return Intrinsic.Result.Null;
+			};
+
 			f = Intrinsic.Create("farm");
 			f.code = (context, partialResult) => {
 				var loc = (Farm)Game1.getLocationFromName("Farm");
@@ -58,6 +68,35 @@ namespace M1 {
 				
 				result.map[_size] = ToList(layer.LayerWidth, layer.LayerHeight);
 				return new Intrinsic.Result(result);
+			};
+
+			f = Intrinsic.Create("left");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				shell.bot.Rotate(-1);
+				return Intrinsic.Result.Null;
+			};
+
+			f = Intrinsic.Create("right");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				shell.bot.Rotate(1);
+				return Intrinsic.Result.Null;
+			};
+
+			f = Intrinsic.Create("forward");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				if (partialResult == null) {
+					// Just starting our move; tell the bot and return partial result
+					shell.bot.MoveForward();
+					return new Intrinsic.Result(null, false);
+				} else {
+					// Continue until bot stops moving
+					if (shell.bot.IsMoving()) return partialResult;
+					return Intrinsic.Result.Null;
+				}
+
 			};
 		}
 
@@ -111,5 +150,18 @@ namespace M1 {
 			result.values.Add(new ValNumber(b));
 			return result;
 		}
+
+		public static ValList StackList(TAC.Machine vm) {
+			ValList result = new ValList();
+			foreach (SourceLoc loc in vm.GetStack()) {
+				if (loc == null) continue;
+				string s = loc.context;
+				if (string.IsNullOrEmpty(s)) s = "(current program)";
+				s += " line " + loc.lineNum;
+				result.values.Add(new ValString(s));
+			}
+			return result;
+		}
+
 	}
 }

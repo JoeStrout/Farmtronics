@@ -22,6 +22,7 @@ namespace M1 {
 		public const int kDownArrow = 20;
 		public const int kTab = 9;
 		public const int kControlA = 1;
+		public const int kControlC = 3;
 		public const int kControlE = 5;
 
 		public bool drawFrame = true;
@@ -130,8 +131,9 @@ namespace M1 {
 		}
 
 		public override void receiveKeyPress(Keys key) {
+			var inp = ModEntry.instance.Helper.Input;
 			if (key == Keys.Escape) Exit();
-			ModEntry.instance.print($"receiveKeyPress({key}, int {(int)key})");
+			Debug.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
 
 			// Most keys are handled through one of the misspelled IKeyboardSubscriber
 			// interface methods.  But not these:
@@ -142,10 +144,14 @@ namespace M1 {
 			case Keys.Up:		HandleKey((char)kUpArrow);			break;
 			}
 
-			var inp = ModEntry.instance.Helper.Input;
 			bool control = inp.IsDown(SButton.LeftControl) || inp.IsDown(SButton.RightControl);
-			if (key == Keys.A && control) HandleKey((char)kControlA);
-			if (key == Keys.E && control) HandleKey((char)kControlE);
+			if (control && key >= Keys.A && key <= Keys.Z) {
+				Debug.Log($"Handling control-{key}");
+				if (key == Keys.C && owner.allowControlCBreak) owner.Break();
+				else HandleKey((char)(kControlA + (int)key - (int)Keys.A));
+			} else {
+				Debug.Log("Not a control key press: {control}, {key}");
+			}
 		}
 
 		public bool Selected {  get; set; }
@@ -155,7 +161,7 @@ namespace M1 {
 		}
 
 		public virtual void RecieveTextInput(string text) {
-			display.Print(text);
+			foreach (char c in text) HandleKey(c);
 		}
 
 		public virtual void RecieveCommandInput(char command) {

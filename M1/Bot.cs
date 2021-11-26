@@ -25,7 +25,8 @@ namespace M1 {
 
 		Vector2 position;	// our current position, in pixels
 		Vector2 targetPos;	// position we're moving to, in pixels
-		
+
+		static List<Bot> instances = new List<Bot>();
 
 		static int uniqueFarmerID = 1;
 		const float speed = 64;		// pixels/sec
@@ -51,8 +52,13 @@ namespace M1 {
 			uniqueFarmerID++;
 			//this.Type = "Crafting";	// (necessary for performDropDownAction to be called)
 			ModEntry.instance.print($"Type: {this.Type}  bigCraftable:{bigCraftable}");
+
+			instances.Add(this);
 		}
 
+		public static void UpdateAll(GameTime gameTime) {
+			foreach (Bot bot in instances) bot.Update(gameTime);
+		}
 
 		public override bool performDropDownAction(Farmer who) {
 			base.performDropDownAction(who);
@@ -101,7 +107,29 @@ namespace M1 {
 			}
 		}
 
-		public void Update() {
+		public void MoveForward() {
+			switch (farmer.FacingDirection) {
+			case 0:		Move(0, -1);		break;
+			case 1:		Move(1, 0);			break;
+			case 2:		Move(0, 1);			break;
+			case 3:		Move(-1, 0);		break;
+			}
+			Debug.Log($"{Name} MoveForward() when position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
+		}
+
+		public bool IsMoving() {
+			return (position != targetPos);
+		}
+
+		public void Rotate(int stepsClockwise) {
+			farmer.faceDirection((farmer.FacingDirection + 4 + stepsClockwise) % 4);
+			Debug.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
+		}
+
+		public void Update(GameTime gameTime) {
+			if (shell != null) {
+				shell.console.update(gameTime);
+			}
 			if (position != targetPos) {
 				// ToDo: make a utility module with MoveTowards in it
 				position.X += MathF.Sign(targetPos.X - position.X);
@@ -117,7 +145,7 @@ namespace M1 {
 					// Update the invisible farmer
 					farmer.setTileLocation(newTile);
 				}
-				ModEntry.instance.print($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
+				//Debug.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
 			}
 		}
 

@@ -199,7 +199,7 @@ namespace M1 {
 	
 		public void Print(string s) {
 			HideCursorVisual();
-			ModEntry.instance.print($"Printing `{s}` with colors {textColor},{backColor}");
+			//Debug.Log($"Printing `{s}` with colors {textColor},{backColor}");
 			if (s != null) foreach (char c in s) Put(c);
 		}
 	
