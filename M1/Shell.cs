@@ -76,8 +76,6 @@ namespace M1 {
 					if (!string.IsNullOrEmpty(startupScript)) BeginRun(startupScript);
 				} else Debug.Log("No /usr/startup.ms found");
 			} else Debug.Log("CurrentSavePath is empty");
-			
-			ProcessGlobals();
 		}
 
 		public void Update(GameTime gameTime) {
@@ -87,7 +85,6 @@ namespace M1 {
 			} else if (interpreter.Running()) {
 				// continue the running code
 				interpreter.RunUntilDone(0.03f);
-				ProcessGlobals();
 			} else if (runProgram) {
 				//Debug.Log("runProgram flag detected; starting new program");
 				runProgram = false;
@@ -221,23 +218,6 @@ namespace M1 {
 			};
 		}
 		
-		public void ProcessGlobals() {
-			var globals = interpreter.vm.globalContext;
-			ValString newStatusColor = globals.GetLocal("statusColor", curStatusColor) as ValString;
-			if (newStatusColor != curStatusColor) {
-				curStatusColor = newStatusColor;
-				bot.statusColor = curStatusColor.ToString().ToColor();
-				Debug.Log($"Changed status color to {bot.statusColor}");
-			}
-			ValString newScreenColor = globals.GetLocal("screenColor", curScreenColor) as ValString;
-			if (newScreenColor != curScreenColor) {
-				curScreenColor = newScreenColor;
-				bot.screenColor = curScreenColor.ToString().ToColor();
-				Debug.Log($"Changed screen color to {bot.screenColor}");
-			}
-		}
-
-
 		void Clear() {
 			TextDisplay disp = console.display;
 			disp.Clear();
