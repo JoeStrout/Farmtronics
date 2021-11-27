@@ -20,9 +20,11 @@ namespace M1 {
 
 		Interpreter interpreter;
 		bool runProgram;
-		static bool intrinsicsAdded;
 		string inputReceived;		// stores input while app is running, for _input intrinsic
-		
+
+		ValString curStatusColor;
+		ValString curScreenColor;
+
 		TextDisplay textDisplay {  get {  return console.display; } }
 		
 		public Shell() {
@@ -55,6 +57,11 @@ namespace M1 {
 			display.textColor = Color.White;
 			display.NextLine();
 
+			if (interpreter.vm == null) {
+				interpreter.REPL("", 0);	// (forces creation of a VM)
+				AddGlobals();
+			}
+
 			RunStartupScripts();
 		}
 
@@ -69,7 +76,8 @@ namespace M1 {
 					if (!string.IsNullOrEmpty(startupScript)) BeginRun(startupScript);
 				} else Debug.Log("No /usr/startup.ms found");
 			} else Debug.Log("CurrentSavePath is empty");
-
+			
+			ProcessGlobals();
 		}
 
 		public void Update(GameTime gameTime) {
@@ -79,6 +87,7 @@ namespace M1 {
 			} else if (interpreter.Running()) {
 				// continue the running code
 				interpreter.RunUntilDone(0.03f);
+				ProcessGlobals();
 			} else if (runProgram) {
 				//Debug.Log("runProgram flag detected; starting new program");
 				runProgram = false;
@@ -133,7 +142,8 @@ namespace M1 {
 		
 			ValMap globals = interpreter.vm.globalContext.variables;
 			if (globals != null) globals.map.Remove(M1API._stackAtBreak);
-		
+			AddGlobals();
+
 			interpreter.Reset(source);
 			try {
 				interpreter.Compile();
@@ -184,8 +194,49 @@ namespace M1 {
 			interpreter.REPL("");	// (forces creation of a VM)
 			interpreter.vm.globalContext.variables = globals;
 			globals.SetElem(M1API._stackAtBreak, stack);
+			AddGlobals();
 			//Debug.Log("Rebuilt VM and restored " + globals.Count + " globals");
 		}
+
+		public void AddGlobals() {
+			curStatusColor = new ValString(bot.statusColor.ToHexString());
+			curScreenColor = new ValString(bot.screenColor.ToHexString());
+			var globals = interpreter.vm.globalContext;
+			if (globals.variables == null) globals.variables = new ValMap();
+			globals.variables["statusColor"] = curStatusColor;
+			globals.variables["screenColor"] = curScreenColor;
+			globals.variables.assignOverride = (key, value) => {
+				Debug.Log($"global {key} = {value}");
+				string keyStr = key.ToString();
+				if (keyStr == "statusColor") {
+					Debug.Log($"Caught assignment statusColor = {value}");
+					bot.statusColor = value.ToString().ToColor();
+					Debug.Log($"Changed status color to {bot.statusColor}");
+				} else if (keyStr == "screenColor") {
+					Debug.Log($"Caught assignment screenColor = {value}");
+					bot.screenColor = value.ToString().ToColor();
+					Debug.Log($"Changed screen color to {bot.screenColor}");
+				}
+				return false;	// allow the assignment
+			};
+		}
+		
+		public void ProcessGlobals() {
+			var globals = interpreter.vm.globalContext;
+			ValString newStatusColor = globals.GetLocal("statusColor", curStatusColor) as ValString;
+			if (newStatusColor != curStatusColor) {
+				curStatusColor = newStatusColor;
+				bot.statusColor = curStatusColor.ToString().ToColor();
+				Debug.Log($"Changed status color to {bot.statusColor}");
+			}
+			ValString newScreenColor = globals.GetLocal("screenColor", curScreenColor) as ValString;
+			if (newScreenColor != curScreenColor) {
+				curScreenColor = newScreenColor;
+				bot.screenColor = curScreenColor.ToString().ToColor();
+				Debug.Log($"Changed screen color to {bot.screenColor}");
+			}
+		}
+
 
 		void Clear() {
 			TextDisplay disp = console.display;

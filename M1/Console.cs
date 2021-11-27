@@ -133,7 +133,7 @@ namespace M1 {
 		public override void receiveKeyPress(Keys key) {
 			var inp = ModEntry.instance.Helper.Input;
 			if (key == Keys.Escape) Exit();
-			Debug.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
+			//Debug.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
 
 			// Most keys are handled through one of the misspelled IKeyboardSubscriber
 			// interface methods.  But not these:
@@ -146,11 +146,11 @@ namespace M1 {
 
 			bool control = inp.IsDown(SButton.LeftControl) || inp.IsDown(SButton.RightControl);
 			if (control && key >= Keys.A && key <= Keys.Z) {
-				Debug.Log($"Handling control-{key}");
+				//Debug.Log($"Handling control-{key}");
 				if (key == Keys.C && owner.allowControlCBreak) owner.Break();
 				else HandleKey((char)(kControlA + (int)key - (int)Keys.A));
 			} else {
-				Debug.Log("Not a control key press: {control}, {key}");
+				//Debug.Log("Not a control key press: {control}, {key}");
 			}
 		}
 
@@ -184,7 +184,7 @@ namespace M1 {
 		}
 
 		void HandleKey(char keyChar) {
-			ModEntry.instance.print($"HandleKey: {keyChar} ({(int)keyChar})");
+			//ModEntry.instance.print($"HandleKey: {keyChar} ({(int)keyChar})");
 			KeyboardState state = Keyboard.GetState();
 
 			if (!inInputMode) {

@@ -35,8 +35,6 @@ namespace M1 {
 		static ValString _tapped = new ValString("tapped");
 		static ValString _hasSeed = new ValString("hasSeed");
 
-
-
 		public static void Init(Shell shell) {
 			M1API.shell = shell;
 			console = shell.console;
@@ -44,11 +42,16 @@ namespace M1 {
 			if (initialized) return;
 			initialized = true;
 
+			// language host info
+
 			HostInfo.name = "Mini Micro";
 			HostInfo.version = 1.0;
 			HostInfo.info = "http://miniscript.org/MiniMicro";
 		
 			Intrinsic f;
+
+			// global intrinsics
+			// ...let's try to keep these alphabetical, shall we?
 
 			f = Intrinsic.Create("_debugLog");
 			f.AddParam("s");
@@ -70,20 +73,6 @@ namespace M1 {
 				return new Intrinsic.Result(result);
 			};
 
-			f = Intrinsic.Create("left");
-			f.code = (context, partialResult) => {
-				Shell sh = context.interpreter.hostData as Shell;
-				shell.bot.Rotate(-1);
-				return Intrinsic.Result.Null;
-			};
-
-			f = Intrinsic.Create("right");
-			f.code = (context, partialResult) => {
-				Shell sh = context.interpreter.hostData as Shell;
-				shell.bot.Rotate(1);
-				return Intrinsic.Result.Null;
-			};
-
 			f = Intrinsic.Create("forward");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
@@ -98,6 +87,20 @@ namespace M1 {
 				}
 
 			};
+			f = Intrinsic.Create("left");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				shell.bot.Rotate(-1);
+				return Intrinsic.Result.Null;
+			};
+
+			f = Intrinsic.Create("right");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				shell.bot.Rotate(1);
+				return Intrinsic.Result.Null;
+			};
+
 		}
 
 

@@ -15,6 +15,8 @@ using StardewValley;
 namespace M1 {
 	public class Bot : StardewValley.Objects.Chest {
 		public IList<Item> inventory {  get {  return farmer.Items; } }
+		public Color screenColor = Color.Transparent;
+		public Color statusColor = Color.Yellow;
 
 		const int vanillaObjectTypeId = 130;	// "Chest"
 		//const int vanillaObjectTypeId = 125;	// "Golden Relic"
@@ -149,12 +151,36 @@ namespace M1 {
 			}
 		}
 
+
+		public override bool checkForAction(Farmer who, bool justCheckingForActivity = false) {
+			if (justCheckingForActivity) return true;
+			// all this overriding... just to change the open sound.
+			if (!Game1.didPlayerJustRightClick(ignoreNonMouseHeldInput: true)) return false;
+			GetMutex().RequestLock(delegate {
+				frameCounter.Value = 5;
+				Game1.playSound("bigSelect");
+				Game1.player.Halt();
+				Game1.player.freezePause = 1000;					
+				});
+			return true;
+		}
+
+		// Note: to change the close sound, we would need to override updateWhenCurrentLocation.
+		// But that's fairly complex code and relies on currentLidFrame, which is private to Chest.
+		// So we can't easily do that.  To make it work at all we'd need to either do away with
+		// or replace most of that functionality with our own, or use reflection to get/set the
+		// private variable, or do some other kind of hackery (patching localSound etc.).
+		// Best is to probably throw out (override) all the standard chest animation stuff.
+		// But that's a big job for another day.
+
+
 		public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1) {
 			// draw shadow
 			spriteBatch.Draw(Game1.shadowTexture, Game1.GlobalToLocal(Game1.viewport, new Vector2(position.X + 32, position.Y + 51 + 4)),
 				Game1.shadowTexture.Bounds, Color.White * alpha, 0f,
 				new Vector2(Game1.shadowTexture.Bounds.Center.X, Game1.shadowTexture.Bounds.Center.Y), 4f,
 				SpriteEffects.None, (float)getBoundingBox(new Vector2(x, y)).Bottom / 15000f);
+
 			// draw sprite
 			Vector2 position3 = Game1.GlobalToLocal(Game1.viewport, new Vector2(
 				position.X + 32 + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0),
@@ -162,9 +188,28 @@ namespace M1 {
 			// Note: FacingDirection 0-3 is Up, Right, Down, Left
 			Rectangle srcRect = new Rectangle(16 * farmer.FacingDirection, 0, 16, 24);
 			Vector2 origin2 = new Vector2(8f, 8f);
+			float scale = (this.scale.Y > 1f) ? getScale().Y : 4f;
+			float z = (float)(getBoundingBox(new Vector2(x, y)).Bottom) / 10000f;
+			// base sprite
 			spriteBatch.Draw(botSprites, position3, srcRect, Color.White * alpha, 0f,
-				origin2,
-				(scale.Y > 1f) ? getScale().Y : 4f, SpriteEffects.None, (float)(getBoundingBox(new Vector2(x, y)).Bottom) / 10000f);
+				origin2, scale, SpriteEffects.None, z);
+			// screen color (if not black or clear)
+			if (screenColor.A > 0 && (screenColor.R > 0 || screenColor.G > 0 || screenColor.B > 0)) {
+				srcRect.Y = 24;
+				spriteBatch.Draw(botSprites, position3, srcRect, screenColor * alpha, 0f,
+					origin2, scale, SpriteEffects.None, z + 0.001f);
+			}
+			// screen shine overlay
+			srcRect.Y = 48;
+			spriteBatch.Draw(botSprites, position3, srcRect, Color.White * alpha, 0f,
+				origin2, scale, SpriteEffects.None, z + 0.002f);
+			// status light color (if not black or clear)
+			if (statusColor.A > 0 && (statusColor.R > 0 || statusColor.G > 0 || statusColor.B > 0)) {
+				srcRect.Y = 72;
+				spriteBatch.Draw(botSprites, position3, srcRect, statusColor * alpha, 0f,
+					origin2, scale, SpriteEffects.None, z + 0.002f);
+			}
+			
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int xNonTile, int yNonTile, float layerDepth, float alpha = 1) {
