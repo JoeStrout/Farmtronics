@@ -203,16 +203,16 @@ namespace M1 {
 			globals.variables["statusColor"] = curStatusColor;
 			globals.variables["screenColor"] = curScreenColor;
 			globals.variables.assignOverride = (key, value) => {
-				Debug.Log($"global {key} = {value}");
 				string keyStr = key.ToString();
+				if (keyStr == "_") return false;
+				Debug.Log($"global {key} = {value}");
 				if (keyStr == "statusColor") {
-					Debug.Log($"Caught assignment statusColor = {value}");
 					bot.statusColor = value.ToString().ToColor();
-					Debug.Log($"Changed status color to {bot.statusColor}");
 				} else if (keyStr == "screenColor") {
-					Debug.Log($"Caught assignment screenColor = {value}");
 					bot.screenColor = value.ToString().ToColor();
-					Debug.Log($"Changed screen color to {bot.screenColor}");
+				} else if (keyStr == "currentToolIndex") {
+					bot.currentToolIndex = value.IntValue();
+					return true;
 				}
 				return false;	// allow the assignment
 			};

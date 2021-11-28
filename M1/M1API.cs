@@ -67,6 +67,12 @@ namespace M1 {
 				return new Intrinsic.Result(new ValNumber(sh.bot.facingDirection));
 			};
 
+			f = Intrinsic.Create("currentToolIndex");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(new ValNumber(sh.bot.currentToolIndex));
+			};
+
 			f = Intrinsic.Create("farm");
 			f.code = (context, partialResult) => {
 				var loc = (Farm)Game1.getLocationFromName("Farm");
@@ -134,6 +140,13 @@ namespace M1 {
 				return Intrinsic.Result.Null;
 			};
 
+			f = Intrinsic.Create("useTool");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				shell.bot.UseTool();
+				return Intrinsic.Result.Null;
+			};
+
 		}
 
 
@@ -177,16 +190,19 @@ namespace M1 {
 				// check objects
 				StardewValley.Object obj = null;
 				loc.objects.TryGetValue(xy, out obj);
+				Debug.Log($"Object at {xy}: {obj}");
 				if (obj != null) {
 					result = ToMap(obj);
 				} else {
 					// check terrain features
 					TerrainFeature feature = null;
 					if (!loc.terrainFeatures.TryGetValue(new Vector2(x,y), out feature)) {
+						Debug.Log($"no terrain features at {xy}");
 						return Intrinsic.Result.Null;
 					}
+					Debug.Log($"terrain features at {xy}: {feature}");
 					if (result == null) result = new ValMap();
-					result.map[_type] = new ValString(feature.GetType().Name);
+					result.map[_type] = result["name"] = new ValString(feature.GetType().Name);
 					if (feature is Tree tree) {
 						result.map[_treeType] = new ValNumber(tree.treeType.Value);
 						result.map[_growthStage] = new ValNumber(tree.growthStage.Value);
@@ -225,7 +241,9 @@ namespace M1 {
 
 		static ValMap ToMap(StardewValley.Object obj) {
 			var result = new ValMap();
-			result.map[_type] = new ValString(obj.Type);
+			string type = obj.Type;
+			if (type == "asdf") type = obj.Name;
+			result.map[_type] = new ValString(type);
 			// ToDo: limit the following to ones that really apply for this type.
 			result.map[_name] = new ValString(obj.Name);
 			result["displayName"] = new ValString(obj.DisplayName);

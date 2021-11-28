@@ -22,6 +22,10 @@ namespace M1 {
 			get { return farmer.currentLocation; }
 		}
 		public int facingDirection {  get {  return farmer.FacingDirection; } }
+		public int currentToolIndex {
+			get { return farmer.CurrentToolIndex; }
+			set {  farmer.CurrentToolIndex = value; }
+		}
 
 		const int vanillaObjectTypeId = 130;	// "Chest"
 		//const int vanillaObjectTypeId = 125;	// "Golden Relic"
@@ -51,6 +55,7 @@ namespace M1 {
 			initialTools.Add(new StardewValley.Tools.Hoe());
 			initialTools.Add(new StardewValley.Tools.Axe());
 			initialTools.Add(new StardewValley.Tools.Pickaxe());
+			initialTools.Add(new StardewValley.Tools.MeleeWeapon(47));	// (scythe)
 
 			foreach (Item i in initialTools) addItem(i);
 
@@ -85,8 +90,9 @@ namespace M1 {
 
 		public void UseTool() {
 			farmer.setTileLocation(TileLocation);
-			farmer.CurrentToolIndex = 0;			
+			Farmer.showToolSwipeEffect(farmer);
 			Game1.toolAnimationDone(farmer);
+			Debug.Log($"Set farmer to {TileLocation}, set to use tool {farmer.CurrentToolIndex} ({farmer.CurrentTool})");
 		}
 
 		public void Move(int dColumn, int dRow) {
