@@ -20,7 +20,7 @@ namespace M1 {
 		Bot bot;
 		InventoryMenu botInventoryMenu;
 
-		Shell shell;
+		//Shell shell;
 
 		int consoleLeft, consoleTop;
 		const int consoleHeight = 480;
@@ -45,7 +45,7 @@ namespace M1 {
 			int widthOfTopStuff = consoleWidth + 220;	// (includes estimate for size of bot UI, plus some padding)
 
 			consoleTop = Game1.uiViewport.Height/2 - totalHeight/2;
-			if (consoleTop < 0) consoleTop = 0;
+			if (consoleTop < 40) consoleTop = 40;	// (empirical fudge factor)
 			consoleLeft = Game1.uiViewport.Width/2 + widthOfTopStuff/2 - consoleWidth;
 
 			// Player inventory position is weird.  MenuWithInventory.cs says:
@@ -53,7 +53,7 @@ namespace M1 {
 			// So:
 			int playerInvYDelta = consoleTop + totalHeight - playerInvHeight - yPositionForInventory;
 
-			//print($"playerInvHeight:{playerInvHeight}, consoleTop:{consoleTop} (={Game1.uiViewport.Height/2}-{totalHeight/2}), new yPositionOnScreen:{totalHeight - playerInvHeight - yPositionForInventory}");
+			print($"playerInvHeight:{playerInvHeight}, consoleTop:{consoleTop} (={Game1.uiViewport.Height/2}-{totalHeight/2}), new yPositionOnScreen:{totalHeight - playerInvHeight - yPositionForInventory}");
 			movePosition(0, playerInvYDelta);	// (adjust position of player UI)
 
 			botInventoryMenu = new InventoryMenu(Game1.uiViewport.Width/2 - widthOfTopStuff/2, consoleTop, playerInventory: false, botItems,

@@ -61,6 +61,12 @@ namespace M1 {
 				return Intrinsic.Result.Null;
 			};
 
+			f = Intrinsic.Create("facing");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(new ValNumber(sh.bot.facingDirection));
+			};
+
 			f = Intrinsic.Create("farm");
 			f.code = (context, partialResult) => {
 				var loc = (Farm)Game1.getLocationFromName("Farm");
@@ -87,11 +93,38 @@ namespace M1 {
 				}
 
 			};
+
+			f = Intrinsic.Create("inventory");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				ValList result = new ValList();
+				foreach (var item in sh.bot.inventory) {
+					result.values.Add(ToMap(item));
+				}
+				return new Intrinsic.Result(result);
+			};
+
 			f = Intrinsic.Create("left");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				shell.bot.Rotate(-1);
 				return Intrinsic.Result.Null;
+			};
+
+			f = Intrinsic.Create("position");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				var pos = sh.bot.TileLocation;
+				var loc = sh.bot.currentLocation;
+				Debug.Log($"Got location {loc} ({loc.Name}, {loc.uniqueName}), pos {pos}");
+				var result = new ValMap();
+				result["x"] = new ValNumber(pos.X);
+				result["y"] = new ValNumber(pos.Y);
+				var area = new ValMap();
+				area.map[ValString.magicIsA] = LocationClass();
+				area.map[_name] = new ValString(loc.NameOrUniqueName);
+				result["area"] = area;
+				return new Intrinsic.Result(result);
 			};
 
 			f = Intrinsic.Create("right");
@@ -112,7 +145,18 @@ namespace M1 {
 			locationClass.map[_name] = null;
 		
 			Intrinsic f;
-		
+
+			// Location.height
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				ValMap self = context.GetVar("self") as ValMap;
+				string name = self.Lookup(_name).ToString();
+				var loc = Game1.getLocationFromName(name);
+				if (loc == null) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(new ValNumber(loc.map.Layers[0].LayerHeight));
+			};
+			locationClass["height"] = f.GetFunc();
+
 			// Location.tile
 			f = Intrinsic.Create("");
 			f.AddParam("self");
@@ -121,28 +165,53 @@ namespace M1 {
 			f.code = (context, partialResult) => {
 				ValMap self = context.GetVar("self") as ValMap;
 				if (self == null) throw new RuntimeException("Map required for Location.tile parameter");
-				int x = context.variables.GetInt("x", 0);
-				int y = context.variables.GetInt("y", 0);
+				int x = context.GetLocalInt("x", 0);
+				int y = context.GetLocalInt("y", 0);
+				Vector2 xy = new Vector2(x,y);
 				string name = self.Lookup(_name).ToString();
 				var loc = Game1.getLocationFromName(name);
 				if (loc == null) return Intrinsic.Result.Null;
-				TerrainFeature feature = null;
-				if (!loc.terrainFeatures.TryGetValue(new Vector2(x,y), out feature)) {
-					return Intrinsic.Result.Null;
+
+				ValMap result = null;
+
+				// check objects
+				StardewValley.Object obj = null;
+				loc.objects.TryGetValue(xy, out obj);
+				if (obj != null) {
+					result = ToMap(obj);
+				} else {
+					// check terrain features
+					TerrainFeature feature = null;
+					if (!loc.terrainFeatures.TryGetValue(new Vector2(x,y), out feature)) {
+						return Intrinsic.Result.Null;
+					}
+					if (result == null) result = new ValMap();
+					result.map[_type] = new ValString(feature.GetType().Name);
+					if (feature is Tree tree) {
+						result.map[_treeType] = new ValNumber(tree.treeType.Value);
+						result.map[_growthStage] = new ValNumber(tree.growthStage.Value);
+						result.map[_health] = new ValNumber(tree.health.Value);
+						result.map[_stump] = ValNumber.Truth(tree.stump.Value);
+						result.map[_tapped] = ValNumber.Truth(tree.tapped.Value);
+						result.map[_hasSeed] = ValNumber.Truth(tree.hasSeed.Value);
+					}
 				}
-				var result = new ValMap();
-				result.map[_type] = new ValString(feature.GetType().Name);
-				if (feature is Tree tree) {
-					result.map[_treeType] = new ValNumber(tree.treeType.Value);
-					result.map[_growthStage] = new ValNumber(tree.growthStage.Value);
-					result.map[_health] = new ValNumber(tree.health.Value);
-					result.map[_stump] = ValNumber.Truth(tree.stump.Value);
-					result.map[_tapped] = ValNumber.Truth(tree.tapped.Value);
-					result.map[_hasSeed] = ValNumber.Truth(tree.hasSeed.Value);
-				}
+				if (result == null) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(result);
 			};
 			locationClass["tile"] = f.GetFunc();
+
+			// Location.width
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				ValMap self = context.GetVar("self") as ValMap;
+				string name = self.Lookup(_name).ToString();
+				var loc = Game1.getLocationFromName(name);
+				if (loc == null) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(new ValNumber(loc.map.Layers[0].LayerWidth));
+			};
+			locationClass["width"] = f.GetFunc();
+
 
 			return locationClass;
 		}
@@ -151,6 +220,37 @@ namespace M1 {
 			var result = new ValList();
 			result.values.Add(new ValNumber(a));
 			result.values.Add(new ValNumber(b));
+			return result;
+		}
+
+		static ValMap ToMap(StardewValley.Object obj) {
+			var result = new ValMap();
+			result.map[_type] = new ValString(obj.Type);
+			// ToDo: limit the following to ones that really apply for this type.
+			result.map[_name] = new ValString(obj.Name);
+			result["displayName"] = new ValString(obj.DisplayName);
+			result["health"] = new ValNumber(obj.getHealth());
+			if (obj.isLamp.Get()) result["isOn"] = ValNumber.Truth(obj.IsOn);
+			result["quality"] = new ValNumber(obj.Quality);
+			result["readyForHarvest"] = ValNumber.Truth(obj.readyForHarvest.Get());
+			result["minutesTillReady"] = new ValNumber(obj.MinutesUntilReady);
+			result["value"] = new ValNumber(obj.sellToStorePrice());
+			result["description"] = new ValString(obj.getDescription());
+			return result;
+		}
+
+		static ValMap ToMap(StardewValley.Item item) {
+			if (item == null) return null;
+			var result = new ValMap();
+			result.map[_type] = new ValString(item.GetType().Name);
+			// ToDo: limit the following to ones that really apply for this type.
+			result.map[_name] = new ValString(item.Name);
+			result["displayName"] = new ValString(item.DisplayName);
+			result["stack"] = new ValNumber(item.Stack);
+			result["maxStack"] = new ValNumber(item.maximumStackSize());
+			result["category"] = new ValString(item.getCategoryName());
+			result["value"] = new ValNumber(item.salePrice());
+			result["description"] = new ValString(item.getDescription());
 			return result;
 		}
 

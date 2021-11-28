@@ -48,12 +48,12 @@ namespace M1 {
 		List<string> history;		// past inputs
 		int historyIndex;			// where we are in the history
 	
-		bool mouseSelectionEnabled;
+		//bool mouseSelectionEnabled;
+		//Vector2 mouseDownPos;
 		bool hasSelection;
 		RowCol selStart;
 		RowCol selEnd;
-		Vector2 mouseDownPos;
-
+		
 		public Console(Shell owner)
 		: base(Game1.uiViewport.Width/2 - width/2, Game1.uiViewport.Height/2 - height/2, width, height) {
 
@@ -394,8 +394,8 @@ namespace M1 {
 		}
 	
 		void UpdateSelection() {
-			if (!mouseSelectionEnabled) return;
 			/* ToDo
+			if (!mouseSelectionEnabled) return;
 			if (Input.GetMouseButtonDown(0)) {
 				ClearSelection();
 				Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);

@@ -18,6 +18,11 @@ namespace M1 {
 		public Color screenColor = Color.Transparent;
 		public Color statusColor = Color.Yellow;
 
+		public GameLocation currentLocation {
+			get { return farmer.currentLocation; }
+		}
+		public int facingDirection {  get {  return farmer.FacingDirection; } }
+
 		const int vanillaObjectTypeId = 130;	// "Chest"
 		//const int vanillaObjectTypeId = 125;	// "Golden Relic"
 
@@ -44,13 +49,16 @@ namespace M1 {
 
 			var initialTools = new List<Item>();
 			initialTools.Add(new StardewValley.Tools.Hoe());
+			initialTools.Add(new StardewValley.Tools.Axe());
+			initialTools.Add(new StardewValley.Tools.Pickaxe());
 
 			foreach (Item i in initialTools) addItem(i);
 
 			Name = "Bot " + uniqueFarmerID;
 			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
-				new Vector2(100,100), 2,
+				tileLocation * 64, 2,
 				Name, initialTools, isMale: true);
+			farmer.currentLocation = Game1.player.currentLocation;
 			uniqueFarmerID++;
 			//this.Type = "Crafting";	// (necessary for performDropDownAction to be called)
 			ModEntry.instance.print($"Type: {this.Type}  bigCraftable:{bigCraftable}");
@@ -151,6 +159,13 @@ namespace M1 {
 			}
 		}
 
+		public override string getDescription() {
+			return "A programmable mechanical wonder.";
+		}
+
+		protected override string loadDisplayName() {
+			return name;
+		}
 
 		public override bool checkForAction(Farmer who, bool justCheckingForActivity = false) {
 			if (justCheckingForActivity) return true;
