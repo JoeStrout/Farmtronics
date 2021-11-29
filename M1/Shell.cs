@@ -196,26 +196,28 @@ namespace M1 {
 		}
 
 		public void AddGlobals() {
-			curStatusColor = new ValString(bot.statusColor.ToHexString());
-			curScreenColor = new ValString(bot.screenColor.ToHexString());
-			var globals = interpreter.vm.globalContext;
-			if (globals.variables == null) globals.variables = new ValMap();
-			globals.variables["statusColor"] = curStatusColor;
-			globals.variables["screenColor"] = curScreenColor;
-			globals.variables.assignOverride = (key, value) => {
-				string keyStr = key.ToString();
-				if (keyStr == "_") return false;
-				Debug.Log($"global {key} = {value}");
-				if (keyStr == "statusColor") {
-					bot.statusColor = value.ToString().ToColor();
-				} else if (keyStr == "screenColor") {
-					bot.screenColor = value.ToString().ToColor();
-				} else if (keyStr == "currentToolIndex") {
-					bot.currentToolIndex = value.IntValue();
-					return true;
-				}
-				return false;	// allow the assignment
-			};
+			if (bot != null) {
+				curStatusColor = new ValString(bot.statusColor.ToHexString());
+				curScreenColor = new ValString(bot.screenColor.ToHexString());
+				var globals = interpreter.vm.globalContext;
+				if (globals.variables == null) globals.variables = new ValMap();
+				globals.variables["statusColor"] = curStatusColor;
+				globals.variables["screenColor"] = curScreenColor;
+				globals.variables.assignOverride = (key, value) => {
+					string keyStr = key.ToString();
+					if (keyStr == "_") return false;
+					Debug.Log($"global {key} = {value}");
+					if (keyStr == "statusColor") {
+						bot.statusColor = value.ToString().ToColor();
+					} else if (keyStr == "screenColor") {
+						bot.screenColor = value.ToString().ToColor();
+					} else if (keyStr == "currentToolIndex") {
+						bot.currentToolIndex = value.IntValue();
+						return true;
+					}
+					return false;	// allow the assignment
+				};
+			}
 		}
 		
 		void Clear() {

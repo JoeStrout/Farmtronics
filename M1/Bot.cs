@@ -17,6 +17,8 @@ namespace M1 {
 		public IList<Item> inventory {  get {  return farmer.Items; } }
 		public Color screenColor = Color.Transparent;
 		public Color statusColor = Color.Yellow;
+		public Shell shell { get; private set; }
+		public bool isUsingTool {  get {  return toolUseFrame > 0; } }
 
 		public GameLocation currentLocation {
 			get { return farmer.currentLocation; }
@@ -42,7 +44,7 @@ namespace M1 {
 		static int uniqueFarmerID = 1;
 		const float speed = 64;		// pixels/sec
 
-		public Shell shell { get; private set; }
+		int toolUseFrame = 0;		// > 0 when using a tool
 
 		static Texture2D botSprites;
 
@@ -79,6 +81,7 @@ namespace M1 {
 			base.performDropDownAction(who);
 
 			// Keep our farmer positioned wherever this object is
+			farmer.currentLocation = Game1.player.currentLocation;
 			farmer.setTileLocation(TileLocation);
 			return false;	// OK to set down (add to Objects list in the tile)
 		}
@@ -91,8 +94,7 @@ namespace M1 {
 		public void UseTool() {
 			farmer.setTileLocation(TileLocation);
 			Farmer.showToolSwipeEffect(farmer);
-			Game1.toolAnimationDone(farmer);
-			Debug.Log($"Set farmer to {TileLocation}, set to use tool {farmer.CurrentToolIndex} ({farmer.CurrentTool})");
+			toolUseFrame = 1;
 		}
 
 		public void Move(int dColumn, int dRow) {
@@ -146,6 +148,12 @@ namespace M1 {
 			if (shell != null) {
 				shell.console.update(gameTime);
 			}
+			if (toolUseFrame > 0) {
+				toolUseFrame++;
+				if (toolUseFrame == 6) Game1.toolAnimationDone(farmer);
+				else if (toolUseFrame == 12) toolUseFrame = 0;	// all done!
+			}
+
 			if (position != targetPos) {
 				// ToDo: make a utility module with MoveTowards in it
 				position.X += MathF.Sign(targetPos.X - position.X);

@@ -143,8 +143,16 @@ namespace M1 {
 			f = Intrinsic.Create("useTool");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				shell.bot.UseTool();
-				return Intrinsic.Result.Null;
+				
+				if (partialResult == null) {
+					// Just starting our tool use; tell the bot and return partial result
+					shell.bot.UseTool();
+					return new Intrinsic.Result(null, false);
+				} else {
+					// Continue until bot is done using the tool
+					if (shell.bot.isUsingTool) return partialResult;
+					return Intrinsic.Result.Null;
+				}
 			};
 
 		}
