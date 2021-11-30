@@ -1,21 +1,34 @@
 # StardewM1Mod
 
-This project is a [Stardew Valley mod](https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started) that adds the **"MiniScript M-1 Home Computer"**.
+This project is a [Stardew Valley mod](https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started) that adds the **"MiniScript M-1 Home Computer"**, as well as programmable **bots**.
 
 This is a computer that connects to the TV in your cabin.  Despite its early-80s appearance, it actually runs a very modern and elegant language, [MiniScript](https://miniscript.org).  (See [Why MiniScript](https://luminaryapps.com/blog/miniscript-why/), if you're curious.)
 
 
 ![Screen shot of the M-1 Home Computer](img/Demo-1.gif)
 
+## How to Play
+1. The mod is not yet available in precompiled form.  So you will need to install Visual Studio or MonoDevelop, clone this repo, and Build it yourself.
+2. To use the **M-1 Home Computer**:
+  1. Activate the TV in your house.
+  2. Select the bottom-most option, *MiniScript M-1 Home Computer*.
+  3. Type code at the prompt.  See https://miniscript.org for documentation on the language (and in particular, be sure to keep the [Quick Reference](https://miniscript.org/files/MiniScript-QuickRef.pdf) handy).
+  4. Press **Esc** to exit.
+3. To create and use a **bot**:
+  1. Make sure you have a free space to your left.
+  2. Press the **Page Up** key to spawn a bot.  (For now!)
+  3. Right-click a bot to access its computer console.
+  4. Type code at the prompt.  This is the same code as on the Home Computer, but allows for some additional commands, like `position`, `left`, `right`, `forward`, `inventory`, `currentToolIndex` (which can be assigned to), and `useTool`.
+
 
 ## Near-Term To-Do List
-- add a /usr disk for user files
+- add a /usr disk for user files; add `dir`, `load`, and `run`
 	- under save folder; see https://stardewvalleywiki.com/Saves#Find_your_save_files
 - add basic bot movement: `forward`, `turn`
 - add basic bot sensing: `position`, `facing`, `itemAt`, `itemAhead`
 - add inventory APIs: `inventory`, `select`
 - add `useTool` API
-- add a /sys disk with a startup script and demo directory; add `dir`, `load`, and `run`
+- add a /sys disk with a startup script and demo directory
 - implement the `text` module (`text.row`, `text.color`, etc.)
 - implement the `key` module (at least `key.available` and `key.get`)
 - create a code editor (using the text display, perhaps modeled after [nano](https://www.nano-editor.org/)); add `edit`, `source`, `save`
