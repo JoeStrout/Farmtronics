@@ -61,16 +61,13 @@ namespace M1 {
 				return Intrinsic.Result.Null;
 			};
 
-			f = Intrinsic.Create("facing");
+			f = Intrinsic.Create("bot");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				return new Intrinsic.Result(new ValNumber(sh.bot.facingDirection));
-			};
-
-			f = Intrinsic.Create("currentToolIndex");
-			f.code = (context, partialResult) => {
-				Shell sh = context.interpreter.hostData as Shell;
-				return new Intrinsic.Result(new ValNumber(sh.bot.currentToolIndex));
+				Debug.Log("in bot accessor, sh.bot=" + sh.bot);
+				if (sh.bot == null) return Intrinsic.Result.Null;
+				Debug.Log("so returning BotModule");
+				return new Intrinsic.Result(BotModule());
 			};
 
 			f = Intrinsic.Create("farm");
@@ -85,22 +82,54 @@ namespace M1 {
 				return new Intrinsic.Result(result);
 			};
 
-			f = Intrinsic.Create("forward");
+
+		}
+
+		static ValMap botModule;
+		public static ValMap BotModule() {
+			if (botModule != null) return botModule;
+
+			botModule = new ValMap();
+
+			Intrinsic f;
+
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(new ValNumber(sh.bot.facingDirection));
+			};
+			botModule["facing"] = f.GetFunc();
+
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(new ValNumber(sh.bot.currentToolIndex));
+			};
+			botModule["currentToolIndex"] = f.GetFunc();
+
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(new ValString(sh.bot.statusColor.ToHexString()));
+			};
+			botModule["statusColor"] = f.GetFunc();
+
+			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				if (partialResult == null) {
 					// Just starting our move; tell the bot and return partial result
-					shell.bot.MoveForward();
+					sh.bot.MoveForward();
 					return new Intrinsic.Result(null, false);
 				} else {
 					// Continue until bot stops moving
-					if (shell.bot.IsMoving()) return partialResult;
+					if (sh.bot.IsMoving()) return partialResult;
 					return Intrinsic.Result.Null;
 				}
-
 			};
+			botModule["forward"] = f.GetFunc();
 
-			f = Intrinsic.Create("inventory");
+			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				ValList result = new ValList();
@@ -109,15 +138,17 @@ namespace M1 {
 				}
 				return new Intrinsic.Result(result);
 			};
+			botModule["inventory"] = f.GetFunc();
 
-			f = Intrinsic.Create("left");
+			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				shell.bot.Rotate(-1);
+				sh.bot.Rotate(-1);
 				return Intrinsic.Result.Null;
 			};
+			botModule["left"] = f.GetFunc();
 
-			f = Intrinsic.Create("position");
+			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				var pos = sh.bot.TileLocation;
@@ -132,21 +163,23 @@ namespace M1 {
 				result["area"] = area;
 				return new Intrinsic.Result(result);
 			};
+			botModule["position"] = f.GetFunc();
 
-			f = Intrinsic.Create("right");
+			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				shell.bot.Rotate(1);
+				sh.bot.Rotate(1);
 				return Intrinsic.Result.Null;
 			};
+			botModule["right"] = f.GetFunc();
 
-			f = Intrinsic.Create("useTool");
+			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				
 				if (partialResult == null) {
 					// Just starting our tool use; tell the bot and return partial result
-					shell.bot.UseTool();
+					sh.bot.UseTool();
 					return new Intrinsic.Result(null, false);
 				} else {
 					// Continue until bot is done using the tool
@@ -154,9 +187,25 @@ namespace M1 {
 					return Intrinsic.Result.Null;
 				}
 			};
+			botModule["useTool"] = f.GetFunc();
 
+
+			botModule.assignOverride = (key,value) => {
+				string keyStr = key.ToString();
+				if (keyStr == "_") return false;
+				Debug.Log($"global {key} = {value}");
+				if (keyStr == "statusColor") {
+					Shell.runningInstance.bot.statusColor = value.ToString().ToColor();
+					return true;
+				} else if (keyStr == "currentToolIndex") {
+					Shell.runningInstance.bot.currentToolIndex = value.IntValue();
+					return true;
+				}
+				return false;	// allow the assignment
+			};
+
+			return botModule;
 		}
-
 
 		static ValMap locationClass;
 		public static ValMap LocationClass() {

@@ -18,6 +18,8 @@ namespace M1 {
 		public Bot bot {  get; private set; }
 		public bool allowControlCBreak = true;
 
+		public static Shell runningInstance;
+
 		Interpreter interpreter;
 		bool runProgram;
 		string inputReceived;		// stores input while app is running, for _input intrinsic
@@ -74,6 +76,7 @@ namespace M1 {
 
 		void RunStartupScripts() {
 			// load and run the startup script(s)
+			runningInstance = this;
 
 			// /sys/startup.ms
 			string sysStartupPath = Path.Combine(sysDiskPath, "startup.ms");
@@ -108,6 +111,7 @@ namespace M1 {
 
 		public void Update(GameTime gameTime) {
 			if (interpreter == null) return;		// still loading
+			runningInstance = this;
 			if (interpreter.NeedMoreInput()) {
 				GetCommand();		// (though in this case, this really means: get ANOTHER command!)
 			} else if (interpreter.Running()) {
@@ -154,13 +158,16 @@ namespace M1 {
 			string lcmd = command.ToLower();
 		
 			if (interpreter == null) ModEntry.instance.print("Error: Interpreter null?!?");
-		
+
+			runningInstance = this;
 			interpreter.REPL(command, 0.1f);
 		}
 	
 		void BeginRun(string source) {
 			Debug.Log("BeginRun; Program source: " + source);
 			System.GC.Collect();
+			runningInstance = this;
+
 			if (interpreter.vm == null) interpreter.REPL("", 0);	// (forces creation of a VM)
 			else interpreter.vm.Reset();
 			if (string.IsNullOrEmpty(source)) return;
@@ -239,9 +246,6 @@ namespace M1 {
 						bot.statusColor = value.ToString().ToColor();
 					} else if (keyStr == "screenColor") {
 						bot.screenColor = value.ToString().ToColor();
-					} else if (keyStr == "currentToolIndex") {
-						bot.currentToolIndex = value.IntValue();
-						return true;
 					}
 					return false;	// allow the assignment
 				};
