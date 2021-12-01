@@ -47,7 +47,8 @@ This is a computer that connects to the TV in your cabin.  Despite its early-80s
     - /net for files shared by all computers/bots in the game
   - network messaging system for communicating with bots
 - Bots
-  - craftable (out of what?)
+  - craftable (iron, battery pack, maybe glass shards?)
+  - you get your first one from Maru, after demonstrating basic use of the Home Computer
   - able to move wherever a farmer can walk
   - able to use any tool they are equipped with
     - farming, mining, chopping, planting seeds, watering, etc.

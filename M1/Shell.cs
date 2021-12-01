@@ -22,6 +22,9 @@ namespace M1 {
 		bool runProgram;
 		string inputReceived;		// stores input while app is running, for _input intrinsic
 
+		string sysDiskPath;
+		string usrDiskPath;
+
 		ValString curStatusColor;
 		ValString curScreenColor;
 
@@ -62,20 +65,45 @@ namespace M1 {
 				AddGlobals();
 			}
 
+			sysDiskPath = Path.Combine(ModEntry.helper.DirectoryPath, "assets", "sysdisk");
+			if (!string.IsNullOrEmpty(Constants.CurrentSavePath)) {
+				usrDiskPath = Path.Combine(Constants.CurrentSavePath, "usrdisk");
+			}
 			RunStartupScripts();
 		}
 
 		void RunStartupScripts() {
 			// load and run the startup script(s)
-			if (!string.IsNullOrEmpty(Constants.CurrentSavePath)) {
-				string path = Path.Combine(Constants.CurrentSavePath, "usrdisk", "startup.ms");
-				Debug.Log($"Path to startup script: {path}");
-				if (File.Exists(path)) {
-					Debug.Log($"About to read {path}");
-					string startupScript = File.ReadAllText(path);
+
+			// /sys/startup.ms
+			string sysStartupPath = Path.Combine(sysDiskPath, "startup.ms");
+			if (File.Exists(sysStartupPath)) { 
+				string startupScript = File.ReadAllText(sysStartupPath);
+				if (!string.IsNullOrEmpty(startupScript)) {
+					try {
+						interpreter.REPL(startupScript);
+					} catch (System.Exception err) {
+						Debug.Log("Error running /sys/startup.ms: " + err.ToString());
+					}
+				}
+			}
+
+			// /usr/startup.ms
+			if (!string.IsNullOrEmpty(usrDiskPath)) {
+				string usrStartupPath = Path.Combine(usrDiskPath, "startup.ms");
+				Debug.Log($"Path to startup script: {usrStartupPath}");
+				if (File.Exists(usrStartupPath)) {
+					string startupScript = File.ReadAllText(usrStartupPath);
 					if (!string.IsNullOrEmpty(startupScript)) BeginRun(startupScript);
 				} else Debug.Log("No /usr/startup.ms found");
 			} else Debug.Log("CurrentSavePath is empty");
+
+			// Print friendly prompt, unless our startup script is still running.
+			if (!interpreter.Running()) {
+				PrintLine("");
+				PrintLine("Ready!");
+				PrintLine("");
+			}
 		}
 
 		public void Update(GameTime gameTime) {
