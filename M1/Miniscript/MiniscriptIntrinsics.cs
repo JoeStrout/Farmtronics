@@ -1264,7 +1264,9 @@ namespace Miniscript {
 			f = Intrinsic.Create("str");
 			f.AddParam("x", ValString.empty);
 			f.code = (context, partialResult) => {
-				return new Intrinsic.Result(context.GetVar("x").ToString());
+				var x = context.GetLocal("x");
+				if (x == null) return new Intrinsic.Result(ValString.empty);
+				return new Intrinsic.Result(x.ToString());
 			};
 
 			// string type

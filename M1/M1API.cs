@@ -81,6 +81,11 @@ namespace M1 {
 				return new Intrinsic.Result(result);
 			};
 
+			f = Intrinsic.Create("Location");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(LocationClass());
+			};
+
 			f = Intrinsic.Create("text");
 			f.code = (context, partialResult) => {
 				return new Intrinsic.Result(TextModule());

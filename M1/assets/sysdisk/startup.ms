@@ -1,3 +1,59 @@
+_printMark = function(s, altColor="#00FF00")
+	colors = [text.color, altColor]
+	which = 0
+	oldDelim = text.delimiter
+	text.delimiter = ""
+	while len(s)
+		pos = s.indexOf("`")
+		if pos == null then
+			print s
+			break
+		end if
+		print s[:pos]
+		which = not which
+		text.color = colors[which]
+		s = s[pos+1:]
+	end while
+	text.color = colors[0]
+	text.delimiter = oldDelim
+	print
+end function
+
+help = function(topic)
+	if topic == "" or topic == null then topic = "_default"
+	if topic == "graphics" then topic = "gfx"
+	lines = []  // ToDo:  _fileReadLines("/sys/help/" + topic + ".txt")
+	if not lines then
+		_printMark "No help available for `""" + topic + """`."
+		print "Help topics:"
+		text.delimiter = ""
+		for topic in file.children("/sys/help").sort
+			if topic[0] == "_" then continue
+			topic = topic - ".txt"
+			if text.column > 44 then print char(13)
+			print """" + topic + """" + " " * (20 - topic.len)
+		end for
+		text.delimiter = char(13)
+		print
+	else
+		for line in lines
+			_printMark line
+		end for
+	end if
+end function
+
+usr = function()
+	_printMark "Remember, you `must` use quotation marks  around file paths.", "#FFFF00"
+	_printMark "   Wrong: `cd /usr`", "#FF0000"
+	_printMark "   Right: `cd ""/usr""`"
+end function
+sys = function()
+	_printMark "Remember, you `must` use quotation marks  around file paths.", "#FFFF00"
+	_printMark "   Wrong: `cd /sys`", "#FF0000"
+	_printMark "   Right: `cd ""/sys""`"
+end function
+
+
 // Convert a 0-255 number to a 2-digit hex string
 hex2 = function(val)
 	result = 0
@@ -53,6 +109,90 @@ end function
 //color.fromListHSV = function(hsvaList)
 //	return _HSVAtoColor(hsvaList)
 //end function
+
+pageThrough = function(lines)
+	text.delimiter = ""
+	printed = 0
+	for i in range(0, lines.len-1)
+		line = "" + lines[i]
+		print line[:39]
+		if line.len > 39 then text.setCell 39,text.row, line[39]
+		print char(13)
+		printed = printed + 1
+		if printed > 24 and i+1 < lines.len then
+			text.inverse = true
+			print "[" + (lines.len - i - 1) + " more]"
+			text.inverse = false
+			done = false
+			while not done
+				k = input  // ToDo: should be key.get
+				ikey = code(k)
+				if ikey == 27 or k == "q" or k == "Q" then done = true
+				if ikey == 10 or ikey == 13 or ikey == 3 or k == " " then break
+				yield
+			end while
+			text.column = 0
+			print " " * 32
+			text.column = 0
+			if done then break
+			printed = 0
+		end if
+	end for
+	text.delimiter = char(13)
+end function
+
+_apiClassNames = {
+	Location:"Location",
+}
+
+mapName = function(map)
+	if map.hasIndex("_name") then return map._name
+	if _apiClassNames.hasIndex(map) then return _apiClassNames[map]
+	for kv in globals
+		if @kv.value == map then return @kv.key
+	end for
+	return null
+end function
+
+pprintToList = function(outList, obj, prefix="", indent=0, suffix="")
+	s = str(@obj)
+	if @obj == null then s = "null"
+	if @obj isa funcRef then s = "function" + s[8:]
+	if s.len + prefix.len + indent < 65 then
+		outList.push " "*indent + prefix + s + suffix
+		return
+	end if
+	if indent > 32 then
+		outList.push " "*indent + prefix + "..." + suffix
+		return
+	end if
+	if @obj isa list then
+		outList.push " "*indent + prefix + "["
+		for i in obj.indexes
+			pprintToList outList, obj[i], "", indent + 4, "," * (i < obj.len-1)
+		end for
+		outList.push " "*indent + "]" + suffix
+	else if @obj isa map then
+		outList.push " "*indent + prefix + "{"
+		entries = []; for kv in obj; entries.push kv; end for
+		for i in entries.indexes
+			kv = entries[i]
+			value = null
+			if @kv.value isa map then value = mapName(@kv.value)
+			if value == null then value = @kv.value
+			pprintToList outList, @value, @kv.key + ": ", indent+4, "," * (i < entries.len-1)
+		end for
+		outList.push " "*indent + "}" + suffix
+	else
+		outList.push " "*indent + prefix + s + suffix
+	end if
+end function
+
+pprint = function(obj)
+	lines = []
+	pprintToList lines, obj
+	pageThrough lines
+end function
 
 
 if bot then
