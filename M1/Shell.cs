@@ -30,7 +30,7 @@ namespace M1 {
 		ValString curStatusColor;
 		ValString curScreenColor;
 
-		TextDisplay textDisplay {  get {  return console.display; } }
+		public TextDisplay textDisplay {  get {  return console.display; } }
 		
 		public Shell() {
 			console = new M1.Console(this);

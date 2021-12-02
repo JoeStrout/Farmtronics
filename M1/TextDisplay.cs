@@ -55,8 +55,8 @@ namespace M1 {
 	
 		Cell[,] cells;		// indexed with row, col
 	
-		int cursorX = 0;
-		int cursorY = 0;
+		public int cursorX { get; private set; }
+		public int cursorY { get; private set; }
 		
 		bool cursorShown =  false;		// whether the cursor should be shown at all (except for blinking)
 		bool cursorBlinking = false;	// whether cursor is currently hidden just due to blinking
