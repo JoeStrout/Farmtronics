@@ -11,6 +11,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
+using StardewValley.Tools;
 
 namespace M1 {
 	public class Bot : StardewValley.Objects.Chest {
@@ -171,6 +172,14 @@ namespace M1 {
 			Vector2 tile = new Vector2(tileX, tileY);
 			var location = currentLocation;
 
+			// If it's not a MeleeWeapon, call the easy method and let SDV handle it.
+			if (tool is not MeleeWeapon) {
+				Game1.toolAnimationDone(farmer);
+				return;
+			}
+
+			// Otherwise, big pain in the neck time.
+
 			// Apply it to the location itself.
 			Debug.Log($"Performing {tool} action at {tileX},{tileY}");
 			location.performToolAction(tool, tileX, tileY);
@@ -214,12 +223,7 @@ namespace M1 {
 			}
 			if (toolUseFrame > 0) {
 				toolUseFrame++;
-				if (toolUseFrame == 6) {
-					// Most tools, we can trigger their effect like this:
-//					Game1.toolAnimationDone(farmer);
-					// But weapons are different.  Let's try 'em this way:
-					ApplyToolToTile();
-				}
+				if (toolUseFrame == 6) ApplyToolToTile();
 				else if (toolUseFrame == 12) toolUseFrame = 0;	// all done!
 			}
 

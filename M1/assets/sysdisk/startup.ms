@@ -250,7 +250,9 @@ if bot then
 			bot.statusColor = "#FF8800"
 			bot.equip "Axe"
 		end if
-		bot.useTool
+		while bot.ahead
+			bot.useTool
+		end while
 	end function
 
 	bot.clearAndMove = function(dist=1)
