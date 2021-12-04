@@ -23,5 +23,5 @@ This is a computer that connects to the TV in your cabin.  Despite its early-80s
 
 ## Road Map
 
-See [README.md](README.md) for our development plan, including what features are expected in which future versions of the mod.
+See [ROADMAP.md](ROADMAP.md) for our development plan, including what features are expected in which future versions of the mod.
 
