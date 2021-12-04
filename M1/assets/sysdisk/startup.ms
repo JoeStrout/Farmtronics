@@ -240,7 +240,7 @@ if bot then
 		what = obstacle.type
 		if obstacle.hasIndex("name") then what = obstacle.name
 		print "Clearing: " + what
-		if what == "Grass" or what == "Weed" then
+		if what == "Grass" or what == "Weeds" then
 			bot.statusColor = "#66FF66"
 			bot.equip "Scythe"
 		else if what == "Stone" then

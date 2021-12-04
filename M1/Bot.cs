@@ -92,8 +92,17 @@ namespace M1 {
 		}
 
 		public void UseTool() {
+			Tool tool = inventory[currentToolIndex] as Tool;
+			if (tool == null) return;
+			int useX = (int)position.X + 32 * DxForDirection(farmer.FacingDirection);
+			int useY = (int)position.Y + 32 * DyForDirection(farmer.FacingDirection);
+			tool.beginUsing(currentLocation, useX, useY, farmer);
+
 			farmer.setTileLocation(TileLocation);
 			Farmer.showToolSwipeEffect(farmer);
+
+			// Count how many frames into the swipe effect we are.
+			// We'll actually apply the tool effect later, in Update.
 			toolUseFrame = 1;
 		}
 
@@ -125,14 +134,21 @@ namespace M1 {
 			}
 		}
 
+		public static int DxForDirection(int direction) {
+			if (direction == 1) return 1;
+			if (direction == 3) return -1;
+			return 0;
+		}
+
+		public static int DyForDirection(int direction) {
+			if (direction == 2) return 1;
+			if (direction == 0) return -1;
+			return 0;
+		}
+
 		public void MoveForward() {
-			switch (farmer.FacingDirection) {
-			case 0:		Move(0, -1);		break;
-			case 1:		Move(1, 0);			break;
-			case 2:		Move(0, 1);			break;
-			case 3:		Move(-1, 0);		break;
-			}
-			Debug.Log($"{Name} MoveForward() when position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
+			Move(DxForDirection(farmer.FacingDirection), DyForDirection(farmer.FacingDirection));
+			Debug.Log($"{Name} MoveForward() went position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
 		}
 
 		public bool IsMoving() {
@@ -144,13 +160,66 @@ namespace M1 {
 			Debug.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
 		}
 
+		void ApplyToolToTile() {
+			// Actually apply the tool to the tile in front of the bot.
+			// This is a big pain in the neck that is duplicated in many of the Tool subclasses.
+			// Here's how we do it:
+			// First, get the tool to apply, and the tile location to apply it.
+			Tool tool = inventory[currentToolIndex] as Tool;
+			int tileX = (int)position.X / 64 + DxForDirection(farmer.FacingDirection);
+			int tileY = (int)position.Y / 64 + DyForDirection(farmer.FacingDirection);
+			Vector2 tile = new Vector2(tileX, tileY);
+			var location = currentLocation;
+
+			// Apply it to the location itself.
+			Debug.Log($"Performing {tool} action at {tileX},{tileY}");
+			location.performToolAction(tool, tileX, tileY);
+
+			// Then, apply it to any terrain feature (grass, weeds, etc.) at this location.
+			if (location.terrainFeatures.ContainsKey(tile) && location.terrainFeatures[tile].performToolAction(tool, 0, tile, location)) {
+				Debug.Log($"Performed tool action on the terrain feature {location.terrainFeatures[tile]}; removing it");
+				location.terrainFeatures.Remove(tile);
+			}
+			if (location.largeTerrainFeatures is not null) {
+				var tileRect = new Rectangle(tileX*64, tileY*64, 64, 64);
+				for (int i = location.largeTerrainFeatures.Count - 1; i >= 0; i--) {
+					if (location.largeTerrainFeatures[i].getBoundingBox().Intersects(tileRect) && location.largeTerrainFeatures[i].performToolAction(tool, 0, tile, location)) {
+						Debug.Log($"Performed tool action on the LARGE terrain feature {location.terrainFeatures[tile]}; removing it");
+						location.largeTerrainFeatures.RemoveAt(i);
+					}
+				}
+			}
+
+			// Finally, apply to any object sitting on this tile.
+			if (location.Objects.ContainsKey(tile)) {
+				var obj = location.Objects[tile];
+				if (obj != null && obj.Type != null && obj.performToolAction(tool, location)) {
+					if (obj.Type.Equals("Crafting") && (int)obj.Fragility != 2) {
+						var center = farmer.GetBoundingBox().Center;
+						Debug.Log($"Performed tool action on the object {obj}; adding debris");
+						location.debris.Add(new Debris(obj.bigCraftable.Value ? (-obj.ParentSheetIndex) : obj.ParentSheetIndex,
+							farmer.GetToolLocation(), new Vector2(center.X, center.Y)));
+					}
+					Debug.Log($"Performing {obj} remove action, then removing it from {tile}");
+					obj.performRemoveAction(tile, location);
+					location.Objects.Remove(tile);
+				}
+			}
+
+		}
+
 		public void Update(GameTime gameTime) {
 			if (shell != null) {
 				shell.console.update(gameTime);
 			}
 			if (toolUseFrame > 0) {
 				toolUseFrame++;
-				if (toolUseFrame == 6) Game1.toolAnimationDone(farmer);
+				if (toolUseFrame == 6) {
+					// Most tools, we can trigger their effect like this:
+//					Game1.toolAnimationDone(farmer);
+					// But weapons are different.  Let's try 'em this way:
+					ApplyToolToTile();
+				}
 				else if (toolUseFrame == 12) toolUseFrame = 0;	// all done!
 			}
 
