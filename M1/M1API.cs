@@ -80,6 +80,11 @@ namespace M1 {
 				result.map[_size] = ToList(layer.LayerWidth, layer.LayerHeight);
 				return new Intrinsic.Result(result);
 			};
+			
+			f = Intrinsic.Create("key");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(KeyModule());
+			};
 
 			f = Intrinsic.Create("Location");
 			f.code = (context, partialResult) => {
@@ -93,6 +98,11 @@ namespace M1 {
 
 
 		}
+
+		static bool DisallowAllAssignment(Value key, Value value) {
+			throw new RuntimeException("Assignment to protected map");
+		}
+
 
 		static ValMap botModule;
 		public static ValMap BotModule() {
@@ -215,6 +225,149 @@ namespace M1 {
 
 			return botModule;
 		}
+
+		//static ValList keyNames = null;
+		static ValMap keyModule;
+		static ValMap KeyModule() {
+			if (keyModule != null) return keyModule;
+			keyModule = new ValMap();
+			keyModule.assignOverride = DisallowAllAssignment;
+	
+			Intrinsic f;		
+
+			// key.available
+			//	Returns whether there is a keypress available in the input buffer.
+			//	If true, you can call key.get to get the next key immediately.
+			//	Note that does not detect modifier keys (shift, alt, etc.).
+			// Example: while not key.available; end while  // waits until some key is pressed
+			// See also: key.clear; key.get
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				return Shell.runningInstance.console.keyBuffer.Count > 0 ? Intrinsic.Result.True : Intrinsic.Result.False;
+			};
+			keyModule["available"] = f.GetFunc();
+		
+			// key.clear
+			//	Clear the keyboard input buffer.  This is often used before exiting
+			//	a game, so that any key presses made during the game don't spill out
+			//	into the command line.
+			// Example: key.clear
+			// See also: key.available; key.get
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell.runningInstance.console.keyBuffer.Clear();
+				return Intrinsic.Result.Null;
+			};
+			keyModule["clear"] = f.GetFunc();
+		
+			// key.get
+			//	Remove and return the next key in the keyboard input buffer.  If the
+			//	input buffer is currently clear (empty), then this method waits until
+			//	a key is pressed.  Note that modifier keys (shift, alt, etc.) pressed
+			//	alone do not go into the input buffer.
+			// Example: print "You pressed: " + key.get
+			// See also: key.available; key.get
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				if (Shell.runningInstance.console.keyBuffer.Count == 0) return Intrinsic.Result.Waiting;
+				string key = Shell.runningInstance.console.keyBuffer.Dequeue().ToString();
+				return new Intrinsic.Result(key);
+			};
+			keyModule["get"] = f.GetFunc();
+
+			/* ToDo: game input stuff
+			// key.pressed
+			//	Detect whether a specific key or button input is currently pressed.  
+			//	These include modifier keys (e.g. "left shift", "right alt") as 
+			//	well as mouse buttons (e.g. "mouse 0") and joystick/gamepad buttons
+			//	("joystick 1 button 0", etc.).  With regard to joystick buttons, 
+			//	if you don't specify a number (e.g. "joystick button 0"), then
+			//	it will detect a press of button 0 on *any* joystick.
+			//	See key.keyNames for all the possible names to use with this method.
+			// keyName (string, default "space"): key/button to press
+			// Example: while not key.pressed("left"); end while   // waits until left arrow pressed
+			// See also: key.keyNames; key.axis
+			f = Intrinsic.Create("");
+			f.AddParam("keyName", "space");
+			f.code = (context, partialResult) => {
+				string keyName = context.GetLocalString("keyName");
+				bool result = false;
+				try {
+					result = Input.GetKey(keyName);
+				} catch (System.Exception e) {
+					throw new RuntimeException("Invalid key name: " + keyName);
+				}
+				return new Intrinsic.Result(ValNumber.Truth(result));
+			};
+			keyModule["pressed"] = f.GetFunc();
+		
+			// key.axis
+			//	Return the numeric value (from -1 to 1) of an input axis.  Available
+			//	axis names are "Horizontal" and "Vertical", which can be activated
+			//	by both WASD and arrow keys as well as any joystick or gamepad;
+			//	"JoyAxis1" through "JoyAxis29" which detect axis inputs from any
+			//	joystick or gamepad, and "Joy1Axis1" through "Joy8Axis29" which detect
+			//	axis inputs from specific joystick/gamepad 1 through 8.
+			// axisName (string, default "Horizontal"): name of axis to get
+			// Example: print key.axis("Vertical")
+			// See also: key.pressed
+			f = Intrinsic.Create("");
+			f.AddParam("axisName", "Horizontal");
+			f.code = (context, partialResult) => {
+				string axisName = context.GetLocalString("axisName");
+				try {
+					return new Intrinsic.Result(Input.GetAxis(axisName));
+				} catch (System.ArgumentException e) {
+					//Debug.Log("Invalid axis name: " + axisName);
+					return Intrinsic.Result.Null;
+				}
+			};
+			keyModule["axis"] = f.GetFunc();
+		
+			// key.keyNames
+			//	Returns a list of all the key names available for use with key.pressed.
+			//	This can be used, for example, to check all possible inputs, if waiting
+			//	for the user to press anything to continue, or while configuring their
+			//	input preferences.
+			// Example:
+			//		while true
+			//			for n in key.keyNames
+			//				if key.pressed(n) then print n
+			//			end for
+			//		end while
+			// See also: key.pressed
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				if (keyNames == null) {
+					keyNames = new ValList();
+					string keys = "a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|"
+						+ "1|2|3|4|5|6|7|8|9|0|-|=|[|]|\\|,|.|/|;|'|`|"
+						+ "f1|f2|f3|f4|f5|f6|f7|f8|f9|f10|f11|f12|f13|f14|f15|"
+						+ "up|down|left|right|"
+						+ "[1]|[2]|[3]|[4]|[5]|[6]|[7]|[8]|[9]|[0]|[+]|[-]|[*]|[/]|enter|equals|clear|" // note: clear may not actually work
+						+ "left shift|right shift|left ctrl|right ctrl|left alt|right alt|left cmd|right cmd|"
+						+ "backspace|tab|return|escape|space|delete|insert|home|end|page up|page down|"
+						+ "mouse 0|mouse 1|mouse 2|mouse 3|mouse 4|mouse 5|mouse 6";
+					foreach (string s in keys.Split(new char[]{'|'})) {
+						keyNames.values.Add(new ValString(s));
+					}
+					for (int j=0; j<5; j++) {
+						string jname = "joystick";
+						if (j > 0) jname += " " + j;
+						for (int i=0; i<16; i++) {
+							keyNames.values.Add(new ValString(jname + " button " + i));
+						}
+					}
+			
+				}
+				return new Intrinsic.Result(keyNames);
+			};
+			keyModule["keyNames"] = f.GetFunc();
+			*/
+
+			return keyModule;
+		}
+	
 
 		static ValMap locationClass;
 		public static ValMap LocationClass() {
