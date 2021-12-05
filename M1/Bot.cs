@@ -1,6 +1,6 @@
 ﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
- 
+
 */
 
 using System;
@@ -54,13 +54,20 @@ namespace M1 {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
 			}
 
-			var initialTools = new List<Item>();
-			initialTools.Add(new StardewValley.Tools.Hoe());
-			initialTools.Add(new StardewValley.Tools.Axe());
-			initialTools.Add(new StardewValley.Tools.Pickaxe());
-			initialTools.Add(new StardewValley.Tools.MeleeWeapon(47));	// (scythe)
+            var initialTools = new List<Item>
+            {
+                new Hoe(),
+                new Axe(),
+                new Pickaxe(),
+                new WateringCan(),
+                new StardewValley.Object(Vector2.Zero, 472, int.MaxValue),
+                new StardewValley.Object(Vector2.Zero, 473, int.MaxValue),
+                new StardewValley.Object(Vector2.Zero, 474, int.MaxValue),
+                // initialTools.Add(new StardewValley.Object(Vector2.Zero, 475, int.MaxValue));
+                new MeleeWeapon(47)  // (scythe)
+            };
 
-			foreach (Item i in initialTools) addItem(i);
+            foreach (Item i in initialTools) addItem(i);
 
 			Name = "Bot " + uniqueFarmerID;
 			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
@@ -262,7 +269,7 @@ namespace M1 {
 				frameCounter.Value = 5;
 				Game1.playSound("bigSelect");
 				Game1.player.Halt();
-				Game1.player.freezePause = 1000;					
+				Game1.player.freezePause = 1000;
 				});
 			return true;
 		}
@@ -311,7 +318,7 @@ namespace M1 {
 				spriteBatch.Draw(botSprites, position3, srcRect, statusColor * alpha, 0f,
 					origin2, scale, SpriteEffects.None, z + 0.002f);
 			}
-			
+
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int xNonTile, int yNonTile, float layerDepth, float alpha = 1) {
