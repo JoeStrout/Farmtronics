@@ -102,16 +102,46 @@ namespace M1 {
 		public void UseTool() {
 			Tool tool = inventory[currentToolIndex] as Tool;
 			if (tool == null) return;
+
 			int useX = (int)position.X + 32 * DxForDirection(farmer.FacingDirection);
 			int useY = (int)position.Y + 32 * DyForDirection(farmer.FacingDirection);
+
 			tool.beginUsing(currentLocation, useX, useY, farmer);
 
 			farmer.setTileLocation(TileLocation);
-			Farmer.showToolSwipeEffect(farmer);
+            // Farmer.showToolSwipeEffect(farmer);
 
-			// Count how many frames into the swipe effect we are.
-			// We'll actually apply the tool effect later, in Update.
-			toolUseFrame = 1;
+            // Count how many frames into the swipe effect we are.
+            // We'll actually apply the tool effect later, in Update.
+            toolUseFrame = 1;
+		}
+
+        public void EndUseTool()
+		{
+			Tool tool = inventory[currentToolIndex] as Tool;
+			if (tool == null) return;
+
+			tool.endUsing(currentLocation, farmer);
+
+			toolUseFrame = 0;
+		}
+
+		public bool PlantCrop() { // hardcoded to plant parsnip for now
+			ModEntry.instance.print($"PlantCrop()");
+			int useX = (int)position.X + 32 * DxForDirection(farmer.FacingDirection);
+			int useY = (int)position.Y + 32 * DyForDirection(farmer.FacingDirection);
+
+            if (inventory[currentToolIndex] is not StardewValley.Object)
+            {
+				ModEntry.instance.print($"currentToolIndex {currentToolIndex} is not an Object");
+                return false;
+            }
+
+			StardewValley.Object seedPacket = inventory[currentToolIndex] as StardewValley.Object;
+			farmer.makeThisTheActiveObject(seedPacket);
+
+			seedPacket.placementAction(currentLocation, useX, useY, farmer);
+			return true;
 		}
 
 		public void Move(int dColumn, int dRow) {
@@ -173,6 +203,11 @@ namespace M1 {
 			// This is a big pain in the neck that is duplicated in many of the Tool subclasses.
 			// Here's how we do it:
 			// First, get the tool to apply, and the tile location to apply it.
+
+			if (!(inventory[currentToolIndex] is Tool))
+			{
+				return;
+			}
 			Tool tool = inventory[currentToolIndex] as Tool;
 			int tileX = (int)position.X / 64 + DxForDirection(farmer.FacingDirection);
 			int tileY = (int)position.Y / 64 + DyForDirection(farmer.FacingDirection);
@@ -231,7 +266,8 @@ namespace M1 {
 			if (toolUseFrame > 0) {
 				toolUseFrame++;
 				if (toolUseFrame == 6) ApplyToolToTile();
-				else if (toolUseFrame == 12) toolUseFrame = 0;	// all done!
+				else if (toolUseFrame == 12) EndUseTool();	// all done!
+
 			}
 
 			if (position != targetPos) {

@@ -239,6 +239,7 @@ if bot then
 		if not obstacle then return
 		what = obstacle.type
 		if obstacle.hasIndex("name") then what = obstacle.name
+		if what == "HoeDirt" then return
 		print "Clearing: " + what
 		if what == "Grass" or what == "Weeds" then
 			bot.statusColor = "#66FF66"
@@ -275,6 +276,101 @@ if bot then
 			end if
 		end for
 	end function
+
+	bot.listInventory = function()
+		inv = bot.inventory
+		for i in inv.indexes
+			print inv[i].name + " (index " + i + ")"
+	end function
+
+	bot.till = function()
+		bot.equip("Hoe")
+		bot.useTool
+	end function
+
+	bot.tillGrid = function(width, height)
+		for h in range(0, height-1)
+			for j in range(0,width-1)
+				bot.clearAhead
+				bot.till
+				bot.forward
+			end for
+			if h % 2 then
+				bot.right; bot.clearAhead; bot.till; bot.forward; bot.right
+			else
+				bot.left; bot.clearAhead; bot.till; bot.forward; bot.left
+			end if
+		end for
+	end function
+
+	bot.water = function()
+		bot.equip("Watering Can")
+		bot.useTool
+	end function
+
+	bot.waterGrid = function(height, width)
+		for h in range(0, height-1)
+			for j in range(0,width-1)
+				bot.water
+				bot.forward
+			if h % 2 then
+				bot.right; bot.water; bot.forward; bot.right
+			else
+				bot.left; bot.water; bot.forward; bot.left
+			end if
+		end for
+	end function
+
+	bot.plantParsnip = function()
+		print "Planting Parsnip"
+		bot.equip "Parsnip Seeds"
+		bot.plantCrop
+	end function
+
+	bot.plant = function()
+		for i in range(0,3)
+			bot.plantParsnip
+			bot.right
+		end for
+		bot.plantParsnip
+	end function
+
+	bot.plantGrid = function(heigh, width)
+		for h in range(0, height-1)
+			for j in range(0,width-1)
+				bot.forward
+				bot.plant
+			if h % 2 then
+				bot.right; bot.forward; bot.plant; bot.right
+			else
+				bot.left; bot.forward; bot.plant; bot.left
+			end if
+		end for
+	end function
+
+	bot.clearAndPlantLine = function(distance)
+		for h in range(0, distance-1)
+			bot.plant
+			bot.clearAhead
+			bot.till
+			bot.water
+			bot.forward
+			bot.plant
+		end for
+	end function
+
+	bot.clearAndPlantGrid = function(width, height)
+		bot.clearAndPlantLine(width)
+		for h in range(0, height-2)
+			if h % 2 then
+				bot.right; bot.plant; bot.clearAhead; bot.till; bot.water; bot.forward; bot.right; bot.plant
+			else
+				bot.left; bot.plant; bot.clearAhead; bot.till; bot.water; bot.forward; bot.left; bot.plant
+			end if
+			bot.clearAndPlantLine(width-2)
+		end for
+	end function
+
 end if
 
 // Stuff that applies both to bots and to the home computer
