@@ -14,6 +14,7 @@ using StardewValley;
 using StardewValley.Tools;
 
 namespace M1 {
+
 	public class Bot : StardewValley.Objects.Chest {
 		public IList<Item> inventory {  get {  return farmer.Items; } }
 		public Color screenColor = Color.Transparent;
@@ -49,6 +50,19 @@ namespace M1 {
 
 		static Texture2D botSprites;
 
+        public enum Seeds
+		{
+			// spring seeds
+			Parsnip = 472, BeanStarter = 473, Cauliflower = 474, Potato = 475, Tulip = 427, Kale = 477, Jazz = 429,
+			Garlic = 476, RiceShoot = 273,
+			// summer
+			Melon = 479, Tomato = 480, Blueberry = 481, Pepper = 482, Wheat = 483, Radish = 484,
+			Poppy = 453, Spangle = 455, Hops = 302, Corn = 487, Sunflower = 431, RedCabbage = 485,
+			// fall
+			Pumpkin = 490, Eggplant = 488, BokChoy = 491, Yam = 492, Cranberry = 493, Fairy = 425,
+            Amaranth = 299, Grape = 301, Artichoke = 489
+		}
+
 		public Bot(Vector2 tileLocation) :base(true, tileLocation) {
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
@@ -60,11 +74,16 @@ namespace M1 {
                 new Axe(),
                 new Pickaxe(),
                 new WateringCan(),
-                new StardewValley.Object(Vector2.Zero, 472, int.MaxValue),
-                new StardewValley.Object(Vector2.Zero, 473, int.MaxValue),
-                new StardewValley.Object(Vector2.Zero, 474, int.MaxValue),
-                // initialTools.Add(new StardewValley.Object(Vector2.Zero, 475, int.MaxValue));
-                new MeleeWeapon(47)  // (scythe)
+				new MeleeWeapon(47),  // (scythe)
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Parsnip, int.MaxValue),
+				//new StardewValley.Object(Vector2.Zero, (int)Seeds.BeanStarter, int.MaxValue),		// this is a trellis
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Cauliflower, int.MaxValue),
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Potato, int.MaxValue),
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Tulip, int.MaxValue),
+				//new StardewValley.Object(Vector2.Zero, (int)Seeds.Kale, int.MaxValue),					// this is harvested with scythe
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Jazz, int.MaxValue),
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Garlic, int.MaxValue),
+				//new StardewValley.Object(Vector2.Zero, (int)Seeds.RiceShoot, int.MaxValue)			// this is harvested with scythe
             };
 
             foreach (Item i in initialTools) addItem(i);
@@ -102,16 +121,43 @@ namespace M1 {
 		public void UseTool() {
 			Tool tool = inventory[currentToolIndex] as Tool;
 			if (tool == null) return;
+
 			int useX = (int)position.X + 32 * DxForDirection(farmer.FacingDirection);
 			int useY = (int)position.Y + 32 * DyForDirection(farmer.FacingDirection);
+
 			tool.beginUsing(currentLocation, useX, useY, farmer);
 
 			farmer.setTileLocation(TileLocation);
-			Farmer.showToolSwipeEffect(farmer);
+            // Farmer.showToolSwipeEffect(farmer);
 
-			// Count how many frames into the swipe effect we are.
-			// We'll actually apply the tool effect later, in Update.
-			toolUseFrame = 1;
+            // Count how many frames into the swipe effect we are.
+            // We'll actually apply the tool effect later, in Update.
+            toolUseFrame = 1;
+		}
+
+        public void EndUseTool()
+		{
+			Tool tool = inventory[currentToolIndex] as Tool;
+			if (tool == null) return;
+
+			tool.endUsing(currentLocation, farmer);
+
+			toolUseFrame = 0;
+		}
+
+		public bool PlantSeeds() {
+
+            if (inventory[currentToolIndex] is not StardewValley.Object)
+            {
+				ModEntry.instance.print($"currentToolIndex {currentToolIndex} is not an Object");
+                return false;
+            }
+
+			StardewValley.Object seedPacket = inventory[currentToolIndex] as StardewValley.Object;
+			farmer.makeThisTheActiveObject(seedPacket);
+
+			seedPacket.placementAction(currentLocation, (int)position.X, (int)position.Y, farmer);
+			return true;
 		}
 
 		public void Move(int dColumn, int dRow) {
@@ -173,6 +219,11 @@ namespace M1 {
 			// This is a big pain in the neck that is duplicated in many of the Tool subclasses.
 			// Here's how we do it:
 			// First, get the tool to apply, and the tile location to apply it.
+
+			if (!(inventory[currentToolIndex] is Tool))
+			{
+				return;
+			}
 			Tool tool = inventory[currentToolIndex] as Tool;
 			int tileX = (int)position.X / 64 + DxForDirection(farmer.FacingDirection);
 			int tileY = (int)position.Y / 64 + DyForDirection(farmer.FacingDirection);
@@ -231,7 +282,8 @@ namespace M1 {
 			if (toolUseFrame > 0) {
 				toolUseFrame++;
 				if (toolUseFrame == 6) ApplyToolToTile();
-				else if (toolUseFrame == 12) toolUseFrame = 0;	// all done!
+				else if (toolUseFrame == 12) EndUseTool();	// all done!
+
 			}
 
 			if (position != targetPos) {

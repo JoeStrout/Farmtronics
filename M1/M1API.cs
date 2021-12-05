@@ -206,8 +206,16 @@ namespace M1 {
 					return Intrinsic.Result.Null;
 				}
 			};
-			botModule["useTool"] = f.GetFunc();
+            botModule["useTool"] = f.GetFunc();
 
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) =>
+            {
+                Shell sh = context.interpreter.hostData as Shell;
+                sh.bot.PlantSeeds();
+				return Intrinsic.Result.Null;
+			};
+            botModule["plantSeeds"] = f.GetFunc();
 
 			botModule.assignOverride = (key,value) => {
 				string keyStr = key.ToString();
