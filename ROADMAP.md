@@ -13,7 +13,7 @@ This is our "minimum viable product".
 - ☑ full [text](https://miniscript.org/wiki/TextDisplay) functionality: color, back color, inverse, ability to get/set cursor and line delimiter
 - ☑ `print` and `input`
 - ☑ [`key` module](https://miniscript.org/wiki/Key) with at least `key.available`, `key.get`, and `key.clear`
-- ☐ file system (including `cd`, `dir`, etc.), with /sys and /usr disks
+- ☑ file system (including `cd`, `dir`, etc.), with /sys and /usr disks
 - ☐ code editor, so you can write/edit/save your own programs on /usr
 - ☐ built-in help and some demo/utility programs on /sys
 - ☑ `Location` class for getting info about a location (map)

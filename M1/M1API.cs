@@ -35,6 +35,7 @@ namespace M1 {
 		static ValString _stump = new ValString("stump");
 		static ValString _tapped = new ValString("tapped");
 		static ValString _hasSeed = new ValString("hasSeed");
+		static ValString _handle = new ValString("_handle");
 
 		public static void Init(Shell shell) {
 			M1API.shell = shell;
@@ -81,6 +82,30 @@ namespace M1 {
 				return new Intrinsic.Result(result);
 			};
 			
+			f = Intrinsic.Create("file");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(FileModule());
+			};
+
+			f = Intrinsic.Create("input");
+			f.AddParam("prompt");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				if (sh.inputReceived != null) {
+					string s = sh.inputReceived;
+					sh.inputReceived = null;
+					return new Intrinsic.Result(s);
+				}
+				Console con = sh.console;
+				if (partialResult == null) {
+					Value prompt = context.GetVar("prompt");
+					if (prompt != null) sh.textDisplay.Print(prompt.ToString());
+					//con.autocompCallback = null;
+					con.StartInput();
+				}
+				return new Intrinsic.Result(ValNumber.one, false);	// not done yet; but non-null partialResult means we've started!
+			};
+		
 			f = Intrinsic.Create("key");
 			f.code = (context, partialResult) => {
 				return new Intrinsic.Result(KeyModule());
@@ -225,6 +250,538 @@ namespace M1 {
 
 			return botModule;
 		}
+
+		static ValMap fileModule;
+		static ValMap FileModule() {
+			if (fileModule != null) return fileModule;
+			fileModule = new ValMap();
+			fileModule.assignOverride = DisallowAllAssignment;
+		
+			// File.curdir
+			Intrinsic f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(sh.env["curdir"]);
+			};
+			fileModule["curdir"] = f.GetFunc();
+		
+			// File.setdir (also goes by "cd")
+			f = Intrinsic.Create("cd");
+			f.AddParam("dirPath", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetVar("dirPath").ToString();
+				if (string.IsNullOrEmpty(path)) path = sh.GetEnv("home").ToString();
+				string err;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+			
+				sh.env["curdir"] = new ValString(path);
+				return Intrinsic.Result.Null;
+			};
+			fileModule["setdir"] = f.GetFunc();
+
+		
+			// File.makedir
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+
+				string err = null;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+
+				Disk disk = FileUtils.GetDisk(ref path);
+				if (!disk.IsWriteable()) return new Intrinsic.Result("Error: disk is not writeable");
+				if (!path.EndsWith("/")) path += "/";
+				if (disk.Exists(path)) return new Intrinsic.Result("Error: file already exists");
+				disk.MakeDir(path, out err);
+				if (err == null) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(err);
+			};
+			fileModule["makedir"] = f.GetFunc();
+		
+			// File.children
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				Debug.Log("File.children: path=[" + path + "]");
+				string err;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+				if (path == "/") {
+					// Special case: listing the disks.
+					var disks = new List<Value>();
+					var diskNames = new List<string>(FileUtils.disks.Keys);
+					diskNames.Sort();
+					foreach (string name in diskNames) {
+						disks.Add(new ValString("/" + name));
+					}
+					return new Intrinsic.Result(new ValList(disks));
+				}
+				Disk disk = FileUtils.GetDisk(ref path);
+				if (disk == null) return Intrinsic.Result.Null;
+				Value result = disk.GetFileNames(path).ToValue();
+				return new Intrinsic.Result(result);
+			};
+			fileModule["children"] = f.GetFunc();
+		
+			// File.name
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				string err;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+				return new Intrinsic.Result(FileUtils.GetFileName(path));
+			};
+			fileModule["name"] = f.GetFunc();
+
+			// File.parent
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				string err;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+				int pos = path.LastIndexOf("/");
+				if (pos == 0) return new Intrinsic.Result("/");
+				if (pos < 0) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(path.Substring(0, pos));
+			};
+			fileModule["parent"] = f.GetFunc();
+
+			// File.exists
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				string err;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+				if (FileUtils.Exists(path)) return Intrinsic.Result.True;
+				return Intrinsic.Result.False;
+			};
+			fileModule["exists"] = f.GetFunc();
+
+			// File.info
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				string err;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+				Disk.FileInfo info = FileUtils.GetInfo(path);
+				if (info == null) return Intrinsic.Result.Null;
+				var result = new ValMap();
+				result["path"] = new ValString(path);
+				result["isDirectory"] = ValNumber.Truth(info.isDirectory);
+				result["size"] = new ValNumber(info.size);
+				result["date"] = new ValString(info.date);
+				result["comment"] = new ValString(info.comment);
+				return new Intrinsic.Result(result);
+			};
+			fileModule["info"] = f.GetFunc();
+
+			// File.child
+			f = Intrinsic.Create("");
+			f.AddParam("basePath", "");
+			f.AddParam("subpath", "");
+			f.code = (context, partialResult) => {
+				string basePath = context.GetLocalString("basePath");
+				string subpath = context.GetLocalString("subpath");
+				return new Intrinsic.Result(FileUtils.PathCombine(basePath, subpath));
+			};
+			fileModule["child"] = f.GetFunc();
+
+			// File.delete
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				string err;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+				err = FileUtils.Delete(path);
+				if (err == null) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(err);
+			};
+			fileModule["delete"] = f.GetFunc();
+
+			// File.move
+			f = Intrinsic.Create("");
+			f.AddParam("oldPath", "");
+			f.AddParam("newPath", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string err;
+				string oldPath = context.GetLocalString("oldPath");
+				oldPath = sh.ResolvePath(oldPath, out err);
+				if (oldPath == null) return new Intrinsic.Result(err);
+			
+				string newPath = context.GetLocalString("newPath");
+				newPath = sh.ResolvePath(newPath, out err);
+				if (newPath == null) return new Intrinsic.Result(err);
+			
+				err = FileUtils.MoveOrCopy(oldPath, newPath, true, false);
+				if (err == null) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(err);
+			};
+			fileModule["move"] = f.GetFunc();
+
+			// File.copy
+			f = Intrinsic.Create("");
+			f.AddParam("oldPath", "");
+			f.AddParam("newPath", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string err;
+				string oldPath = context.GetLocalString("oldPath");
+				oldPath = sh.ResolvePath(oldPath, out err);
+				if (oldPath == null) return new Intrinsic.Result(err);
+			
+				string newPath = context.GetLocalString("newPath");
+				newPath = sh.ResolvePath(newPath, out err);
+				if (newPath == null) return new Intrinsic.Result(err);
+			
+				err = FileUtils.MoveOrCopy(oldPath, newPath, false, false);
+				if (err == null) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(err);
+			};
+			fileModule["copy"] = f.GetFunc();
+		
+			// File.open
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.AddParam("mode", "rw+");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				string mode = context.GetLocalString("mode").ToLower();
+				if (mode.Contains("b")) return new Intrinsic.Result("Error: binary mode not supported");
+				string err = null;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+				if ((mode == "r" || mode == "r+") && !FileUtils.Exists(path)) return new Intrinsic.Result("Error: file not found");
+				var file = new OpenFile(path, mode);
+				ValMap result = new ValMap();
+				result.SetElem(ValString.magicIsA, FileHandleClass());
+				result.map[_handle] = new ValWrapper(file);
+				result.assignOverride = (key, value) => {
+					if (key.ToString() == "position") file.position = value.IntValue();
+					return true;
+				};
+				return new Intrinsic.Result(result);
+			};
+			fileModule["open"] = f.GetFunc();
+		
+			// File.readLines
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				string err = null;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+				Disk disk = FileUtils.GetDisk(ref path);
+				if (disk == null) return Intrinsic.Result.Null;
+				Value result = disk.ReadLines(path).ToValue();
+				return new Intrinsic.Result(result);
+			};
+			fileModule["readLines"] = f.GetFunc();
+		
+			// File.writeLines
+			f = Intrinsic.Create("");
+			f.AddParam("path");
+			f.AddParam("lines");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				Value linesVal = context.GetLocal("lines");
+				if (linesVal == null) return new Intrinsic.Result("Error: lines parameter is required");
+			
+				string err = null;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+
+				Disk disk = FileUtils.GetDisk(ref path);
+				if (!disk.IsWriteable()) return new Intrinsic.Result("Error: disk is not writeable");
+				disk.WriteLines(path, linesVal.ToStrings());
+				return Intrinsic.Result.Null;
+			};
+			fileModule["writeLines"] = f.GetFunc();
+/*		
+			// File.loadImage
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				string err;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+				Disk disk = FileUtils.GetDisk(ref path);
+				if (disk == null) return Intrinsic.Result.Null;
+				byte[] data = disk.ReadBinary(path);
+				if (data == null) return Intrinsic.Result.Null;
+			
+				Texture2D tex = new Texture2D(2, 2, TextureFormat.ARGB32, false);
+				if (!ImageConversion.LoadImage(tex, data, false)) return Intrinsic.Result.Null;
+				//Debug.Log("LoadImage returned true.  And size " + tex.width + " x " + tex.height);
+				tex.anisoLevel = 1;
+				tex.filterMode = FilterMode.Point;
+				tex.wrapMode = TextureWrapMode.Clamp;
+				return new Intrinsic.Result(TextureToImage(tex));
+			};
+			fileModule["loadImage"] = f.GetFunc();
+
+			// File.saveImage
+			f = Intrinsic.Create("");
+			f.AddParam("path");
+			f.AddParam("image");
+			f.AddParam("quality", 80);
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				ValMap imageVal = context.GetLocal("image") as ValMap;
+				if (imageVal == null) return new Intrinsic.Result("Error: image parameter is required");
+				ValWrapper imgv = imageVal["_handle"] as ValWrapper;
+				if (imgv == null || !(imgv.content is ImageHandle)) return Intrinsic.Result.Null;
+				var tex = (ImageHandle)imgv.content;
+			
+				string err = null;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+
+				Disk disk = FileUtils.GetDisk(ref path);
+				if (!disk.IsWriteable()) return new Intrinsic.Result("Error: disk is not writeable");
+
+				byte[] bytes = null;
+				if (path.EndsWith(".jpg") || path.EndsWith(".jpeg")) bytes = tex.texture2D.EncodeToJPG(context.variables.GetInt("quality",80));
+				else if (path.EndsWith(".tga")) bytes = tex.texture2D.EncodeToTGA();
+				else bytes = tex.texture2D.EncodeToPNG();
+				if (bytes == null) return new Intrinsic.Result("Error: unable to encode image");
+			
+				disk.WriteBinary(path, bytes);
+				return Intrinsic.Result.Null;
+			};
+			fileModule["saveImage"] = f.GetFunc();
+		
+			// File.loadSound
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.code = (context, partialResult) => {
+				if (partialResult != null && partialResult.result is ValWrapper) {
+					return ContinueAsyncSoundLoader(partialResult);
+				}
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				string err;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+				Disk disk = FileUtils.GetDisk(ref path);
+				if (disk == null) return Intrinsic.Result.Null;
+				byte[] data = disk.ReadBinary(path);
+				if (data == null) return Intrinsic.Result.Null;
+			
+				return ReturnAsyncSoundLoader(data, FileUtils.GetFileName(path));
+			};
+			fileModule["loadSound"] = f.GetFunc();
+
+			// File.loadRaw
+			f = Intrinsic.Create("");
+			f.AddParam("path", "");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				string err;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+				Disk disk = FileUtils.GetDisk(ref path);
+				if (disk == null) return Intrinsic.Result.Null;
+				byte[] data = disk.ReadBinary(path);
+				if (data == null) return Intrinsic.Result.Null;
+			
+				ValMap rawDataInst = new ValMap();
+				rawDataInst.SetElem(ValString.magicIsA, RawDataClass());
+				rawDataInst.map[_handle] = new ValWrapper(new BinaryData(data));
+				return new Intrinsic.Result(rawDataInst);
+			};
+			fileModule["loadRaw"] = f.GetFunc();
+
+			// File.saveRaw
+			f = Intrinsic.Create("");
+			f.AddParam("path");
+			f.AddParam("rawData");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				string path = context.GetLocalString("path");
+				ValMap rawDataVal = context.GetLocal("rawData") as ValMap;
+				ValWrapper handle = null;
+				if (rawDataVal != null) handle = rawDataVal["_handle"] as ValWrapper;
+				BinaryData bd = null;
+				if (handle != null) bd = handle.content as BinaryData;
+				if (bd == null) return new Intrinsic.Result("Error: RawData parameter is required");
+			
+				string err = null;
+				path = sh.ResolvePath(path, out err);
+				if (path == null) return new Intrinsic.Result(err);
+
+				Disk disk = FileUtils.GetDisk(ref path);
+				if (!disk.IsWriteable()) return new Intrinsic.Result("Error: disk is not writeable");
+
+				disk.WriteBinary(path, bd.bytes);
+				return Intrinsic.Result.Null;
+			};
+			fileModule["saveRaw"] = f.GetFunc();
+*/		
+			return fileModule;
+		}
+		
+		static ValMap fileHandleClass;
+		public static ValMap FileHandleClass() {
+			if (fileHandleClass != null) return fileHandleClass;
+
+			fileHandleClass = new ValMap();
+			fileHandleClass.map[_handle] = null;		// (wraps an OpenFile object)
+
+			// .isOpen
+			var f = Intrinsic.Create("");
+			f.AddParam("self");
+			f.code = (context, partialResult) => {
+				string err;
+				OpenFile file = GetOpenFile(context, out err);
+				if (err != null) return new Intrinsic.Result(err);
+				if (file == null || !file.isOpen) return Intrinsic.Result.False;
+				return Intrinsic.Result.True;
+			};		
+			fileHandleClass["isOpen"] = f.GetFunc();
+		
+			// .position
+			f = Intrinsic.Create("");
+			f.AddParam("self");
+			f.code = (context, partialResult) => {
+				string err;
+				OpenFile file = GetOpenFile(context, out err);
+				if (file == null) return Intrinsic.Result.False;
+				return new Intrinsic.Result(file.position);
+			};		
+			fileHandleClass["position"] = f.GetFunc();
+		
+			// .atEnd
+			f = Intrinsic.Create("");
+			f.AddParam("self");
+			f.code = (context, partialResult) => {
+				string err;
+				OpenFile file = GetOpenFile(context, out err);
+				if (file == null || !file.isAtEnd) return Intrinsic.Result.False;
+				return Intrinsic.Result.True;
+			};		
+			fileHandleClass["atEnd"] = f.GetFunc();
+		
+			// .write
+			f = Intrinsic.Create("");
+			f.AddParam("self");
+			f.AddParam("s", "");
+			f.code = (context, partialResult) => {
+				string err;
+				OpenFile file = GetOpenFile(context, out err);
+				if (err != null) return new Intrinsic.Result(err);
+				string s = context.GetLocalString("s");
+				file.Write(s);
+				if (file.error == null) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(file.error);
+			};		
+			fileHandleClass["write"] = f.GetFunc();
+		
+			// .writeLine
+			f = Intrinsic.Create("");
+			f.AddParam("self");
+			f.AddParam("s", "");
+			f.code = (context, partialResult) => {
+				string err;
+				OpenFile file = GetOpenFile(context, out err);
+				if (err != null) return new Intrinsic.Result(err);
+				string s = context.GetLocalString("s");
+				file.Write(s);
+				file.Write("\n");
+				if (file.error == null) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(file.error);
+			};		
+			fileHandleClass["writeLine"] = f.GetFunc();
+		
+			// .read
+			f = Intrinsic.Create("");
+			f.AddParam("self");
+			f.code = (context, partialResult) => {
+				string err;
+				OpenFile file = GetOpenFile(context, out err);
+				if (err != null) return Intrinsic.Result.Null;
+				string s = file.ReadToEnd();
+				return new Intrinsic.Result(s);
+			};		
+			fileHandleClass["read"] = f.GetFunc();
+		
+			// .readLine
+			f = Intrinsic.Create("");
+			f.AddParam("self");
+			f.code = (context, partialResult) => {
+				string err;
+				OpenFile file = GetOpenFile(context, out err);
+				if (err != null) return Intrinsic.Result.Null;
+				string s = file.ReadLine();
+				return new Intrinsic.Result(s);
+			};		
+			fileHandleClass["readLine"] = f.GetFunc();
+		
+			// .close
+			f = Intrinsic.Create("");
+			f.AddParam("self");
+			f.code = (context, partialResult) => {
+				string err;
+				OpenFile file = GetOpenFile(context, out err);
+				if (err != null) return new Intrinsic.Result(err);
+				if (file != null) file.Close();
+				return Intrinsic.Result.Null;
+			};		
+			fileHandleClass["close"] = f.GetFunc();
+				
+			fileHandleClass.assignOverride = DisallowAllAssignment;
+			return fileHandleClass;
+		}
+	
+		/// <summary>
+		///  Helper method to find the OpenFile referred to by a method on
+		/// a FileHandle object.  Returns the object, or null and sets error.
+		/// </summary>
+		static OpenFile GetOpenFile(TAC.Context context, out string err) {
+			err = null;
+			ValMap self = context.GetVar("self") as ValMap;
+			Value handle;
+			self.TryGetValue("_handle", out handle);
+			if (!(handle is ValWrapper)) {
+				err = "Error: file handle invalid";
+				return null;
+			}
+			var result = (handle as ValWrapper).content as OpenFile;
+			if (result == null) err = "Error: file handle not set";
+			return result;
+		}
+	
+
 
 		//static ValList keyNames = null;
 		static ValMap keyModule;
@@ -898,4 +1455,40 @@ namespace M1 {
 		}
 
 	}
+
+	
+	public class ValWrapper : Value {
+		public readonly object content;
+
+		public ValWrapper(object content) {
+			this.content = content;
+			if (content is ValWrapperNotificationReceiver) {
+				((ValWrapperNotificationReceiver)content).WrapperAdded(this);
+			}
+		}
+
+		~ValWrapper() {
+			if (content is ValWrapperNotificationReceiver) {
+				((ValWrapperNotificationReceiver)content).WrapperRemoved(this);
+			}
+		}
+
+		public override string ToString(TAC.Machine vm) {
+			return content.ToString().Replace("UnityEngine.", "");
+		}
+
+		public override int Hash(int recursionDepth=16) {
+			return content.GetHashCode();
+		}
+
+		public override double Equality(Value rhs, int recursionDepth=16) {
+			return rhs is ValWrapper && ((ValWrapper)rhs).content == content ? 1 : 0;
+		}
+	}
+
+	public interface ValWrapperNotificationReceiver {
+		void WrapperAdded(ValWrapper wrapper);
+		void WrapperRemoved(ValWrapper wrapper);
+	}
+
 }

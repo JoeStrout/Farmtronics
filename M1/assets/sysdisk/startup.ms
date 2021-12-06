@@ -119,13 +119,13 @@ pageThrough = function(lines)
 		if line.len > 39 then text.setCell 39,text.row, line[39]
 		print char(13)
 		printed = printed + 1
-		if printed > 24 and i+1 < lines.len then
+		if printed > 18 and i+1 < lines.len then
 			text.inverse = true
 			print "[" + (lines.len - i - 1) + " more]"
 			text.inverse = false
 			done = false
 			while not done
-				k = input  // ToDo: should be key.get
+				k = key.get
 				ikey = code(k)
 				if ikey == 27 or k == "q" or k == "Q" then done = true
 				if ikey == 10 or ikey == 13 or ikey == 3 or k == " " then break
@@ -139,6 +139,46 @@ pageThrough = function(lines)
 		end if
 	end for
 	text.delimiter = char(13)
+end function
+
+dir = function(path=".")
+	spaces = " "*80
+	if path == "/" then
+		for p in ["/usr", "/usr2", "/sys"]
+			if file.info(p) == null then continue
+			print (p+spaces)[:24] + "DIR"
+		end for
+		return
+	end if
+	
+	dirInfo = file.info(path)
+	if dirInfo == null then
+		print "Invalid path"
+		return
+	end if
+
+	lines = [dirInfo.path + " : "]
+
+	files = file.children(dirInfo.path)
+	if files.len == 0 then
+		print lines[0]
+		print "  (Directory empty)"
+		return
+	end if
+
+	files.sort
+	for i in range(0, files.len-1)
+		finfo = file.info(file.child(dirInfo.path,files[i]))
+		if finfo == null then
+			lines.push "file.info failed on: " + file.child(path, files[i])
+			continue
+		end if
+		namecol = (files[i]+spaces)[:17]
+		sizecol = (spaces+finfo.size)[-8:]
+		if finfo.isDirectory then sizecol = "     DIR"
+		lines.push "  " + namecol + sizecol + "  " + finfo.date[:10]
+	end for
+	pageThrough lines
 end function
 
 _apiClassNames = {
@@ -192,6 +232,102 @@ pprint = function(obj)
 	lines = []
 	pprintToList lines, obj
 	pageThrough lines
+end function
+
+_viewImage = function(pic)
+	print "Viewing of images is not implemented."
+	return
+end function
+
+view = function(path)
+	if not path then
+		print "file name or path is required"
+		return
+	end if
+//	if path isa Image then
+//		_viewImage path
+//		return
+//	end if
+	info = file.info(path)
+	if info == null then
+		print "File not found (" + path + ")"
+		return
+	end if
+	if path[-4:] == ".png" or path[-4:] == ".jpg" or path[-5:] == ".jpeg" then
+		_viewImage file.loadImage(path)
+	else if path[-4:] == ".txt" or path[-3:] == ".ms" or path[-4:] == ".tsv" or path[-5:] == ".json" or path[-3:] == ".md" then
+		// View a text file or MiniScript source file
+		lines = file.readLines(path)
+		if lines isa string then
+			print lines  // (really, an error message)
+		else
+			// Wrap each line to 40 columns.
+			i = 0
+			while i < lines.len
+				lines[i] = lines[i].replace(char(9), "    ")
+				if lines[i].len > 40 then
+					lines.insert i+1, lines[i][40:]
+					lines[i] = lines[i][:40]
+				end if
+				i = i + 1
+			end while
+			pageThrough lines
+		end if
+	else if path[-4:] == ".wav" or path[-4:] == ".ogg" then
+		print "Playing sounds is not implemented."
+//		// Play a sound
+//		snd = file.loadSound(path)
+//		if snd == null then
+//			print "Unable to load sound: " + path
+//		else
+//			snd.play
+//		end if
+	else
+		print "No viewer available for this file type"
+	end if
+end function
+
+_sourceFile = null
+_source = []
+load = function(path)
+	if not path then
+		print "file name or path required"
+		return
+	end if
+	if path[-3:] != ".ms" then path = path + ".ms"
+	if path[0] != "/" then path = file.child(file.curdir, path)
+	lines = file.readLines(path)
+	if lines == null then
+		print "Unable to read " + path
+	else
+		globals._source = lines
+		globals._sourceFile = path
+		print lines.len + " line" + ("s" * (lines.len != 1)) + " loaded from " + path
+	end if
+	return null
+end function
+
+save = function(path)
+	if path == null then path = _sourceFile
+	if not path then
+		print "Filename not specified; unable to save"
+		return
+	end if
+	if path[-3:] != ".ms" then path = path + ".ms"
+	if path[0] != "/" then path = file.child(file.curdir, path)
+	err = file.writeLines(path, _source)
+	if err == null then
+		globals._sourceFile = path
+		print _source.len + " line" + ("s" * (_source.len != 1)) + " saved to " + path
+	else
+		return err
+	end if
+end function
+
+source = function(fromLine=0, toLine=-1)
+	if not globals.hasIndex("_source") or not _source then return
+	if toLine == -1 then toLine = _source.len-1
+	return _source[fromLine:toLine+1].join(char(13))
 end function
 
 

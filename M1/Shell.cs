@@ -20,12 +20,13 @@ namespace M1 {
 
 		public static Shell runningInstance;
 
+		public ValMap env;
+
 		Interpreter interpreter;
 		bool runProgram;
-		string inputReceived;		// stores input while app is running, for _input intrinsic
+		public string inputReceived;		// stores input while app is running, for _input intrinsic
 
-		string sysDiskPath;
-		string usrDiskPath;
+		Disk sysDisk;
 
 		ValString curStatusColor;
 		ValString curScreenColor;
@@ -67,10 +68,31 @@ namespace M1 {
 				AddGlobals();
 			}
 
-			sysDiskPath = Path.Combine(ModEntry.helper.DirectoryPath, "assets", "sysdisk");
-			if (!string.IsNullOrEmpty(Constants.CurrentSavePath)) {
-				usrDiskPath = Path.Combine(Constants.CurrentSavePath, "usrdisk");
+			{
+				var d = new RealFileDisk();
+				d.readOnly = true;
+				d.Open(Path.Combine(ModEntry.helper.DirectoryPath, "assets", "sysdisk"));
+				sysDisk = d;
+				FileUtils.disks["sys"] = sysDisk;
 			}
+			if (!string.IsNullOrEmpty(Constants.CurrentSavePath)) {
+				var d = new RealFileDisk();
+				d.readOnly = false;
+				d.Open(Path.Combine(Constants.CurrentSavePath, "usrdisk"));
+				FileUtils.disks["usr"] = d;
+			}
+
+			// Prepare the env map
+			env = new ValMap();
+			if (FileUtils.disks.ContainsKey("usr") && FileUtils.disks["usr"] != null) {
+				env["curdir"] = new ValString("/usr/");
+			} else {
+				env["curdir"] = new ValString("/sys/demo");
+			}
+			env["home"] = new ValString("/usr/");
+			env["prompt"] = new ValString("]");
+			env["morePrompt"] = new ValString("...]");
+
 			RunStartupScripts();
 		}
 
@@ -79,27 +101,22 @@ namespace M1 {
 			runningInstance = this;
 
 			// /sys/startup.ms
-			string sysStartupPath = Path.Combine(sysDiskPath, "startup.ms");
-			if (File.Exists(sysStartupPath)) { 
-				string startupScript = File.ReadAllText(sysStartupPath);
-				if (!string.IsNullOrEmpty(startupScript)) {
-					try {
-						interpreter.REPL(startupScript);
-					} catch (System.Exception err) {
-						Debug.Log("Error running /sys/startup.ms: " + err.ToString());
-					}
+
+			string startupScript = sysDisk.ReadText("startup.ms");
+			if (!string.IsNullOrEmpty(startupScript)) {
+				try {
+					interpreter.REPL(startupScript);
+				} catch (System.Exception err) {
+					Debug.Log("Error running /sys/startup.ms: " + err.ToString());
 				}
 			}
 
 			// /usr/startup.ms
-			if (!string.IsNullOrEmpty(usrDiskPath)) {
-				string usrStartupPath = Path.Combine(usrDiskPath, "startup.ms");
-				Debug.Log($"Path to startup script: {usrStartupPath}");
-				if (File.Exists(usrStartupPath)) {
-					string startupScript = File.ReadAllText(usrStartupPath);
-					if (!string.IsNullOrEmpty(startupScript)) BeginRun(startupScript);
-				} else Debug.Log("No /usr/startup.ms found");
-			} else Debug.Log("CurrentSavePath is empty");
+			if (FileUtils.disks.ContainsKey("usr") && FileUtils.disks["usr"] != null) {
+				//Debug.Log("About to read startup.ms");
+				startupScript = FileUtils.disks["usr"].ReadText("startup.ms");
+				if (!string.IsNullOrEmpty(startupScript)) BeginRun(startupScript);
+			}
 
 			// Print friendly prompt, unless our startup script is still running.
 			if (!interpreter.Running()) {
@@ -134,19 +151,39 @@ namespace M1 {
 			if (console.InputInProgress()) return;		// already working on it!
 			TextDisplay disp = console.display;
 			if (disp.GetCursor().col != 0) disp.NextLine();
-			string prompt = "]";
-			if (interpreter.NeedMoreInput()) prompt = "...]";
-			//Value promptVal;
-			//if (env.map.TryGetValue(new ValString(
-			//			interpreter.NeedMoreInput() ? "morePrompt" : "prompt"), out promptVal)) {
-			//	prompt = promptVal.ToString();
-			//}
+			string prompt = (interpreter.NeedMoreInput() ? "...]" : "]");
+			Value promptVal;
+			if (env.map.TryGetValue(new ValString(
+						interpreter.NeedMoreInput() ? "morePrompt" : "prompt"), out promptVal)) {
+				prompt = promptVal.ToString();
+			}
 			disp.Print(prompt);
 			//autocompleter.machine = interpreter.vm;
 			//console.autocompCallback = autocompleter.GetSuggestion;
 			console.StartInput();
 		}
+
+		/// <summary>
+		/// Given a (possibly partial) path, expand it to a full
+		/// path from our current working directory, and resolve
+		/// any . and .. entries in it to get a proper full path.
+		/// If the path is invalid, return null and set error.
+		/// </summary>
+		public string ResolvePath(string path, out string error) {
+			string curdir = GetEnv("curdir").ToString();
+			return FileUtils.ResolvePath(curdir, path, out error);
+		}
 	
+		public Value GetEnv(string key) {
+			Value result = null;
+			env.map.TryGetValue(new ValString(key), out result);
+			return result;
+		}
+	
+		public string GetEnvString(string key) {
+			Value val = GetEnv(key);
+			return val == null ? null : val.ToString();
+		}
 
 		public void HandleCommand(string command) {
 			if (interpreter.Running() && !interpreter.NeedMoreInput()) {
