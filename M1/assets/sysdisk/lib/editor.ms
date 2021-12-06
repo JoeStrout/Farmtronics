@@ -165,8 +165,10 @@ end function
 handleKey = function(k)
 	kcode = k.code
 	
-	byWord = key.pressed("left ctrl") or key.pressed("right ctrl") or
-	key.pressed("left alt") or key.pressed("right alt")
+	byWord = false
+	// ToDo:
+	//byWord = key.pressed("left ctrl") or key.pressed("right ctrl") or
+	//  key.pressed("left alt") or key.pressed("right alt")
 	
 	hideCursor
 	if kcode == 1 then  // ctrl-A (start of line)
@@ -217,6 +219,8 @@ handleKey = function(k)
 			outer.cursorX = x
 			refreshDisplay
 		end if
+	else if kcode == 27 then  // Escape
+		outer.quitting = true
 	else if kcode > 31 then  // printable key
 		if cursorY >= data.len then
 			data.push k
@@ -258,7 +262,8 @@ editText = function(textToEdit)
 	drawTopBar
 	refreshDisplay
 	
-	while not key.pressed("escape")
+	outer.quitting = false
+	while not quitting
 		yield
 		update
 	end while

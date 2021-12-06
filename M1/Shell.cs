@@ -5,6 +5,7 @@ the user.
 */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using StardewValley;
 using StardewModdingAPI;
@@ -22,7 +23,7 @@ namespace M1 {
 
 		public ValMap env;
 
-		Interpreter interpreter;
+		public Interpreter interpreter { get; private set; }
 		bool runProgram;
 		public string inputReceived;		// stores input while app is running, for _input intrinsic
 
@@ -92,6 +93,11 @@ namespace M1 {
 			env["home"] = new ValString("/usr/");
 			env["prompt"] = new ValString("]");
 			env["morePrompt"] = new ValString("...]");
+
+			// NOTE: importPaths is also in the reset function in startup.ms.
+			// If you change this in either place, change it in both!
+			var importPaths = new List<string>{".", "/usr/lib", "/sys/lib"};
+			env["importPaths"] = importPaths.ToValue();		
 
 			RunStartupScripts();
 		}

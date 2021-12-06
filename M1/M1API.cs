@@ -70,6 +70,12 @@ namespace M1 {
 				return new Intrinsic.Result(BotModule());
 			};
 
+			f = Intrinsic.Create("env");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(sh.env);
+			};
+
 			f = Intrinsic.Create("farm");
 			f.code = (context, partialResult) => {
 				var loc = (Farm)Game1.getLocationFromName("Farm");
@@ -87,6 +93,82 @@ namespace M1 {
 				return new Intrinsic.Result(FileModule());
 			};
 
+			f = Intrinsic.Create("import");
+			f.AddParam("libname");
+			f.code = (context, partialResult) => {
+				if (partialResult != null) {
+					// When we're invoked with a partial result, it means that the import
+					// function has finished, and stored its result (the values that were
+					// created by the import code) in Temp 0.
+					ValMap importedValues = context.GetTemp(0) as ValMap;
+					// Now we're going to do something slightly evil.  We're going to reach
+					// up into the *parent* context, and store these imported values under
+					// the import library name.  Thus, there will always be a standard name
+					// by which you can refer to the imported stuff.
+					TAC.Context callerContext = context.parent;
+					callerContext.SetVar(partialResult.result.ToString(), importedValues);
+					return Intrinsic.Result.Null;
+				}
+				// When we're invoked without a partial result, it's time to start the import.
+				// Begin by finding the actual code.
+				Shell sh = context.interpreter.hostData as Shell;
+				Value libnameVal = context.GetVar("libname");
+				string libname = libnameVal == null ? null : libnameVal.ToString();
+				if (string.IsNullOrEmpty(libname)) {
+					throw new RuntimeException("import: libname required");
+				}
+			
+				// Figure out what directories to look for import modules in.
+				string[] libDirs = new string[0];
+				string searchPaths = sh.GetEnvString("includePaths");
+				if (!string.IsNullOrEmpty(searchPaths)) {
+					// User is using the deprecated includePaths feature.
+					sh.PrintLine("WARNING: env.includePaths is deprecated, and will be removed");
+					searchPaths += ";/sys/lib;/usr/lib";
+					libDirs = searchPaths.Split(new char[] {';'});
+					// Remove this case ^ sometime before Mini Micro 1.0.
+				} else {
+					// Standard (0.9 and later) behavior: expect a list in env.importPaths
+					Value importPaths = sh.GetEnv("importPaths");
+					if (importPaths is ValList) {
+						var iplist = importPaths as ValList;
+						libDirs = new string[iplist.values.Count];
+						for (int i=0; i<iplist.values.Count; i++) {
+							libDirs[i] = iplist.values[i].ToString();
+						}
+					} else if (importPaths != null) {
+						// Not a list?  Assume a semicolon-delimited string.
+						libDirs = importPaths.ToString().Split(new char[] {';'});
+					}
+				}
+				//Debug.Log("Got " + libDirs.Length + " lib dirs: " + string.Join(", ", libDirs));
+				List<string> lines = null;
+				foreach (string dir in libDirs) {
+					string path = dir;
+					if (path.Length == 0 || path[path.Length-1] != '/') path += "/";
+					path += libname + ".ms";
+					string err;
+					path = sh.ResolvePath(path, out err);
+					Disk disk = FileUtils.GetDisk(ref path);
+					if (disk == null) continue;
+					lines = disk.ReadLines(path);
+					if (lines != null) break;
+				}
+				if (lines == null) throw new RuntimeException("import: library not found: " + libname);
+			
+				// Now, parse that code, and build a function around it that returns
+				// its own locals as its result.  Push a manual call.
+				var parser = new Parser();
+				parser.errorContext = libname + ".ms";
+				parser.Parse(string.Join("\n", lines.ToArray()));
+				Function import = parser.CreateImport();
+				sh.interpreter.vm.ManuallyPushCall(new ValFunction(import), new ValTemp(0));
+				// That call will not be able to run until we return from this intrinsic.
+				// So, return a partial result, with the lib name.  We'll get invoked
+				// again after the import function has finished running.
+				return new Intrinsic.Result(new ValString(libname), false);
+			};
+				
 			f = Intrinsic.Create("input");
 			f.AddParam("prompt");
 			f.code = (context, partialResult) => {

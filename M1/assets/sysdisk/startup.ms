@@ -330,6 +330,46 @@ source = function(fromLine=0, toLine=-1)
 	return _source[fromLine:toLine+1].join(char(13))
 end function
 
+edit = function()
+	import "editor"
+	editor.editText _source
+end function
+
+clear = function()
+	// Clear and reset all displays.
+	text.clear
+	text.row = 19
+end function
+
+_saveGlobals = function()
+	globals._savedGlobals = {} + globals
+end function
+
+_restoreGlobals = function()
+	for key in globals.indexes
+		if key[0] != "_" then globals.remove(key)
+	end for
+	for key in _savedGlobals.indexes
+		if key[0] != "_" then globals[key] = _savedGlobals[key]
+	end for
+end function
+
+reset = function()
+	//Sound.stopAll
+	globals._source = []
+	globals._sourceFile = null
+	_restoreGlobals
+	env.importPaths = [".", "/usr/lib", "/sys/lib"]
+	print("Program source cleared and reset")
+	return null
+end function
+
+tip = function()
+	tips = file.readLines("/sys/tips.txt")
+	return tips[rnd * tips.len].replace("\n", char(13))
+end function
+
+_saveGlobals
 
 if bot then
 	// Additional bot functions
@@ -338,7 +378,7 @@ if bot then
 	end function
 
 	scan = function()
-		here = position.area
+		here = bot.position.area
 		for x in range(0, here.width-1)
 			for y in range(0, here.height-1)
 				t = here.tile(x,y)

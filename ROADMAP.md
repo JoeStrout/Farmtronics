@@ -14,6 +14,7 @@ This is our "minimum viable product".
 - ☑ `print` and `input`
 - ☑ [`key` module](https://miniscript.org/wiki/Key) with at least `key.available`, `key.get`, and `key.clear`
 - ☑ file system (including `cd`, `dir`, etc.), with /sys and /usr disks
+- ☑ [`import`](https://miniscript.org/wiki/Import)
 - ☐ code editor, so you can write/edit/save your own programs on /usr
 - ☐ built-in help and some demo/utility programs on /sys
 - ☑ `Location` class for getting info about a location (map)
