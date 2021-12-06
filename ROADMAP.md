@@ -9,7 +9,7 @@ All plans are subject to change, of course.  But we'll try to update this docume
 This is our "minimum viable product".
 
 ### Computer Features
-- ☐ ︎40x20 text display
+- ☑ 40x20 text display
 - ☑ full [text](https://miniscript.org/wiki/TextDisplay) functionality: color, back color, inverse, ability to get/set cursor and line delimiter
 - ☑ `print` and `input`
 - [`key` module](https://miniscript.org/wiki/Key) with at least `key.available`, `key.get`, and `key.clear`
