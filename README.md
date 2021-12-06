@@ -1,11 +1,12 @@
-# StardewM1Mod
+# Farmtronics
 
-This project is a [Stardew Valley mod](https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started) that adds the **"MiniScript M-1 Home Computer"**, as well as programmable **bots**.
+This project is a [Stardew Valley mod](https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started) that adds the **"Farmtronics Home Computer"**, as well as programmable **Farmtronics Bots**.
 
-This is a computer that connects to the TV in your cabin.  Despite its early-80s appearance, it actually runs a very modern and elegant language, [MiniScript](https://miniscript.org).  (See [Why MiniScript](https://luminaryapps.com/blog/miniscript-why/), if you're curious.)
-
+The Home Computer is a computer that connects to the TV in your cabin.  Despite its early-80s appearance, it actually runs a very modern and elegant language, [MiniScript](https://miniscript.org).  (See [Why MiniScript](https://luminaryapps.com/blog/miniscript-why/), if you're curious.)
 
 ![Screen shot of the M-1 Home Computer](img/Demo-1.gif)
+
+Bots each carry the same computer, but also have the ability to move around in the world and get things done.  All you have to do is program them!
 
 ## How to Play
 1. The mod is not yet available in precompiled form.  So you will need to install Visual Studio or MonoDevelop, clone this repo, and Build it yourself.

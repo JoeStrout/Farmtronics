@@ -9,27 +9,30 @@ All plans are subject to change, of course.  But we'll try to update this docume
 This is our "minimum viable product".
 
 ### Computer Features
-- 40x20 text display
-- full [text](https://miniscript.org/wiki/TextDisplay) functionality: color, back color, inverse, ability to get/set cursor and line delimiter
-- `print` and `input`
+- ☐ ︎40x20 text display
+- ☑ full [text](https://miniscript.org/wiki/TextDisplay) functionality: color, back color, inverse, ability to get/set cursor and line delimiter
+- ☑ `print` and `input`
 - [`key` module](https://miniscript.org/wiki/Key) with at least `key.available`, `key.get`, and `key.clear`
-- file system (including `cd`, `dir`, etc.), with /sys and /usr disks
-- code editor, so you can write/edit/save your own programs on /usr
-- built-in help and some demo/utility programs on /sys
-- `Location` class for getting info about a location (map)
-- `farm` and `here` accessors for getting a Location describing your farm, or the location of the computer
-- no errors spewed to SMAPI under any conditions
+- ☐ file system (including `cd`, `dir`, etc.), with /sys and /usr disks
+- ☐ code editor, so you can write/edit/save your own programs on /usr
+- ☐ built-in help and some demo/utility programs on /sys
+- ☑ `Location` class for getting info about a location (map)
+- ☑ `farm` and `here` accessors for getting a Location describing your farm, or the location of the computer
+- ☐ no errors spewed to SMAPI under any conditions
 
 ### Bot Features
-- initial bot received in mail from Maru after doing some task on the Home Computer
-- additional bots can be crafted using iron and batteries
-- inventory that can hold any items the farmer can hold
-- player can move items between their own inventory and the bot's
-- bot can move, turn, and update its screen and status light color
-- bot can select and use any basic tool: axe, hoe, pickaxe, scythe, watering can, seeds
-- bot energy starts full every day, and is depleted as it moves and use tools
+- ☐ initial bot received in mail from Maru after doing some task on the Home Computer
+- ☐ additional bots can be crafted using iron and batteries
+- ☑ inventory that can hold any items the farmer can hold
+- ☐ player can move items between their own inventory and the bot's
+- ☐ bot can move, turn, and update its screen and status light color
+- ☐ bot can select and use any basic tool: axe, hoe, pickaxe, scythe, watering can, seeds
+- ☐ bot energy starts full every day, and is depleted as it moves and use tools
 
-
+### Support & Documentation
+- ☐ mod page at https://www.nexusmods.com/stardewvalley/mods/
+- ☐ basic documentation on how to install and use the mod
+- ☐ API reference for all classes/functions added to MiniScript
 
 ## Unscheduled Future Version
 
