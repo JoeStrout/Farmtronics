@@ -51,11 +51,11 @@ namespace M1 {
 
 			var colors = new Color[] { Color.Red, Color.Yellow, Color.Green, Color.Purple };
 
-			display.SetCursor(19, 1);
+			display.SetCursor(19, 3);
 			for (int i=0; i<4; i++) {
 				display.textColor = colors[i]; display.Print("*");
 			}
-			display.textColor = Color.Azure; display.Print(" MiniScript M-1 " + (botContext==null ? "Home" : "Bot") + " Computer ");
+			display.textColor = Color.Azure; display.Print(" Farmtronics " + (botContext==null ? "Home" : "Bot") + " Computer ");
 			for (int i=0; i<4; i++) {
 				display.textColor = colors[3-i]; display.Print("*");
 			}

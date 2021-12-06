@@ -62,7 +62,7 @@ namespace M1
 			if (dlog == null || !dlog.isQuestion || dlog.responses[0].responseKey != "Weather") return;
 
 			// insert our new response
-			Response r = new Response("M1", "MiniScript M-1 Home Computer");
+			Response r = new Response("M1", "Farmtronics Home Computer");
 			dlog.responses.Insert(dlog.responses.Count-1, r);
 			// adjust the dialog height
 			var h = SpriteText.getHeightOfString(r.responseText, dlog.width) + 16;

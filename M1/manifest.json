@@ -1,9 +1,9 @@
 ﻿{
-  "Name": "M1HomeComputer",
+  "Name": "Farmtronics",
   "Author": "Joe Strout",
-  "Version": "0.0.1",
-  "Description": "Turns your ordinary TV into a high-tech \"home computer\"!",
-  "UniqueID": "strout.m1homecomputer",
+  "Version": "0.0.2",
+  "Description": "Adds a high-tech \"home computer\" to your TV!",
+  "UniqueID": "strout.farmtronics",
   "EntryDll": "M1.dll",
   "MinimumApiVersion": "3.0.0",
   "UpdateKeys": []
