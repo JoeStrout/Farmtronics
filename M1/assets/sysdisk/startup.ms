@@ -332,6 +332,7 @@ end function
 
 edit = function()
 	import "editor"
+	if not globals.hasIndex("_source") or not _source then globals._source = [""]
 	editor.editText _source
 end function
 

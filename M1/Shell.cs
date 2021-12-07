@@ -24,7 +24,7 @@ namespace M1 {
 		public ValMap env;
 
 		public Interpreter interpreter { get; private set; }
-		bool runProgram;
+		public bool runProgram;
 		public string inputReceived;		// stores input while app is running, for _input intrinsic
 
 		Disk sysDisk;
@@ -144,9 +144,9 @@ namespace M1 {
 				//Debug.Log("runProgram flag detected; starting new program");
 				runProgram = false;
 				interpreter.Stop();
-				//Value sourceVal = interpreter.GetGlobalValue("_source");
-				//string source = (sourceVal == null ? null : sourceVal.JoinToString());
-				//BeginRun(source);
+				Value sourceVal = interpreter.GetGlobalValue("_source");
+				string source = (sourceVal == null ? null : sourceVal.JoinToString());
+				BeginRun(source);
 			} else {
 				// nothing running; get another command!
 				GetCommand();
@@ -235,6 +235,12 @@ namespace M1 {
 				Debug.Log("Canceling run in BeginRun");
 				Break(true);
 			}		
+		}
+
+		public void Run() {
+			Break(true);
+			console.keyBuffer.Clear();
+			console.TypeInput("run\n");
 		}
 
 		public void Break(bool silent=false) {

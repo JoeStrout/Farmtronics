@@ -198,6 +198,15 @@ namespace M1 {
 				return new Intrinsic.Result(LocationClass());
 			};
 
+			f = Intrinsic.Create("run");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				sh.Break(true);
+				sh.runProgram = true;
+				context.vm.yielding = true;
+				return Intrinsic.Result.Null;
+			};
+
 			f = Intrinsic.Create("text");
 			f.code = (context, partialResult) => {
 				return new Intrinsic.Result(TextModule());

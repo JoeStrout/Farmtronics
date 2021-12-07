@@ -157,15 +157,17 @@ namespace M1 {
 		public bool Selected {  get; set; }
 
 		public virtual void RecieveTextInput(char inputChar) {
+			Debug.Log($"RecieveTextInput<char>({inputChar})");
 			HandleKey(inputChar);
 		}
 
 		public virtual void RecieveTextInput(string text) {
+			Debug.Log($"RecieveTextInput<string>({text})");
 			foreach (char c in text) HandleKey(c);
 		}
 
 		public virtual void RecieveCommandInput(char command) {
-			ModEntry.instance.print($"RecieveCommandInput({command}, int {(int)command})");
+			Debug.Log($"RecieveCommandInput({command}, int {(int)command})");
 			switch (command) {
 			case '\b':		// backspace
 				HandleKey((char)kBackspace);
@@ -180,11 +182,11 @@ namespace M1 {
 		}
 
 		public void RecieveSpecialInput(Keys key) {
-			ModEntry.instance.print($"RecieveSpecialInput({key}, int {(int)key})");
+			Debug.Log($"RecieveSpecialInput({key}, int {(int)key})");
 		}
 
 		void HandleKey(char keyChar) {
-			//ModEntry.instance.print($"HandleKey: {keyChar} ({(int)keyChar})");
+			Debug.Log($"HandleKey: {keyChar} ({(int)keyChar})");
 			KeyboardState state = Keyboard.GetState();
 
 			if (!inInputMode) {

@@ -53,6 +53,23 @@ refreshLine = function(lineNum)
 	print s
 end function
 
+printLine = function(row, s)
+	if s.len < screenW then
+		s = s + " " * (screenW - s.len)
+	else if s.len > screenW then
+		s = s[:screenW]
+	end if
+	text.row = row; text.column = 0
+	if row > 0 then
+		print s
+	else
+		print s[:-1]
+		text.setCell screenW-1, 0, s[-1]
+		text.setCellColor screenW-1, 0, text.color
+		text.setCellBackColor screenW-1, 0, text.backColor
+	end if
+end function
+
 refreshDisplay = function()
 	row = screenLines - 1
 	i = scrollY
@@ -62,12 +79,10 @@ refreshDisplay = function()
 		text.row = row; text.column = 0
 		if i < data.len then
 			s = data[i].replace(TAB, "  ")[scrollX:]
-			if s.len < screenW then s = s + " " * (screenW - s.len)
-			if s.len > screenW then s = s[:screenW]
 		else
-			s = " " * screenW
+			s = ""
 		end if
-		print s
+		printLine row, s
 		row = row - 1; i = i + 1		
 	end while
 	outer.cursorShown = false
@@ -219,7 +234,7 @@ handleKey = function(k)
 			outer.cursorX = x
 			refreshDisplay
 		end if
-	else if kcode == 27 then  // Escape
+	else if kcode == 27 or kcode == 24 then  // Escape or Ctrl+X
 		outer.quitting = true
 	else if kcode > 31 then  // printable key
 		if cursorY >= data.len then
@@ -256,6 +271,8 @@ editText = function(textToEdit)
 	if textToEdit == null or not textToEdit then textToEdit = [""]
 	outer.data = textToEdit
 	
+	origColor = text.color
+	origBackColor = text.backColor
 	text.backColor = color.clear
 	text.delimiter = ""
 	clear
@@ -270,11 +287,12 @@ editText = function(textToEdit)
 	key.clear
 	
 	text.delimiter = char(13)
-	text.backColor = color.clear
+	text.color = origColor
+	text.backColor = origBackColor
 	text.clear
 	text.row = 1
 end function
 
 if locals == globals then
-	edit _source
+	editText _source
 end if
