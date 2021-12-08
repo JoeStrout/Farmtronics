@@ -19,7 +19,7 @@ pal.background = "#222222"
 pal.text = "#CCCCCC"
 pal.cursor = "#CCCCFF"
 pal.topBar = "#AAAAAA"
-pal.topBarText = "#8888CC"
+pal.topBarText = "#000044"
 
 lineLen = function(lineNum)
 	if lineNum < data.len then return data[lineNum].len
@@ -31,8 +31,8 @@ drawTopBar = function()
 	text.color = pal.topBarText
 	text.row = screenH-1; text.column = 0
 	print " " + _sourceFile
-	print " " * (screenW - 20 - text.column)
-	print "^X: Exit  Line: " + cursorY
+	print " " * (screenW - 10 - text.column)
+	print "Line: " + cursorY
 	print " " * (screenW - text.column)
 end function
 
@@ -110,7 +110,6 @@ hideCursor = function(); showCursor false; end function
 limitCursor = function()
 	if cursorY < 0 then
 		outer.cursorY = 0
-		outer.cursorX = 0
 	else if cursorY > data.len then
 		outer.cursorY = data.len
 	end if
@@ -183,8 +182,8 @@ handleKey = function(k)
 	
 	byWord = false
 	// ToDo:
-	byWord = key.pressed("left ctrl") or key.pressed("right ctrl") or
-	  key.pressed("left alt") or key.pressed("right alt")
+	//byWord = key.pressed("left ctrl") or key.pressed("right ctrl") or
+	//  key.pressed("left alt") or key.pressed("right alt")
 	
 	hideCursor
 	if kcode == 1 then  // ctrl-A (start of line)
@@ -197,7 +196,7 @@ handleKey = function(k)
 			outer.cursorY = cursorY - 1
 			outer.cursorX = lineLen(cursorY)
 		end if
-		if byWord then nextWord -1
+		if byWord then nextWord(-1)
 		outer.idealCursorX = cursorX
 	else if kcode == 18 then  // right
 		outer.cursorX = cursorX + 1
@@ -205,7 +204,7 @@ handleKey = function(k)
 			outer.cursorY = cursorY + 1
 			outer.cursorX = 0
 		end if
-		if byWord then nextWord 1
+		if byWord then nextWord(1)
 		outer.idealCursorX = cursorX
 	else if kcode == 19 then  // up
 		if byWord then amount = screenLines else amount = 1
@@ -222,44 +221,21 @@ handleKey = function(k)
 		outer.cursorX = 0
 		refreshDisplay
 	else if kcode == 127 then  // forward-delete
-		if cursorX >= data[cursorY].len then
-			if cursorY < data.len-1 then
-				data[cursorY] = data[cursorY] + data[cursorY+1]
-				data.remove cursorY + 1
-				refreshDisplay
-			end if
-		else
-			startPos = cursorX
-			outer.cursorX = cursorX + 1
-			if byWord then nextWord 1
-			data[cursorY] = data[cursorY][:startPos] + data[cursorY][cursorX:]
-			outer.cursorX = startPos
-			refreshLine cursorY
-		end if
 	else if kcode == 8 then  // backspace
 		if cursorX > 0 then
-			endPos = cursorX
+			data[cursorY] = data[cursorY][:cursorX-1] + data[cursorY][cursorX:]
 			outer.cursorX = cursorX - 1
-			if byWord then nextWord -1
-			data[cursorY] = data[cursorY][:cursorX] + data[cursorY][endPos:]
 			refreshLine cursorY
 		else if cursorY > 0 then
 			x = data[cursorY-1].len
-			if cursorY < data.len then
-				data[cursorY-1] = data[cursorY-1] + data[cursorY]
-				data.remove cursorY
-			end if
+			data[cursorY-1] = data[cursorY-1] + data[cursorY]
+			data.remove cursorY
 			outer.cursorY = cursorY - 1
 			outer.cursorX = x
 			refreshDisplay
 		end if
 	else if kcode == 27 or kcode == 24 then  // Escape or Ctrl+X
 		outer.quitting = true
-	else if kcode == 9 then  // tab
-		// for now, we'll just have tab insert one or two spaces
-	    handleKey " "
-	    if cursorX % 2 then handleKey " "
-	    return
 	else if kcode > 31 then  // printable key
 		if cursorY >= data.len then
 			data.push k
@@ -277,9 +253,9 @@ handleKey = function(k)
 	showCursor
 	
 	// for development & debugging:
-//	text.row = screenH-1; text.column = screenW/2 
-//	text.backColor = pal.topBar; text.color = "#888888"
-//	print kcode + (" byWord" * byWord + "       " * (not byWord))
+	text.row = screenH-1; text.column = screenW/2 
+	text.backColor = pal.topBar; text.color = "#888888"
+	print kcode + (" byWord" * byWord + "       " * (not byWord))
 	
 end function
 

@@ -47,7 +47,9 @@ namespace M1 {
 		string curSuggestion;		// faded-out text ahead of the cursor for autocomplete
 		List<string> history;		// past inputs
 		int historyIndex;			// where we are in the history
-	
+
+		List<KeyWatcher> keyWatchers;	// watchers for badly-behaved inputs, e.g. arrow keys
+
 		//bool mouseSelectionEnabled;
 		//Vector2 mouseDownPos;
 		bool hasSelection;
@@ -87,6 +89,14 @@ namespace M1 {
 	
 			keyBuffer = new Queue<char>();
 			history = new List<string>();
+
+			keyWatchers = new List<KeyWatcher>() {
+				new KeyWatcher(SButton.Left, (char)kLeftArrow),
+				new KeyWatcher(SButton.Right, (char)kRightArrow),
+				new KeyWatcher(SButton.Down, (char)kDownArrow),
+				new KeyWatcher(SButton.Up, (char)kUpArrow),
+				new KeyWatcher(SButton.Delete, (char)kFwdDelete)
+			};
 
 			whiteTex = new Texture2D(Game1.graphics.GraphicsDevice, 1, 1);
 			whiteTex.SetData(new[] { Color.White });
@@ -133,15 +143,17 @@ namespace M1 {
 		public override void receiveKeyPress(Keys key) {
 			var inp = ModEntry.instance.Helper.Input;
 			if (key == Keys.Escape) Exit();
-			//Debug.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
+			Debug.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
 
 			// Most keys are handled through one of the misspelled IKeyboardSubscriber
 			// interface methods.  But not these:
 			switch (key) {
-			case Keys.Left:		HandleKey((char)kLeftArrow);		break;
-			case Keys.Right:	HandleKey((char)kRightArrow);		break;
-			case Keys.Down:		HandleKey((char)kDownArrow);		break;
-			case Keys.Up:		HandleKey((char)kUpArrow);			break;
+			case Keys.Left:	
+			case Keys.Right:
+			case Keys.Down:	
+			case Keys.Up:
+			case Keys.Delete:
+				return;		// these are now handled via KeyWatchers in Update()
 			}
 
 			bool control = inp.IsDown(SButton.LeftControl) || inp.IsDown(SButton.RightControl);
@@ -263,6 +275,18 @@ namespace M1 {
 
 		public override void update(GameTime time) {
 			base.update(time);
+
+			// Arrow keys for some reason aren't provided by IKeyboardSubscriber, and
+			// don't auto-repeat like they should.  So we handle them separately here.
+			foreach (var kw in keyWatchers) {
+				kw.Update(time);
+				if (kw.justPressedOrRepeats) {
+					Debug.Log($"KeyWatcher {kw.keyButton} pressed or repeats");
+					HandleKey(kw.keyChar);
+				}
+			}
+
+
 			owner.Update(time);
 			display.Update(time);
 		}

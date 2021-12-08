@@ -874,7 +874,7 @@ namespace M1 {
 	
 
 
-		//static ValList keyNames = null;
+		static ValList keyNames = null;
 		static ValMap keyModule;
 		static ValMap KeyModule() {
 			if (keyModule != null) return keyModule;
@@ -923,7 +923,6 @@ namespace M1 {
 			};
 			keyModule["get"] = f.GetFunc();
 
-			/* ToDo: game input stuff
 			// key.pressed
 			//	Detect whether a specific key or button input is currently pressed.  
 			//	These include modifier keys (e.g. "left shift", "right alt") as 
@@ -939,12 +938,16 @@ namespace M1 {
 			f.AddParam("keyName", "space");
 			f.code = (context, partialResult) => {
 				string keyName = context.GetLocalString("keyName");
-				bool result = false;
-				try {
-					result = Input.GetKey(keyName);
-				} catch (System.Exception e) {
-					throw new RuntimeException("Invalid key name: " + keyName);
+				SButton button = SButton.None;
+				switch (keyName) {
+				case "left ctrl":	button = SButton.LeftControl;		break;
+				case "right ctrl":	button = SButton.RightControl;		break;
+				case "left alt":	button = SButton.LeftAlt;			break;
+				case "right alt":	button = SButton.RightAlt;			break;
+				// ToDo: complete mappings (probably via a dictionary)
 				}
+				if (button == SButton.None) throw new RuntimeException($"Invalid key name: {keyName}");
+				bool result = ModEntry.instance.Helper.Input.IsDown(button);
 				return new Intrinsic.Result(ValNumber.Truth(result));
 			};
 			keyModule["pressed"] = f.GetFunc();
@@ -959,7 +962,7 @@ namespace M1 {
 			// axisName (string, default "Horizontal"): name of axis to get
 			// Example: print key.axis("Vertical")
 			// See also: key.pressed
-			f = Intrinsic.Create("");
+/*			f = Intrinsic.Create("");
 			f.AddParam("axisName", "Horizontal");
 			f.code = (context, partialResult) => {
 				string axisName = context.GetLocalString("axisName");
@@ -971,7 +974,7 @@ namespace M1 {
 				}
 			};
 			keyModule["axis"] = f.GetFunc();
-		
+*/		
 			// key.keyNames
 			//	Returns a list of all the key names available for use with key.pressed.
 			//	This can be used, for example, to check all possible inputs, if waiting
@@ -1011,7 +1014,6 @@ namespace M1 {
 				return new Intrinsic.Result(keyNames);
 			};
 			keyModule["keyNames"] = f.GetFunc();
-			*/
 
 			return keyModule;
 		}
