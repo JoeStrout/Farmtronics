@@ -143,7 +143,7 @@ namespace M1 {
 		public override void receiveKeyPress(Keys key) {
 			var inp = ModEntry.instance.Helper.Input;
 			if (key == Keys.Escape) Exit();
-			Debug.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
+			//Debug.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
 
 			// Most keys are handled through one of the misspelled IKeyboardSubscriber
 			// interface methods.  But not these:
@@ -169,17 +169,17 @@ namespace M1 {
 		public bool Selected {  get; set; }
 
 		public virtual void RecieveTextInput(char inputChar) {
-			Debug.Log($"RecieveTextInput<char>({inputChar})");
+			//Debug.Log($"RecieveTextInput<char>({inputChar})");
 			HandleKey(inputChar);
 		}
 
 		public virtual void RecieveTextInput(string text) {
-			Debug.Log($"RecieveTextInput<string>({text})");
+			//Debug.Log($"RecieveTextInput<string>({text})");
 			foreach (char c in text) HandleKey(c);
 		}
 
 		public virtual void RecieveCommandInput(char command) {
-			Debug.Log($"RecieveCommandInput({command}, int {(int)command})");
+			//Debug.Log($"RecieveCommandInput({command}, int {(int)command})");
 			switch (command) {
 			case '\b':		// backspace
 				HandleKey((char)kBackspace);
@@ -194,11 +194,11 @@ namespace M1 {
 		}
 
 		public void RecieveSpecialInput(Keys key) {
-			Debug.Log($"RecieveSpecialInput({key}, int {(int)key})");
+			//Debug.Log($"RecieveSpecialInput({key}, int {(int)key})");
 		}
 
 		void HandleKey(char keyChar) {
-			Debug.Log($"HandleKey: {keyChar} ({(int)keyChar})");
+			//Debug.Log($"HandleKey: {keyChar} ({(int)keyChar})");
 			KeyboardState state = Keyboard.GetState();
 
 			if (!inInputMode) {
@@ -281,7 +281,7 @@ namespace M1 {
 			foreach (var kw in keyWatchers) {
 				kw.Update(time);
 				if (kw.justPressedOrRepeats) {
-					Debug.Log($"KeyWatcher {kw.keyButton} pressed or repeats");
+					//Debug.Log($"KeyWatcher {kw.keyButton} pressed or repeats");
 					HandleKey(kw.keyChar);
 				}
 			}

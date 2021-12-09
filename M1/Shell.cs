@@ -290,7 +290,7 @@ namespace M1 {
 				globals.variables.assignOverride = (key, value) => {
 					string keyStr = key.ToString();
 					if (keyStr == "_") return false;
-					Debug.Log($"global {key} = {value}");
+					//Debug.Log($"global {key} = {value}");
 					if (keyStr == "statusColor") {
 						bot.statusColor = value.ToString().ToColor();
 					} else if (keyStr == "screenColor") {

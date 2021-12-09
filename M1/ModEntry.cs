@@ -50,10 +50,16 @@ namespace M1
 				var bot = new Bot(tilePos);
 
 				//Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
-				bot.TileLocation = tilePos;
 				Game1.player.currentLocation.overlayObjects[tilePos] = bot;
+			}
 
-				bot.NotePosition();
+			 if (e.Button == SButton.MouseLeft) {
+				Debug.Log($"Left mouse button clicked, while holding {Game1.player.CurrentItem}. Pick up a bot?");
+				GameLocation location = Game1.currentLocation;
+				Vector2 tile = e.Cursor.Tile;
+				if (location.objects.TryGetValue(tile, out StardewValley.Object obj)) {
+					Debug.Log($"Item clicked: {obj}");
+				}
 			}
 		}
 

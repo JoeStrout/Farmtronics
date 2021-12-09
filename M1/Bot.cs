@@ -56,7 +56,8 @@ namespace M1 {
 
             var initialTools = new List<Item>
             {
-                new Hoe(),
+ /*
+				new Hoe(),
                 new Axe(),
                 new Pickaxe(),
                 new WateringCan(),
@@ -65,6 +66,7 @@ namespace M1 {
                 new StardewValley.Object(Vector2.Zero, 474, int.MaxValue),
                 // initialTools.Add(new StardewValley.Object(Vector2.Zero, 475, int.MaxValue));
                 new MeleeWeapon(47)  // (scythe)
+*/
             };
 
             foreach (Item i in initialTools) addItem(i);
@@ -78,6 +80,8 @@ namespace M1 {
 			//this.Type = "Crafting";	// (necessary for performDropDownAction to be called)
 			ModEntry.instance.print($"Type: {this.Type}  bigCraftable:{bigCraftable}");
 
+			NotePosition();
+
 			instances.Add(this);
 		}
 
@@ -85,7 +89,13 @@ namespace M1 {
 			foreach (Bot bot in instances) bot.Update(gameTime);
 		}
 
+		public override void dropItem(GameLocation location, Vector2 origin, Vector2 destination) {
+			Debug.Log($"Bot.dropItem({location}, {origin}, {destination}");
+			base.dropItem(location, origin, destination);
+		}
+
 		public override bool performDropDownAction(Farmer who) {
+			Debug.Log($"Bot.performDropDownAction({who.Name})");
 			base.performDropDownAction(who);
 
 			// Keep our farmer positioned wherever this object is
@@ -93,6 +103,22 @@ namespace M1 {
 			farmer.setTileLocation(TileLocation);
 			return false;	// OK to set down (add to Objects list in the tile)
 		}
+
+		public override bool placementAction(GameLocation location, int x, int y, Farmer who = null) {
+			Debug.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
+			Vector2 placementTile = new Vector2(x / 64, y / 64);
+			var bot = new Bot(placementTile);
+			Game1.player.currentLocation.overlayObjects[placementTile] = bot;
+			bot.shakeTimer = 50;
+
+			//location.objects.Add(placementTile, new Chest(playerChest: true, placementTile, parentSheetIndex)
+			//		{
+			//			shakeTimer = 50
+			//		});
+			location.playSound("hammer");
+			return true;
+		}
+
 
 		public void NotePosition() {
 			position = targetPos = TileLocation * 64f;
@@ -262,6 +288,7 @@ namespace M1 {
 		}
 
 		public override bool checkForAction(Farmer who, bool justCheckingForActivity = false) {
+			//Debug.Log($"Bot.checkForAction({who.Name}, {justCheckingForActivity}), tool {who.CurrentTool}");
 			if (justCheckingForActivity) return true;
 			// all this overriding... just to change the open sound.
 			if (!Game1.didPlayerJustRightClick(ignoreNonMouseHeldInput: true)) return false;
@@ -272,6 +299,30 @@ namespace M1 {
 				Game1.player.freezePause = 1000;
 				});
 			return true;
+		}
+
+		public override bool performToolAction(Tool t, GameLocation location) {
+			Debug.Log($"Bot.performToolAction({t}, {location})");
+
+           if (t is Pickaxe or Axe) {
+				Debug.Log("Bot.performToolAction: creating custom debris");
+				var who = t.getLastFarmerToUse();
+                this.performRemoveAction(this.TileLocation, location);
+				Debris deb = new Debris(this.getOne(), who.GetToolLocation(), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
+                Game1.currentLocation.debris.Add(deb);
+				Debug.Log($"Created debris with item {deb.item}");
+                Game1.currentLocation.objects.Remove(this.TileLocation);
+                return false;
+            }
+
+			bool result = base.performToolAction(t, location);
+			Debug.Log($"My TileLocation is now {this.TileLocation}");
+			return result;
+		}
+
+		public override bool performObjectDropInAction(Item dropIn, bool probe, Farmer who) {
+			Debug.Log($"Bot.performObjectDropInAction({dropIn}, {probe}, {who.Name}");
+			return base.performObjectDropInAction(dropIn, probe, who);
 		}
 
 		// Note: to change the close sound, we would need to override updateWhenCurrentLocation.
@@ -326,6 +377,58 @@ namespace M1 {
 			base.draw(spriteBatch, xNonTile, yNonTile, layerDepth, alpha);
 		}
 
+        public override void drawWhenHeld(SpriteBatch spriteBatch, Vector2 objectPosition, Farmer f) {
+			//Debug.Log($"Bot.drawWhenHeld");
+			Rectangle srcRect = new Rectangle(16 * 2, 0, 16, 24);
+            spriteBatch.Draw(botSprites, objectPosition, srcRect, Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingY() + 3) / 10000f));
+        }
+
+        public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow) {
+ 			//Debug.Log($"Bot.drawInMenu");
+            if ((bool)this.IsRecipe) {
+                transparency = 0.5f;
+                scaleSize *= 0.75f;
+            }
+            bool shouldDrawStackNumber = ((drawStackNumber == StackDrawType.Draw && this.maximumStackSize() > 1 && this.Stack > 1) || drawStackNumber == StackDrawType.Draw_OneInclusive) && (double)scaleSize > 0.3 && this.Stack != int.MaxValue;
+
+			Rectangle srcRect = new Rectangle(16 * 2, 0, 16, 24);
+            spriteBatch.Draw(botSprites, location + new Vector2(32f, 32f), srcRect, color * transparency, 0f, new Vector2(8f, 16f), 4f * (((double)scaleSize < 0.2) ? scaleSize : (scaleSize / 2f)), SpriteEffects.None, layerDepth);
+            if (shouldDrawStackNumber) {
+                Utility.drawTinyDigits(this.Stack, spriteBatch, location + new Vector2((float)(64 - Utility.getWidthOfTinyDigitString(this.Stack, 3f * scaleSize)) + 3f * scaleSize, 64f - 18f * scaleSize + 2f), 3f * scaleSize, 1f, color);
+            }
+        }
+
+        public override void drawAsProp(SpriteBatch b) {
+  			Debug.Log($"Bot.drawAsProp");
+           if (this.isTemporarilyInvisible) return;
+            int x = (int)this.TileLocation.X;
+            int y = (int)this.TileLocation.Y;
+
+            Vector2 scaleFactor = Vector2.One; // this.PulseIfWorking ? this.getScale() : Vector2.One;
+            scaleFactor *= 4f;
+            Vector2 position = Game1.GlobalToLocal(Game1.viewport, new Vector2(x * 64, y * 64 - 64));
+			Rectangle srcRect = new Rectangle(16 * 2, 0, 16, 24);
+            b.Draw(destinationRectangle: new Rectangle((int)(position.X - scaleFactor.X / 2f), (int)(position.Y - scaleFactor.Y / 2f),
+				(int)(64f + scaleFactor.X), (int)(128f + scaleFactor.Y / 2f)),
+				texture: botSprites, sourceRectangle: srcRect, color: Color.White, rotation: 0f, origin: Vector2.Zero, effects: SpriteEffects.None, layerDepth: Math.Max(0f, (float)((y + 1) * 64 - 1) / 10000f) + (((int)this.parentSheetIndex == 105 || (int)this.parentSheetIndex == 264) ? 0.0015f : 0f));
+        }
+
+		public override Item getOne() {
+			var ret = new Bot(TileLocation);
+			// TODO: All the other fields objects does??
+			ret.Stack = 1;
+			ret.Price = this.Price;
+			ret._GetOneFrom(this);
+			return ret;
+		}
+
+		public override bool canStackWith(ISalable other) {
+			if (other is not Bot obj) return false;
+			return true;
+//			return obj.FullId == this.FullId && base.canStackWith(other);
+		}
+
+	
 		public override int GetActualCapacity() {
 			return 12;
 		}
