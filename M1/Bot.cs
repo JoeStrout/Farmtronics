@@ -104,6 +104,11 @@ namespace M1 {
 			return false;	// OK to set down (add to Objects list in the tile)
 		}
 
+		/// <summary>
+		/// placementAction is called when the player, who is carring a Bot item, indicates
+		/// that they want to place it down.  The item is going to be destroyed; we have
+		/// to create a new Bot instance that matches its data.
+		/// </summary>
 		public override bool placementAction(GameLocation location, int x, int y, Farmer who = null) {
 			Debug.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
 			Vector2 placementTile = new Vector2(x / 64, y / 64);
@@ -111,10 +116,10 @@ namespace M1 {
 			Game1.player.currentLocation.overlayObjects[placementTile] = bot;
 			bot.shakeTimer = 50;
 
-			//location.objects.Add(placementTile, new Chest(playerChest: true, placementTile, parentSheetIndex)
-			//		{
-			//			shakeTimer = 50
-			//		});
+			// Copy other data from this item to bot.
+			bot.name = name;
+			// ToDo: other data?
+
 			location.playSound("hammer");
 			return true;
 		}
@@ -410,11 +415,24 @@ namespace M1 {
 			Rectangle srcRect = new Rectangle(16 * 2, 0, 16, 24);
             b.Draw(destinationRectangle: new Rectangle((int)(position.X - scaleFactor.X / 2f), (int)(position.Y - scaleFactor.Y / 2f),
 				(int)(64f + scaleFactor.X), (int)(128f + scaleFactor.Y / 2f)),
-				texture: botSprites, sourceRectangle: srcRect, color: Color.White, rotation: 0f, origin: Vector2.Zero, effects: SpriteEffects.None, layerDepth: Math.Max(0f, (float)((y + 1) * 64 - 1) / 10000f) + (((int)this.parentSheetIndex == 105 || (int)this.parentSheetIndex == 264) ? 0.0015f : 0f));
+				texture: botSprites,
+				sourceRectangle: srcRect,
+				color: Color.White,
+				rotation: 0f,
+				origin: Vector2.Zero,
+				effects: SpriteEffects.None,
+				layerDepth: Math.Max(0f, (float)((y + 1) * 64 - 1) / 10000f));
         }
 
+		/// <summary>
+		/// This method is called to get an "Item" (something that can be carried) from this Bot.
+		/// Since Bot is an Object and Objects are Items, we can just return another Bot, but
+		/// for some reason we can't just return *this* bot.
+		/// </summary>
+		/// <returns></returns>
 		public override Item getOne() {
 			var ret = new Bot(TileLocation);
+			ret.name = name;
 			// TODO: All the other fields objects does??
 			ret.Stack = 1;
 			ret.Price = this.Price;
