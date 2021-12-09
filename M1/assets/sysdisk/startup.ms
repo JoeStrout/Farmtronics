@@ -1,3 +1,14 @@
+_printOneLine = function(s)
+	cutPos = 39 - text.column
+	if cutPos >= s.len then
+		print s
+	else
+		row = text.row
+		print s[:cutPos]
+		text.setCell 39, row, s[cutPos]
+	end if
+end function
+
 _printMark = function(s, altColor="#00FF00")
 	colors = [text.color, altColor]
 	which = 0
@@ -6,10 +17,10 @@ _printMark = function(s, altColor="#00FF00")
 	while len(s)
 		pos = s.indexOf("`")
 		if pos == null then
-			print s
+			_printOneLine s
 			break
 		end if
-		print s[:pos]
+		_printOneLine s[:pos]
 		which = not which
 		text.color = colors[which]
 		s = s[pos+1:]
@@ -22,7 +33,7 @@ end function
 help = function(topic)
 	if topic == "" or topic == null then topic = "_default"
 	if topic == "graphics" then topic = "gfx"
-	lines = []  // ToDo:  _fileReadLines("/sys/help/" + topic + ".txt")
+	lines = file.readLines("/sys/help/" + topic + ".txt")
 	if not lines then
 		_printMark "No help available for `""" + topic + """`."
 		print "Help topics:"
@@ -30,15 +41,13 @@ help = function(topic)
 		for topic in file.children("/sys/help").sort
 			if topic[0] == "_" then continue
 			topic = topic - ".txt"
-			if text.column > 44 then print char(13)
-			print """" + topic + """" + " " * (20 - topic.len)
+			if text.column > 24 then print char(13)
+			print """" + topic + """" + " " * (19 - topic.len)
 		end for
 		text.delimiter = char(13)
 		print
 	else
-		for line in lines
-			_printMark line
-		end for
+		pageThrough lines, true
 	end if
 end function
 
@@ -110,13 +119,12 @@ end function
 //	return _HSVAtoColor(hsvaList)
 //end function
 
-pageThrough = function(lines)
+pageThrough = function(lines, markup=false)
 	text.delimiter = ""
 	printed = 0
 	for i in range(0, lines.len-1)
 		line = "" + lines[i]
-		print line[:39]
-		if line.len > 39 then text.setCell 39,text.row, line[39]
+		if markup then _printMark line[:40] else _printOneLine line[:40]
 		print char(13)
 		printed = printed + 1
 		if printed > 18 and i+1 < lines.len then

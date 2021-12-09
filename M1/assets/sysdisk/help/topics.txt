@@ -1,0 +1,8 @@
+Available topics:
+   files        coding        demos
+   text         input         
+   farm         bot
+   
+(Access these with, for example: 
+`help "demos"` -- remember to use
+quotation marks.)

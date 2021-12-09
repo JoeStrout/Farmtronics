@@ -1,0 +1,20 @@
+Functions to get various kinds of input
+from the user:
+
+  `input(prompt)` -- print prompt, and
+          return user-entered string
+
+  `key.available` -- returns 1 if there
+          is a key press in the buffer
+  `key.get` -- waits for and returns a
+          single key
+  `key.clear` -- clear the key buffer
+  `key.pressed(k)` -- returns 1 if key
+          k is currently pressed
+
+  `mouse.x` -- mouse X position, in
+          pixels from left
+  `mouse.y` -- mouse Y position, in 
+          pixels from bottom
+  `mouse.button(which=0)` -- returns
+       1 if mouse button is pressed

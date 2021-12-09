@@ -1,0 +1,24 @@
+The `import` command loads a MiniScript
+file from the current directory, 
+`/usr/lib`, `/sys/lib`, or some path 
+defined in `env.importPaths`.  Any values
+defined by that code then become
+available in a map of the same name.  
+Example:
+
+`import "mathUtil"`
+`print mathUtil.radToDeg(2*pi)`  
+
+Some modules, like `listUtil`, 
+`stringUtil`, and `mapUtil`, extend these
+built-in types with new methods.  For 
+example, the built-in `list` type does not
+have a `.reverse` method, but it does 
+once you import "listUtil":
+
+`import "listUtil"`
+`print [1,2,3].reverse`  // [3, 2, 1]
+
+Be sure to `view` (or `load` and `edit`) the
+modules in `/sys/lib` to see what they
+do, and how they work!

@@ -1,0 +1,21 @@
+There are a number of demos on the
+`/sys` disk.  To run them:
+
+1. Change to the `/sys/demo` directory:
+`cd "/sys/demo"` (remember the quotes!)
+
+2. List the files:
+`dir`
+
+3. Load one, for example:
+`load "dogYears"`
+
+4. Run it!
+`run`
+
+5. You can always break out of a
+program by pressing `Control-C`.
+
+Then use `clear` to clear the screen,
+`edit` to look at the code, or go back
+to step 4 or step 1 above!

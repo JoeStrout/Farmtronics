@@ -1,0 +1,15 @@
+Basic text-related commands:
+
+   `clear` -- clear the screen
+   `print s` -- print contents of `s`
+   `input(prompt)` -- print prompt, 
+        then return user input
+   `text.color = color.blue` -- change
+        text foreground color
+   `text.backColor = color.black` --
+        change text background color
+   `text.inverse = true` -- invert text
+   `text.row = 10` -- put the text 
+        cursor on row 10 (from bottom)
+   `text.column = 20` -- put the text
+        cursor on column 20
