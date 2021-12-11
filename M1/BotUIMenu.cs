@@ -32,9 +32,6 @@ namespace M1 {
 
 			this.bot = bot;
 
-			List<Item> botItems = new List<Item>(bot.inventory.Count);
-			foreach (var item in bot.inventory) botItems.Add(item);
-
 			// Layout notes:
 			// The position of a Menu is its top-left corner (ignoring the border), in game viewport coordinates.
 			// Our height is determined by the sum of the console height (with bot inventory and status next to it),
@@ -56,8 +53,10 @@ namespace M1 {
 			print($"playerInvHeight:{playerInvHeight}, consoleTop:{consoleTop} (={Game1.uiViewport.Height/2}-{totalHeight/2}), new yPositionOnScreen:{totalHeight - playerInvHeight - yPositionForInventory}");
 			movePosition(0, playerInvYDelta);	// (adjust position of player UI)
 
-			botInventoryMenu = new InventoryMenu(Game1.uiViewport.Width/2 - widthOfTopStuff/2, consoleTop, playerInventory: false, botItems,
+			botInventoryMenu = new InventoryMenu(Game1.uiViewport.Width/2 - widthOfTopStuff/2, consoleTop, playerInventory: false, bot.inventory,
 				capacity:bot.GetActualCapacity(), rows:6);
+			botInventoryMenu.onAddItem = onAddItem;
+
 			trashCan.myID = 106;
 			botInventoryMenu.populateClickableComponentList();
 			for (int k = 0; k < botInventoryMenu.inventory.Count; k++) {
@@ -91,6 +90,43 @@ namespace M1 {
 
 		public override void receiveKeyPress(Keys key) {
 			bot.shell.console.receiveKeyPress(key);
+			if (key == Keys.Delete && heldItem != null && heldItem.canBeTrashed()) {
+				Utility.trashItem(heldItem);
+				heldItem = null;
+			}
+		}
+
+		public override void receiveLeftClick(int x, int y, bool playSound = true) {
+			Debug.Log($"Bot.receiveLeftClick({x}, {y}, {playSound}) while heldItem={heldItem}");
+			//int slot = botInventoryMenu.getInventoryPositionOfClick(x, y);
+			//Debug.Log($"Bot.receiveLeftClick: slot={slot}");
+			base.receiveLeftClick(x, y, playSound);
+			heldItem = botInventoryMenu.leftClick(x, y, heldItem, false);
+			
+			Debug.Log($"after calling botInventoryMenu.leftClick, heldItem = {heldItem}");
+		}
+
+		public override void receiveRightClick(int x, int y, bool playSound = true) {
+			Debug.Log($"Bot.receiveRightClick({x}, {y}, {playSound})");
+			base.receiveRightClick(x, y, playSound);
+		}
+
+		// Invoked by InventoryMenu.leftClick when an item is dropped in an inventory slot.
+		void onAddItem(Item item, Farmer who) {
+			Debug.Log($"Bot.onAddItem({item}, {who}");
+			// Note: bot inventory has already been added, so we don't really need this.
+		}
+
+		public override void performHoverAction(int x, int y) {
+			hoveredItem = null;
+			hoverText = "";
+			base.performHoverAction(x, y);
+
+			Item item_grab_hovered_item = botInventoryMenu.hover(x, y, heldItem);
+			if (item_grab_hovered_item != null)	{
+				hoveredItem = item_grab_hovered_item;
+				//Debug.Log($"hoveredItem = {hoveredItem}");
+			}
 		}
 
 		public override void draw(SpriteBatch b) {

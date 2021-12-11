@@ -56,17 +56,15 @@ namespace M1 {
 
             var initialTools = new List<Item>
             {
- /*
 				new Hoe(),
                 new Axe(),
                 new Pickaxe(),
+                new MeleeWeapon(47),  // (scythe)
                 new WateringCan(),
                 new StardewValley.Object(Vector2.Zero, 472, int.MaxValue),
                 new StardewValley.Object(Vector2.Zero, 473, int.MaxValue),
                 new StardewValley.Object(Vector2.Zero, 474, int.MaxValue),
                 // initialTools.Add(new StardewValley.Object(Vector2.Zero, 475, int.MaxValue));
-                new MeleeWeapon(47)  // (scythe)
-*/
             };
 
             foreach (Item i in initialTools) addItem(i);
