@@ -307,7 +307,7 @@ namespace M1 {
 			disp.SetCursor(disp.rows-1, 0);
 		}
 	
-		void Exit() {
+		public void Exit() {
 			if (interpreter.Running()) {
 				//interpreter.vm.globalContext.variables.SetElem(MiniMicroAPI._stackAtBreak, 
 				//	MiniMicroAPI.StackList(interpreter.vm));

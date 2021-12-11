@@ -46,9 +46,10 @@ namespace M1 {
 
 			// language host info
 
-			HostInfo.name = "Mini Micro";
-			HostInfo.version = 1.0;
-			HostInfo.info = "http://miniscript.org/MiniMicro";
+			if (shell.bot == null) HostInfo.name = "Farmtronics Home Computer";
+			else HostInfo.name = "Farmtronics Bot";
+			HostInfo.version = 0.1;
+			HostInfo.info = "http://miniscript.org/";	// to-do: put our mod URL here
 		
 			Intrinsic f;
 
@@ -76,6 +77,15 @@ namespace M1 {
 				return new Intrinsic.Result(sh.env);
 			};
 
+			f = Intrinsic.Create("exit");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				sh.Exit();
+				sh.console.keyBuffer.Clear();
+				return Intrinsic.Result.Null;
+			};
+
+
 			f = Intrinsic.Create("farm");
 			f.code = (context, partialResult) => {
 				var loc = (Farm)Game1.getLocationFromName("Farm");
@@ -92,6 +102,9 @@ namespace M1 {
 			f.code = (context, partialResult) => {
 				return new Intrinsic.Result(FileModule());
 			};
+			// Note: FileModule() defines a few intrinsics (like cd) which are also accessed
+			// globally, so we better call in now to make sure those are defined right away:
+			FileModule();
 
 			f = Intrinsic.Create("import");
 			f.AddParam("libname");

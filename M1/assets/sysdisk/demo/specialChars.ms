@@ -40,23 +40,11 @@ codes.push [9860, "Die Face 5"]
 codes.push [9861, "Die Face 6"]
 
 clear
-row = 25
-column = 0
-printMore = function(s)
-	text.row = row
-	text.column = column
-	print s
-	globals.row = row - 1
-	if 25 - row >= codes.len/2 then
-		globals.row = 25
-		globals.column = 36
-	end if
-end function
 
+lines = []
 for pair in codes
 	if pair[1][0] == "(" then c = " " else c = char(pair[0])
-	printMore ("char(" + pair[0] + ")       ")[:12] + c + "  " + pair[1]
+	lines.push ("char(" + pair[0] + ")       ")[:12] + "`" + c + "`  " + pair[1]
 end for
 
-print
-print
+pageThrough lines, true

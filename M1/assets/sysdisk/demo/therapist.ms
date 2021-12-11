@@ -4,6 +4,9 @@
 // hacked into a module and updated by Jez Higgins
 // and finally translated from Python into MiniScript by Joe Strout :)
 
+import "textUtil"
+printWrap = @textUtil.printWrap
+
 //----------------------------------------------------------------------
 //  respond: take a string, a set of regexps, and a corresponding
 //    set of response lists; find a match, and return a randomly
@@ -308,9 +311,10 @@ gPats = [
 
 runInteractive = function()
 	print "Therapist" + char(13) + "---------"
-	print "Talk to the program by typing in plain English, using normal upper-"
-	print "and lower-case letters and punctuation.  Enter ""quit"" when done."
-	print "=" * 68
+	print "Talk to the program by typing in plain "
+	print "English, using normal upper- and lower- case letters and punctuation."
+	print "Enter ""quit"" when done."
+	print "=" * 40
 	print "Hello.  How are you feeling today?"
 	
 	myColor = text.color
@@ -321,7 +325,7 @@ runInteractive = function()
 			s = s[:-1]
 		end while
 		text.color = myColor
-		print respond(s)
+		printWrap respond(s)
 		if s.lower == "quit" then break
 	end while
 end function

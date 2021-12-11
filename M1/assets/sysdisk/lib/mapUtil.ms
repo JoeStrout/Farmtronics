@@ -1,0 +1,130 @@
+// Map Utilities.
+//	This module adds some additional methods to the `map` type.
+
+// get: look up the value for an index in this map, but if the given
+// index is not found, return a default value instead.
+map.get = function(key, defaultValue=null)
+	if self.hasIndex(key) then return self[key]
+	return defaultValue
+end function
+
+// hasValue: return true if this map contains the given value as
+// a value (contrast with built-in function .hasIndex).
+map.hasValue = function(v)
+	return self.indexOf(v) != null
+end function
+
+// sortedIndexes: get the indexes of this map, but in sorted order
+// (rather than undefined order as .indexes gives you).
+map.sortedIndexes = function()
+	result = self.indexes
+	result.sort
+	return result
+end function
+
+// inverse: return a map that has the keys and values swapped (keys
+// of this map become values of the result map, and vice versa).
+map.inverse = function()
+	result = {}
+	for kv in self
+		result[kv.value] = kv.key
+	end for
+	return result
+end function
+
+// filterIndexes: remove any indexes for which the given function
+// does not return true.
+map.filterIndexes = function(func)
+	for k in self.indexes
+		if not func(k) then self.remove k
+	end for
+end function
+
+// filterValues: remove any key/value pairs for which the 
+// function, applied to the value, does not return true.
+map.filterValues = function(func)
+	for k in self.indexes
+		if not func(self[k]) then self.remove k
+	end for
+end function
+
+// pairs: get all key/value pairs as a list (in arbitrary order)
+// of little maps with "key" and "value", just like what you get
+// when you iterate over a map with a `for` loop.
+map.pairs = function()
+	result = []
+	for kv in self
+		result.push kv
+	end for
+	return result
+end function
+
+
+
+// mapUtils.fromTo: generate a map from one sequence (list or string)
+// to another.  The two sequences must be the same length.
+fromTo = function(fromSeq, toSeq)
+	if fromSeq.len != toSeq.len then
+		print "mapUtils.fromTo: sequence lengths do not match (" + fromSeq.len + " and " + toSeq.len + ")"
+		return null
+	end if
+	result = {}
+	for i in fromSeq.indexes
+		result[fromSeq[i]] = toSeq[i]
+	end for
+	return result
+end function
+
+runUnitTests = function()
+	print "Unit testing: mapUtil"
+	
+	errorCount = 0
+	assertEqual = function(actual, expected, note)
+		if actual != expected then
+			print "Unit test failure (" + testing + "): expected " + expected + ", got " + actual
+			outer.errorCount = errorCount + 1
+		end if
+	end function
+
+	d = {"one":"ichi", "two":"ni", "three":"san", "four":"shi", "five":"go"}
+
+	testing = "get"
+	assertEqual d.get("one", 1), "ichi"
+	assertEqual d.get("ten", 10), 10
+	assertEqual d.get("twenty"), null
+	
+	testing = "hasValue"
+	assertEqual d.hasValue("ni"), true
+	assertEqual d.hasValue("foo"), false
+	
+	testing = "sortedIndexes"
+	assertEqual d.sortedIndexes, ["five", "four", "one", "three", "two"] // (alphabetical)
+	
+	testing = "fromTo"
+	assertEqual fromTo("abc", "xyz"), {"a":"x", "b":"y", "c":"z"}
+	
+	testing = "inverse"
+	assertEqual d.inverse, {"ichi":"one", "ni":"two", "san":"three", "shi":"four", "go":"five"}
+
+	testing = "filterIndexes"
+	d.filterIndexes function(k)
+		return k.len < 4		// only true for "one" and "two"
+	end function
+	assertEqual d.sortedIndexes, ["one", "two"]
+
+	testing = "filterValues"
+	d = {"one":"ichi", "two":"ni", "three":"san", "four":"shi", "five":"go"}
+	d.filterValues function(v)
+		return v.len < 3		// only true for "ni" and "go"
+	end function
+	assertEqual d.sortedIndexes, ["five", "two"]	// (keys for "go" and "ni")
+	
+	if errorCount == 0 then
+		print "All tests passed.  Boo-yeah!"
+	else
+		print errorCount + " error" + "s" * (errorCount!=1) + " found."
+	end if
+
+end function
+
+if globals == locals then runUnitTests

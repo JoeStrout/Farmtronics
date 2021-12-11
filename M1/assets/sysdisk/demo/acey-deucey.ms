@@ -1,8 +1,8 @@
 // Acey Deucey card game
 // (Text-based version)
 
-// Define some common stuff that makes this code work both
-// in Mini Micro, and in command-line MiniScript.
+// Define some common stuff that makes this code work
+// in Farmtronics, Mini Micro, and command-line MiniScript.
 if version.hostName == "Mini Micro" then
 	clear
 	chaChing = file.loadSound("/sys/sounds/cha-ching.wav")
@@ -20,9 +20,9 @@ end if
 print "Welcome to Acey Deucey!"
 print "On each round, you ante $2."
 print "You are then dealt two cards."
-print "Choose how much to bet, then one more card is dealt:"
-print "  If the new card falls between the first two, you win 2X your bet!"
-print "  If the new card falls outside the first two, you lose your bet."
+print "Choose how much to bet, then one more   card is dealt:"
+print "  If the new card falls between the     first two, you win 2X your bet!"
+print "  If the new card falls outside the     first two, you lose your bet."
 print "  If the new card matches either of the first two cards exactly, you lose 2X!"
 print
 
