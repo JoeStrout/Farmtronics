@@ -21,7 +21,7 @@ namespace M1 {
 	public static class M1API  {
 
 		static bool initialized;
-	
+
 		public static Shell shell;		// these should be assigned whenever a shell is accessed
 		public static Console console;	// (usually by calling Init)
 
@@ -48,7 +48,7 @@ namespace M1 {
 			HostInfo.name = "Mini Micro";
 			HostInfo.version = 1.0;
 			HostInfo.info = "http://miniscript.org/MiniMicro";
-		
+
 			Intrinsic f;
 
 			// global intrinsics
@@ -76,11 +76,11 @@ namespace M1 {
 				var result = new ValMap();
 				result.map[ValString.magicIsA] = LocationClass();
 				result.map[_name] = new ValString("Farm");
-				
+
 				result.map[_size] = ToList(layer.LayerWidth, layer.LayerHeight);
 				return new Intrinsic.Result(result);
 			};
-			
+
 			f = Intrinsic.Create("key");
 			f.code = (context, partialResult) => {
 				return new Intrinsic.Result(KeyModule());
@@ -195,7 +195,7 @@ namespace M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				
+
 				if (partialResult == null) {
 					// Just starting our tool use; tell the bot and return partial result
 					sh.bot.UseTool();
@@ -240,8 +240,8 @@ namespace M1 {
 			if (keyModule != null) return keyModule;
 			keyModule = new ValMap();
 			keyModule.assignOverride = DisallowAllAssignment;
-	
-			Intrinsic f;		
+
+			Intrinsic f;
 
 			// key.available
 			//	Returns whether there is a keypress available in the input buffer.
@@ -254,7 +254,7 @@ namespace M1 {
 				return Shell.runningInstance.console.keyBuffer.Count > 0 ? Intrinsic.Result.True : Intrinsic.Result.False;
 			};
 			keyModule["available"] = f.GetFunc();
-		
+
 			// key.clear
 			//	Clear the keyboard input buffer.  This is often used before exiting
 			//	a game, so that any key presses made during the game don't spill out
@@ -267,7 +267,7 @@ namespace M1 {
 				return Intrinsic.Result.Null;
 			};
 			keyModule["clear"] = f.GetFunc();
-		
+
 			// key.get
 			//	Remove and return the next key in the keyboard input buffer.  If the
 			//	input buffer is currently clear (empty), then this method waits until
@@ -285,10 +285,10 @@ namespace M1 {
 
 			/* ToDo: game input stuff
 			// key.pressed
-			//	Detect whether a specific key or button input is currently pressed.  
-			//	These include modifier keys (e.g. "left shift", "right alt") as 
+			//	Detect whether a specific key or button input is currently pressed.
+			//	These include modifier keys (e.g. "left shift", "right alt") as
 			//	well as mouse buttons (e.g. "mouse 0") and joystick/gamepad buttons
-			//	("joystick 1 button 0", etc.).  With regard to joystick buttons, 
+			//	("joystick 1 button 0", etc.).  With regard to joystick buttons,
 			//	if you don't specify a number (e.g. "joystick button 0"), then
 			//	it will detect a press of button 0 on *any* joystick.
 			//	See key.keyNames for all the possible names to use with this method.
@@ -308,7 +308,7 @@ namespace M1 {
 				return new Intrinsic.Result(ValNumber.Truth(result));
 			};
 			keyModule["pressed"] = f.GetFunc();
-		
+
 			// key.axis
 			//	Return the numeric value (from -1 to 1) of an input axis.  Available
 			//	axis names are "Horizontal" and "Vertical", which can be activated
@@ -331,7 +331,7 @@ namespace M1 {
 				}
 			};
 			keyModule["axis"] = f.GetFunc();
-		
+
 			// key.keyNames
 			//	Returns a list of all the key names available for use with key.pressed.
 			//	This can be used, for example, to check all possible inputs, if waiting
@@ -366,7 +366,7 @@ namespace M1 {
 							keyNames.values.Add(new ValString(jname + " button " + i));
 						}
 					}
-			
+
 				}
 				return new Intrinsic.Result(keyNames);
 			};
@@ -375,7 +375,7 @@ namespace M1 {
 
 			return keyModule;
 		}
-	
+
 
 		static ValMap locationClass;
 		public static ValMap LocationClass() {
@@ -383,7 +383,7 @@ namespace M1 {
 
 			locationClass = new ValMap();
 			locationClass.map[_name] = null;
-		
+
 			Intrinsic f;
 
 			// Location.height
@@ -465,7 +465,7 @@ namespace M1 {
 			if (textModule != null) return textModule;
 
 			textModule = new ValMap();
-			
+
 			Intrinsic f;
 
 			// TextDisplay.clear
@@ -484,7 +484,7 @@ namespace M1 {
 				return Intrinsic.Result.Null;
 			};
 			textModule["clear"] = f.GetFunc();
-		
+
 			// TextDisplay.color
 			//	Get or set the foreground color used on any future printing to this
 			//	text display.  This is the text color for normal text, or the surrounding
@@ -499,7 +499,7 @@ namespace M1 {
 				return new Intrinsic.Result(new ValString(disp.textColor.ToHexString()));
 			};
 			textModule["color"] = f.GetFunc();
-		
+
 			// TextDisplay.backColor
 			//	Get or set the background color used on any future printing to this
 			//	text display.  This is the surrounding color for normal text, or the
@@ -528,7 +528,7 @@ namespace M1 {
 				return new Intrinsic.Result(new ValNumber(disp.GetCursor().col));
 			};
 			textModule["column"] = f.GetFunc();
-		
+
 			// TextDisplay.row
 			//	Get or set the row of the text cursor, where subsequent printing will
 			//	begin.  Row values range from 0 at the bottom of the screen, to 25 at the top.
@@ -542,11 +542,11 @@ namespace M1 {
 				return new Intrinsic.Result(new ValNumber(disp.GetCursor().row));
 			};
 			textModule["row"] = f.GetFunc();
-		
+
 			// TextDisplay.inverse
 			//	Get or set whether subsequent printing should be done in "inverse" mode,
 			//	where the foreground and background colors are swapped.  (Note that this
-			//	mode may also be controlled by printing two special characters: 
+			//	mode may also be controlled by printing two special characters:
 			//	char(134) sets inverse to true, and char(135) sets inverse to false.)
 			// Example:
 			//	text.inverse = true; print " BLOCKY "; text.inverse = false
@@ -558,7 +558,7 @@ namespace M1 {
 				return new Intrinsic.Result(ValNumber.Truth(disp.inverse));
 			};
 			textModule["inverse"] = f.GetFunc();
-		
+
 			// TextDisplay.delimiter
 			//	This value is a string which is printed after every [[print]] output.
 			//	Its default value is char(13), which is a carriage return (moves the
@@ -580,7 +580,7 @@ namespace M1 {
 				return new Intrinsic.Result(new ValString(disp.delimiter));
 			};
 			textModule["delimiter"] = f.GetFunc();
-		
+
 			// TextDisplay.cell
 			//	Returns the character stored at a given row and column
 			//	of the text display.
@@ -805,7 +805,7 @@ namespace M1 {
 				return Intrinsic.Result.Null;
 			};
 			textModule["print"] = f.GetFunc();
-		
+
 			textModule.assignOverride = (key, value) => {
 				TextDisplay disp = Shell.runningInstance.textDisplay;
 				if (value == null) value = ValNumber.zero;
@@ -845,14 +845,14 @@ namespace M1 {
 			disp = sh.textDisplay;
 			int x = context.GetLocalInt("x");
 			int y = context.GetLocalInt("y");
-			return disp.Get(y, x);		
+			return disp.Get(y, x);
 		}
 
 		static TextDisplay.Cell ReferencedCell(TAC.Context context) {
 			TextDisplay disp;
 			return ReferencedCell(context, out disp);
 		}
-	
+
 		static ValList ToList(double a, double b) {
 			var result = new ValList();
 			result.values.Add(new ValNumber(a));
