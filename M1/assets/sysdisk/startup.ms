@@ -460,7 +460,44 @@ if bot then
 			end if
 		end for
 	end function
-	
+
+	bot.till = function()
+		bot.equip("Hoe")
+		bot.useTool
+	end function
+
+	bot.water = function()
+		bot.equip("Watering Can")
+		bot.useTool
+	end function
+
+	bot.plant = function(seedName)
+		bot.equip(seedName)
+		bot.plantSeeds
+	end function
+
+	bot.plantLine = function(distance, seedName)
+		for h in range(1, distance)
+			bot.clearAhead
+			bot.till
+			bot.water
+			bot.forward
+			bot.plant(seedName)
+		end for
+	end function
+
+	bot.plantGrid = function(height, width, seedName)
+		bot.plantLine(height, seedName)
+		for h in range(0, width-2)
+			if (h % 2 == 0) then
+				bot.right; bot.clearAhead; bot.till; bot.water; bot.forward; bot.plant(seedName); bot.right
+			else
+				bot.left; bot.clearAhead; bot.till; bot.water; bot.forward; bot.plant(seedName); bot.left
+			end if
+			bot.plantLine(height-1, seedName)
+		end for
+	end function
+
 end if
 
 // Stuff that applies both to bots and to the home computer
