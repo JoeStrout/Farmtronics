@@ -50,7 +50,7 @@ namespace M1 {
 
 		static Texture2D botSprites;
 
-        public enum Seeds
+    public enum Seeds
 		{
 			// spring seeds
 			Parsnip = 472, BeanStarter = 473, Cauliflower = 474, Potato = 475, Tulip = 427, Kale = 477, Jazz = 429,
@@ -68,25 +68,24 @@ namespace M1 {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
 			}
 
-            var initialTools = new List<Item>
-            {
-                new Hoe(),
-                new Axe(),
-                new Pickaxe(),
-                new WateringCan(),
+      var initialTools = new List<Item> {
+        new Hoe(),
+        new Axe(),
+      	new Pickaxe(),
+        new WateringCan(),
 				new MeleeWeapon(47),  // (scythe)
 				new StardewValley.Object(Vector2.Zero, (int)Seeds.Parsnip, int.MaxValue),
-				//new StardewValley.Object(Vector2.Zero, (int)Seeds.BeanStarter, int.MaxValue),		// this is a trellis
+				//new StardewValley.Object(Vector2.Zero, (int)Seeds.BeanStarter, int.MaxValue),		// trellis
 				new StardewValley.Object(Vector2.Zero, (int)Seeds.Cauliflower, int.MaxValue),
 				new StardewValley.Object(Vector2.Zero, (int)Seeds.Potato, int.MaxValue),
 				new StardewValley.Object(Vector2.Zero, (int)Seeds.Tulip, int.MaxValue),
-				//new StardewValley.Object(Vector2.Zero, (int)Seeds.Kale, int.MaxValue),					// this is harvested with scythe
+				//new StardewValley.Object(Vector2.Zero, (int)Seeds.Kale, int.MaxValue),					// harvested with scythe
 				new StardewValley.Object(Vector2.Zero, (int)Seeds.Jazz, int.MaxValue),
 				new StardewValley.Object(Vector2.Zero, (int)Seeds.Garlic, int.MaxValue),
-				//new StardewValley.Object(Vector2.Zero, (int)Seeds.RiceShoot, int.MaxValue)			// this is harvested with scythe
-            };
+				//new StardewValley.Object(Vector2.Zero, (int)Seeds.RiceShoot, int.MaxValue)			// harvested with scythe
+      };
 
-            foreach (Item i in initialTools) addItem(i);
+      foreach (Item i in initialTools) addItem(i);
 
 			Name = "Bot " + uniqueFarmerID;
 			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
