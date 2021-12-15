@@ -158,7 +158,7 @@ dir = function(path=".")
 		end for
 		return
 	end if
-	
+
 	dirInfo = file.info(path)
 	if dirInfo == null then
 		print "Invalid path"
@@ -460,6 +460,7 @@ if bot then
 			end if
 		end for
 	end function
+	
 end if
 
 // Stuff that applies both to bots and to the home computer
