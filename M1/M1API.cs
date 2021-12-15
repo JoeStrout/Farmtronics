@@ -21,7 +21,7 @@ namespace M1 {
 	public static class M1API  {
 
 		static bool initialized;
-	
+
 		public static Shell shell;		// these should be assigned whenever a shell is accessed
 		public static Console console;	// (usually by calling Init)
 
@@ -50,7 +50,7 @@ namespace M1 {
 			else HostInfo.name = "Farmtronics Bot";
 			HostInfo.version = 0.1;
 			HostInfo.info = "http://miniscript.org/";	// to-do: put our mod URL here
-		
+
 			Intrinsic f;
 
 			// global intrinsics
@@ -93,11 +93,11 @@ namespace M1 {
 				var result = new ValMap();
 				result.map[ValString.magicIsA] = LocationClass();
 				result.map[_name] = new ValString("Farm");
-				
+
 				result.map[_size] = ToList(layer.LayerWidth, layer.LayerHeight);
 				return new Intrinsic.Result(result);
 			};
-			
+
 			f = Intrinsic.Create("file");
 			f.code = (context, partialResult) => {
 				return new Intrinsic.Result(FileModule());
@@ -130,7 +130,7 @@ namespace M1 {
 				if (string.IsNullOrEmpty(libname)) {
 					throw new RuntimeException("import: libname required");
 				}
-			
+
 				// Figure out what directories to look for import modules in.
 				string[] libDirs = new string[0];
 				string searchPaths = sh.GetEnvString("includePaths");
@@ -168,7 +168,7 @@ namespace M1 {
 					if (lines != null) break;
 				}
 				if (lines == null) throw new RuntimeException("import: library not found: " + libname);
-			
+
 				// Now, parse that code, and build a function around it that returns
 				// its own locals as its result.  Push a manual call.
 				var parser = new Parser();
@@ -181,7 +181,7 @@ namespace M1 {
 				// again after the import function has finished running.
 				return new Intrinsic.Result(new ValString(libname), false);
 			};
-				
+
 			f = Intrinsic.Create("input");
 			f.AddParam("prompt");
 			f.code = (context, partialResult) => {
@@ -200,7 +200,7 @@ namespace M1 {
 				}
 				return new Intrinsic.Result(ValNumber.one, false);	// not done yet; but non-null partialResult means we've started!
 			};
-		
+
 			f = Intrinsic.Create("key");
 			f.code = (context, partialResult) => {
 				return new Intrinsic.Result(KeyModule());
@@ -324,7 +324,7 @@ namespace M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				
+
 				if (partialResult == null) {
 					// Just starting our tool use; tell the bot and return partial result
 					sh.bot.UseTool();
@@ -337,6 +337,14 @@ namespace M1 {
 			};
 			botModule["useTool"] = f.GetFunc();
 
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) =>
+            {
+                Shell sh = context.interpreter.hostData as Shell;
+                sh.bot.PlantSeeds();
+				return Intrinsic.Result.Null;
+			};
+      botModule["plantSeeds"] = f.GetFunc();
 
 			botModule.assignOverride = (key,value) => {
 				string keyStr = key.ToString();
@@ -360,7 +368,7 @@ namespace M1 {
 			if (fileModule != null) return fileModule;
 			fileModule = new ValMap();
 			fileModule.assignOverride = DisallowAllAssignment;
-		
+
 			// File.curdir
 			Intrinsic f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
@@ -368,7 +376,7 @@ namespace M1 {
 				return new Intrinsic.Result(sh.env["curdir"]);
 			};
 			fileModule["curdir"] = f.GetFunc();
-		
+
 			// File.setdir (also goes by "cd")
 			f = Intrinsic.Create("cd");
 			f.AddParam("dirPath", "");
@@ -379,13 +387,13 @@ namespace M1 {
 				string err;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
-			
+
 				sh.env["curdir"] = new ValString(path);
 				return Intrinsic.Result.Null;
 			};
 			fileModule["setdir"] = f.GetFunc();
 
-		
+
 			// File.makedir
 			f = Intrinsic.Create("");
 			f.AddParam("path", "");
@@ -406,7 +414,7 @@ namespace M1 {
 				return new Intrinsic.Result(err);
 			};
 			fileModule["makedir"] = f.GetFunc();
-		
+
 			// File.children
 			f = Intrinsic.Create("");
 			f.AddParam("path", "");
@@ -433,7 +441,7 @@ namespace M1 {
 				return new Intrinsic.Result(result);
 			};
 			fileModule["children"] = f.GetFunc();
-		
+
 			// File.name
 			f = Intrinsic.Create("");
 			f.AddParam("path", "");
@@ -534,11 +542,11 @@ namespace M1 {
 				string oldPath = context.GetLocalString("oldPath");
 				oldPath = sh.ResolvePath(oldPath, out err);
 				if (oldPath == null) return new Intrinsic.Result(err);
-			
+
 				string newPath = context.GetLocalString("newPath");
 				newPath = sh.ResolvePath(newPath, out err);
 				if (newPath == null) return new Intrinsic.Result(err);
-			
+
 				err = FileUtils.MoveOrCopy(oldPath, newPath, true, false);
 				if (err == null) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(err);
@@ -555,17 +563,17 @@ namespace M1 {
 				string oldPath = context.GetLocalString("oldPath");
 				oldPath = sh.ResolvePath(oldPath, out err);
 				if (oldPath == null) return new Intrinsic.Result(err);
-			
+
 				string newPath = context.GetLocalString("newPath");
 				newPath = sh.ResolvePath(newPath, out err);
 				if (newPath == null) return new Intrinsic.Result(err);
-			
+
 				err = FileUtils.MoveOrCopy(oldPath, newPath, false, false);
 				if (err == null) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(err);
 			};
 			fileModule["copy"] = f.GetFunc();
-		
+
 			// File.open
 			f = Intrinsic.Create("");
 			f.AddParam("path", "");
@@ -590,7 +598,7 @@ namespace M1 {
 				return new Intrinsic.Result(result);
 			};
 			fileModule["open"] = f.GetFunc();
-		
+
 			// File.readLines
 			f = Intrinsic.Create("");
 			f.AddParam("path", "");
@@ -606,7 +614,7 @@ namespace M1 {
 				return new Intrinsic.Result(result);
 			};
 			fileModule["readLines"] = f.GetFunc();
-		
+
 			// File.writeLines
 			f = Intrinsic.Create("");
 			f.AddParam("path");
@@ -616,7 +624,7 @@ namespace M1 {
 				string path = context.GetLocalString("path");
 				Value linesVal = context.GetLocal("lines");
 				if (linesVal == null) return new Intrinsic.Result("Error: lines parameter is required");
-			
+
 				string err = null;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
@@ -627,7 +635,7 @@ namespace M1 {
 				return Intrinsic.Result.Null;
 			};
 			fileModule["writeLines"] = f.GetFunc();
-/*		
+/*
 			// File.loadImage
 			f = Intrinsic.Create("");
 			f.AddParam("path", "");
@@ -641,7 +649,7 @@ namespace M1 {
 				if (disk == null) return Intrinsic.Result.Null;
 				byte[] data = disk.ReadBinary(path);
 				if (data == null) return Intrinsic.Result.Null;
-			
+
 				Texture2D tex = new Texture2D(2, 2, TextureFormat.ARGB32, false);
 				if (!ImageConversion.LoadImage(tex, data, false)) return Intrinsic.Result.Null;
 				//Debug.Log("LoadImage returned true.  And size " + tex.width + " x " + tex.height);
@@ -665,7 +673,7 @@ namespace M1 {
 				ValWrapper imgv = imageVal["_handle"] as ValWrapper;
 				if (imgv == null || !(imgv.content is ImageHandle)) return Intrinsic.Result.Null;
 				var tex = (ImageHandle)imgv.content;
-			
+
 				string err = null;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
@@ -678,12 +686,12 @@ namespace M1 {
 				else if (path.EndsWith(".tga")) bytes = tex.texture2D.EncodeToTGA();
 				else bytes = tex.texture2D.EncodeToPNG();
 				if (bytes == null) return new Intrinsic.Result("Error: unable to encode image");
-			
+
 				disk.WriteBinary(path, bytes);
 				return Intrinsic.Result.Null;
 			};
 			fileModule["saveImage"] = f.GetFunc();
-		
+
 			// File.loadSound
 			f = Intrinsic.Create("");
 			f.AddParam("path", "");
@@ -700,7 +708,7 @@ namespace M1 {
 				if (disk == null) return Intrinsic.Result.Null;
 				byte[] data = disk.ReadBinary(path);
 				if (data == null) return Intrinsic.Result.Null;
-			
+
 				return ReturnAsyncSoundLoader(data, FileUtils.GetFileName(path));
 			};
 			fileModule["loadSound"] = f.GetFunc();
@@ -718,7 +726,7 @@ namespace M1 {
 				if (disk == null) return Intrinsic.Result.Null;
 				byte[] data = disk.ReadBinary(path);
 				if (data == null) return Intrinsic.Result.Null;
-			
+
 				ValMap rawDataInst = new ValMap();
 				rawDataInst.SetElem(ValString.magicIsA, RawDataClass());
 				rawDataInst.map[_handle] = new ValWrapper(new BinaryData(data));
@@ -739,7 +747,7 @@ namespace M1 {
 				BinaryData bd = null;
 				if (handle != null) bd = handle.content as BinaryData;
 				if (bd == null) return new Intrinsic.Result("Error: RawData parameter is required");
-			
+
 				string err = null;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
@@ -751,10 +759,10 @@ namespace M1 {
 				return Intrinsic.Result.Null;
 			};
 			fileModule["saveRaw"] = f.GetFunc();
-*/		
+*/
 			return fileModule;
 		}
-		
+
 		static ValMap fileHandleClass;
 		public static ValMap FileHandleClass() {
 			if (fileHandleClass != null) return fileHandleClass;
@@ -771,9 +779,9 @@ namespace M1 {
 				if (err != null) return new Intrinsic.Result(err);
 				if (file == null || !file.isOpen) return Intrinsic.Result.False;
 				return Intrinsic.Result.True;
-			};		
+			};
 			fileHandleClass["isOpen"] = f.GetFunc();
-		
+
 			// .position
 			f = Intrinsic.Create("");
 			f.AddParam("self");
@@ -782,9 +790,9 @@ namespace M1 {
 				OpenFile file = GetOpenFile(context, out err);
 				if (file == null) return Intrinsic.Result.False;
 				return new Intrinsic.Result(file.position);
-			};		
+			};
 			fileHandleClass["position"] = f.GetFunc();
-		
+
 			// .atEnd
 			f = Intrinsic.Create("");
 			f.AddParam("self");
@@ -793,9 +801,9 @@ namespace M1 {
 				OpenFile file = GetOpenFile(context, out err);
 				if (file == null || !file.isAtEnd) return Intrinsic.Result.False;
 				return Intrinsic.Result.True;
-			};		
+			};
 			fileHandleClass["atEnd"] = f.GetFunc();
-		
+
 			// .write
 			f = Intrinsic.Create("");
 			f.AddParam("self");
@@ -808,9 +816,9 @@ namespace M1 {
 				file.Write(s);
 				if (file.error == null) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(file.error);
-			};		
+			};
 			fileHandleClass["write"] = f.GetFunc();
-		
+
 			// .writeLine
 			f = Intrinsic.Create("");
 			f.AddParam("self");
@@ -824,9 +832,9 @@ namespace M1 {
 				file.Write("\n");
 				if (file.error == null) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(file.error);
-			};		
+			};
 			fileHandleClass["writeLine"] = f.GetFunc();
-		
+
 			// .read
 			f = Intrinsic.Create("");
 			f.AddParam("self");
@@ -836,9 +844,9 @@ namespace M1 {
 				if (err != null) return Intrinsic.Result.Null;
 				string s = file.ReadToEnd();
 				return new Intrinsic.Result(s);
-			};		
+			};
 			fileHandleClass["read"] = f.GetFunc();
-		
+
 			// .readLine
 			f = Intrinsic.Create("");
 			f.AddParam("self");
@@ -848,9 +856,9 @@ namespace M1 {
 				if (err != null) return Intrinsic.Result.Null;
 				string s = file.ReadLine();
 				return new Intrinsic.Result(s);
-			};		
+			};
 			fileHandleClass["readLine"] = f.GetFunc();
-		
+
 			// .close
 			f = Intrinsic.Create("");
 			f.AddParam("self");
@@ -860,13 +868,13 @@ namespace M1 {
 				if (err != null) return new Intrinsic.Result(err);
 				if (file != null) file.Close();
 				return Intrinsic.Result.Null;
-			};		
+			};
 			fileHandleClass["close"] = f.GetFunc();
-				
+
 			fileHandleClass.assignOverride = DisallowAllAssignment;
 			return fileHandleClass;
 		}
-	
+
 		/// <summary>
 		///  Helper method to find the OpenFile referred to by a method on
 		/// a FileHandle object.  Returns the object, or null and sets error.
@@ -884,7 +892,7 @@ namespace M1 {
 			if (result == null) err = "Error: file handle not set";
 			return result;
 		}
-	
+
 
 
 		static ValList keyNames = null;
@@ -893,8 +901,8 @@ namespace M1 {
 			if (keyModule != null) return keyModule;
 			keyModule = new ValMap();
 			keyModule.assignOverride = DisallowAllAssignment;
-	
-			Intrinsic f;		
+
+			Intrinsic f;
 
 			// key.available
 			//	Returns whether there is a keypress available in the input buffer.
@@ -907,7 +915,7 @@ namespace M1 {
 				return Shell.runningInstance.console.keyBuffer.Count > 0 ? Intrinsic.Result.True : Intrinsic.Result.False;
 			};
 			keyModule["available"] = f.GetFunc();
-		
+
 			// key.clear
 			//	Clear the keyboard input buffer.  This is often used before exiting
 			//	a game, so that any key presses made during the game don't spill out
@@ -920,7 +928,7 @@ namespace M1 {
 				return Intrinsic.Result.Null;
 			};
 			keyModule["clear"] = f.GetFunc();
-		
+
 			// key.get
 			//	Remove and return the next key in the keyboard input buffer.  If the
 			//	input buffer is currently clear (empty), then this method waits until
@@ -937,10 +945,10 @@ namespace M1 {
 			keyModule["get"] = f.GetFunc();
 
 			// key.pressed
-			//	Detect whether a specific key or button input is currently pressed.  
-			//	These include modifier keys (e.g. "left shift", "right alt") as 
+			//	Detect whether a specific key or button input is currently pressed.
+			//	These include modifier keys (e.g. "left shift", "right alt") as
 			//	well as mouse buttons (e.g. "mouse 0") and joystick/gamepad buttons
-			//	("joystick 1 button 0", etc.).  With regard to joystick buttons, 
+			//	("joystick 1 button 0", etc.).  With regard to joystick buttons,
 			//	if you don't specify a number (e.g. "joystick button 0"), then
 			//	it will detect a press of button 0 on *any* joystick.
 			//	See key.keyNames for all the possible names to use with this method.
@@ -964,7 +972,7 @@ namespace M1 {
 				return new Intrinsic.Result(ValNumber.Truth(result));
 			};
 			keyModule["pressed"] = f.GetFunc();
-		
+
 			// key.axis
 			//	Return the numeric value (from -1 to 1) of an input axis.  Available
 			//	axis names are "Horizontal" and "Vertical", which can be activated
@@ -987,7 +995,7 @@ namespace M1 {
 				}
 			};
 			keyModule["axis"] = f.GetFunc();
-*/		
+*/
 			// key.keyNames
 			//	Returns a list of all the key names available for use with key.pressed.
 			//	This can be used, for example, to check all possible inputs, if waiting
@@ -1022,7 +1030,7 @@ namespace M1 {
 							keyNames.values.Add(new ValString(jname + " button " + i));
 						}
 					}
-			
+
 				}
 				return new Intrinsic.Result(keyNames);
 			};
@@ -1030,7 +1038,7 @@ namespace M1 {
 
 			return keyModule;
 		}
-	
+
 
 		static ValMap locationClass;
 		public static ValMap LocationClass() {
@@ -1038,7 +1046,7 @@ namespace M1 {
 
 			locationClass = new ValMap();
 			locationClass.map[_name] = null;
-		
+
 			Intrinsic f;
 
 			// Location.height
@@ -1120,7 +1128,7 @@ namespace M1 {
 			if (textModule != null) return textModule;
 
 			textModule = new ValMap();
-			
+
 			Intrinsic f;
 
 			// TextDisplay.clear
@@ -1139,7 +1147,7 @@ namespace M1 {
 				return Intrinsic.Result.Null;
 			};
 			textModule["clear"] = f.GetFunc();
-		
+
 			// TextDisplay.color
 			//	Get or set the foreground color used on any future printing to this
 			//	text display.  This is the text color for normal text, or the surrounding
@@ -1154,7 +1162,7 @@ namespace M1 {
 				return new Intrinsic.Result(new ValString(disp.textColor.ToHexString()));
 			};
 			textModule["color"] = f.GetFunc();
-		
+
 			// TextDisplay.backColor
 			//	Get or set the background color used on any future printing to this
 			//	text display.  This is the surrounding color for normal text, or the
@@ -1183,7 +1191,7 @@ namespace M1 {
 				return new Intrinsic.Result(new ValNumber(disp.GetCursor().col));
 			};
 			textModule["column"] = f.GetFunc();
-		
+
 			// TextDisplay.row
 			//	Get or set the row of the text cursor, where subsequent printing will
 			//	begin.  Row values range from 0 at the bottom of the screen, to 25 at the top.
@@ -1197,11 +1205,11 @@ namespace M1 {
 				return new Intrinsic.Result(new ValNumber(disp.GetCursor().row));
 			};
 			textModule["row"] = f.GetFunc();
-		
+
 			// TextDisplay.inverse
 			//	Get or set whether subsequent printing should be done in "inverse" mode,
 			//	where the foreground and background colors are swapped.  (Note that this
-			//	mode may also be controlled by printing two special characters: 
+			//	mode may also be controlled by printing two special characters:
 			//	char(134) sets inverse to true, and char(135) sets inverse to false.)
 			// Example:
 			//	text.inverse = true; print " BLOCKY "; text.inverse = false
@@ -1213,7 +1221,7 @@ namespace M1 {
 				return new Intrinsic.Result(ValNumber.Truth(disp.inverse));
 			};
 			textModule["inverse"] = f.GetFunc();
-		
+
 			// TextDisplay.delimiter
 			//	This value is a string which is printed after every [[print]] output.
 			//	Its default value is char(13), which is a carriage return (moves the
@@ -1235,7 +1243,7 @@ namespace M1 {
 				return new Intrinsic.Result(new ValString(disp.delimiter));
 			};
 			textModule["delimiter"] = f.GetFunc();
-		
+
 			// TextDisplay.cell
 			//	Returns the character stored at a given row and column
 			//	of the text display.
@@ -1460,7 +1468,7 @@ namespace M1 {
 				return Intrinsic.Result.Null;
 			};
 			textModule["print"] = f.GetFunc();
-		
+
 			textModule.assignOverride = (key, value) => {
 				TextDisplay disp = Shell.runningInstance.textDisplay;
 				if (value == null) value = ValNumber.zero;
@@ -1500,14 +1508,14 @@ namespace M1 {
 			disp = sh.textDisplay;
 			int x = context.GetLocalInt("x");
 			int y = context.GetLocalInt("y");
-			return disp.Get(y, x);		
+			return disp.Get(y, x);
 		}
 
 		static TextDisplay.Cell ReferencedCell(TAC.Context context) {
 			TextDisplay disp;
 			return ReferencedCell(context, out disp);
 		}
-	
+
 		static ValList ToList(double a, double b) {
 			var result = new ValList();
 			result.values.Add(new ValNumber(a));
@@ -1562,7 +1570,7 @@ namespace M1 {
 
 	}
 
-	
+
 	public class ValWrapper : Value {
 		public readonly object content;
 

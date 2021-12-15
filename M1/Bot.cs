@@ -49,25 +49,41 @@ namespace M1 {
 
 		static Texture2D botSprites;
 
+		public enum Seeds {
+			// spring seeds
+			Parsnip = 472, BeanStarter = 473, Cauliflower = 474, Potato = 475, Tulip = 427, Kale = 477, Jazz = 429,
+			Garlic = 476, RiceShoot = 273,
+			// summer
+			Melon = 479, Tomato = 480, Blueberry = 481, Pepper = 482, Wheat = 483, Radish = 484,
+			Poppy = 453, Spangle = 455, Hops = 302, Corn = 487, Sunflower = 431, RedCabbage = 485,
+			// fall
+			Pumpkin = 490, Eggplant = 488, BokChoy = 491, Yam = 492, Cranberry = 493, Fairy = 425,
+            Amaranth = 299, Grape = 301, Artichoke = 489
+		}
+
 		public Bot(Vector2 tileLocation) :base(true, tileLocation) {
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
 			}
 
-            var initialTools = new List<Item>
-            {
-				new Hoe(),
-                new Axe(),
-                new Pickaxe(),
-                new MeleeWeapon(47),  // (scythe)
-                new WateringCan(),
-                new StardewValley.Object(Vector2.Zero, 472, int.MaxValue),
-                new StardewValley.Object(Vector2.Zero, 473, int.MaxValue),
-                new StardewValley.Object(Vector2.Zero, 474, int.MaxValue),
-                // initialTools.Add(new StardewValley.Object(Vector2.Zero, 475, int.MaxValue));
-            };
+			var initialTools = new List<Item> {
+        new Hoe(),
+        new Axe(),
+      	new Pickaxe(),
+        new WateringCan(),
+				new MeleeWeapon(47),  // (scythe)
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Parsnip, int.MaxValue),
+				//new StardewValley.Object(Vector2.Zero, (int)Seeds.BeanStarter, int.MaxValue),		// trellis
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Cauliflower, int.MaxValue),
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Potato, int.MaxValue),
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Tulip, int.MaxValue),
+				//new StardewValley.Object(Vector2.Zero, (int)Seeds.Kale, int.MaxValue),					// harvested with scythe
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Jazz, int.MaxValue),
+				new StardewValley.Object(Vector2.Zero, (int)Seeds.Garlic, int.MaxValue),
+				//new StardewValley.Object(Vector2.Zero, (int)Seeds.RiceShoot, int.MaxValue)			// harvested with scythe
+      };
 
-            foreach (Item i in initialTools) addItem(i);
+      foreach (Item i in initialTools) addItem(i);
 
 			Name = "Bot " + uniqueFarmerID;
 			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
@@ -141,6 +157,21 @@ namespace M1 {
 			// Count how many frames into the swipe effect we are.
 			// We'll actually apply the tool effect later, in Update.
 			toolUseFrame = 1;
+		}
+
+		public bool PlantSeeds() {
+
+            if (inventory[currentToolIndex] is not StardewValley.Object)
+            {
+				ModEntry.instance.print($"currentToolIndex {currentToolIndex} is not an Object");
+                return false;
+            }
+
+			StardewValley.Object seedPacket = inventory[currentToolIndex] as StardewValley.Object;
+			farmer.makeThisTheActiveObject(seedPacket);
+
+			seedPacket.placementAction(currentLocation, (int)position.X, (int)position.Y, farmer);
+			return true;
 		}
 
 		public void Move(int dColumn, int dRow) {
@@ -444,7 +475,7 @@ namespace M1 {
 //			return obj.FullId == this.FullId && base.canStackWith(other);
 		}
 
-	
+
 		public override int GetActualCapacity() {
 			return 12;
 		}
