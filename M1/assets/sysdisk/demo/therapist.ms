@@ -312,7 +312,8 @@ gPats = [
 runInteractive = function()
 	print "Therapist" + char(13) + "---------"
 	print "Talk to the program by typing in plain "
-	print "English, using normal upper- and lower- case letters and punctuation."
+	print "English, using normal upper- and lower-"
+	print "case letters and punctuation."
 	print "Enter ""quit"" when done."
 	print "=" * 40
 	print "Hello.  How are you feeling today?"

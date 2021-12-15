@@ -406,9 +406,14 @@ if bot then
 		if f == 3 then return here.tile(pos.x-1, pos.y)
 	end function
 
-	bot.equip = function(toolName)
+	bot.equip = function(toolNameOrIndex)
+		if toolNameOrIndex isa number then
+			bot.currentToolIndex = toolNameOrIndex
+			print "Equipped " + inv[toolNameOrIndex].name + " (index " + toolNameOrIndex + ")"
+			return
+		end if
+		toolName = str(toolNameOrIndex).lower
 		inv = bot.inventory
-		toolName = toolName.lower
 		for i in inv.indexes
 			if inv[i] and inv[i].name.lower == toolName then
 				bot.currentToolIndex = i
@@ -416,7 +421,7 @@ if bot then
 				return
 			end if
 		end for
-		print "No tool found matching: " + toolName
+		print "No tool found matching: " + toolNameOrIndex
 	end function
 
 	bot.clearAhead = function()
@@ -460,6 +465,22 @@ if bot then
 			end if
 		end for
 	end function
+
+	bot.till = function()
+		bot.equip "Hoe"
+		bot.useTool
+	end function
+
+	bot.water = function()
+		bot.equip "Watering Can"
+		bot.useTool
+	end function
+
+	bot.plant = function(seedName)
+		bot.equip seedName
+		bot.placeItem
+	end function
+
 end if
 
 // Stuff that applies both to bots and to the home computer
