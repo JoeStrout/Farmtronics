@@ -28,7 +28,11 @@ namespace M1 {
 		public int facingDirection {  get {  return farmer.FacingDirection; } }
 		public int currentToolIndex {
 			get { return farmer.CurrentToolIndex; }
-			set {  farmer.CurrentToolIndex = value; }
+			set {
+				if (value >= 0 && value < inventory.Count) {
+					farmer.CurrentToolIndex = value;
+				}
+			}
 		}
 
 		const int vanillaObjectTypeId = 130;	// "Chest"
