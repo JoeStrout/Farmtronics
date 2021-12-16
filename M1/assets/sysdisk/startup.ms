@@ -424,6 +424,7 @@ if bot then
 		if not obstacle then return
 		what = obstacle.type
 		if obstacle.hasIndex("name") then what = obstacle.name
+		if what == "HoeDirt" then return
 		print "Clearing: " + what
 		if what == "Grass" or what == "Weeds" then
 			bot.statusColor = "#66FF66"
