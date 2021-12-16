@@ -28,7 +28,11 @@ namespace M1 {
 		public int facingDirection {  get {  return farmer.FacingDirection; } }
 		public int currentToolIndex {
 			get { return farmer.CurrentToolIndex; }
-			set {  farmer.CurrentToolIndex = value; }
+			set {
+				if (value >= 0 && value < inventory.Count) {
+					farmer.CurrentToolIndex = value;
+				}
+			}
 		}
 
 		const int vanillaObjectTypeId = 130;	// "Chest"
@@ -145,12 +149,14 @@ namespace M1 {
 			farmer.setTileLocation(TileLocation);
 		}
 
+		// Apply the currently-selected item as a tool (or weapon) on
+		// the square in front of the bot.
 		public void UseTool() {
 			Tool tool = inventory[currentToolIndex] as Tool;
 			if (tool == null) return;
 
-			int useX = (int)position.X + 32 * DxForDirection(farmer.FacingDirection);
-			int useY = (int)position.Y + 32 * DyForDirection(farmer.FacingDirection);
+			int useX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
+			int useY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
 
 			tool.beginUsing(currentLocation, useX, useY, farmer);
 
@@ -160,6 +166,35 @@ namespace M1 {
             // Count how many frames into the swipe effect we are.
             // We'll actually apply the tool effect later, in Update.
             toolUseFrame = 1;
+		}
+
+		// Place the currently selected item (e.g., seed) in/on the ground
+		// ahead of the robot.
+		public bool PlaceItem() {
+			var item = inventory[currentToolIndex] as StardewValley.Object;
+			if (item == null) {
+				Debug.Log($"No item equipped in slot {currentToolIndex}");
+				return false;
+			}
+			int placeX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
+			int placeY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
+			Vector2 tileLocation = new Vector2(placeX/64, placeY/64);
+
+			// make sure we can place the item here
+			if (!Utility.playerCanPlaceItemHere(farmer.currentLocation, item, placeX, placeY, farmer)) {
+				Debug.Log($"Can't place {item} (stack size {item.Stack}) at {placeX},{placeY}");
+				return false;
+			}
+
+			// place it
+			bool result = item.placementAction(currentLocation, placeX, placeY, farmer);
+			//Debug.Log($"Placed {item} (from stack of {item.Stack}) at {placeX},{placeY}: {result}");
+
+			// reduce inventory by one
+			item.Stack--;
+			if (item.Stack <= 0) inventory[currentToolIndex] = null;
+
+			return true;
 		}
 
         public void EndUseTool()

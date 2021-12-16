@@ -406,7 +406,13 @@ if bot then
 		if f == 3 then return here.tile(pos.x-1, pos.y)
 	end function
 
-	bot.equip = function(toolName)
+	bot.equip = function(toolNameOrIndex)
+		if toolNameOrIndex isa number then
+			bot.currentToolIndex = toolNameOrIndex
+			print "Equipped " + inv[toolNameOrIndex].name + " (index " + toolNameOrIndex + ")"
+			return
+		end if
+		toolName = str(toolNameOrIndex).lower
 		inv = bot.inventory
 		toolName = toolName.lower
 		for i in inv.indexes

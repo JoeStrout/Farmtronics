@@ -324,6 +324,14 @@ namespace M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				sh.bot.PlaceItem();
+				return Intrinsic.Result.Null;
+			};
+			botModule["placeItem"] = f.GetFunc();
+
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
 
 				if (partialResult == null) {
 					// Just starting our tool use; tell the bot and return partial result
