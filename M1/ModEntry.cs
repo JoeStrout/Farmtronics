@@ -24,6 +24,9 @@ namespace M1
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
 			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+			helper.Events.GameLoop.Saving += this.OnSaving;
+			helper.Events.GameLoop.Saved += this.OnSaved;
+			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
 
 			print($"CurrentSavePath: {Constants.CurrentSavePath}");
 		}
@@ -52,15 +55,6 @@ namespace M1
 				//Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
 				Game1.player.currentLocation.overlayObjects[tilePos] = bot;
 			}
-
-			 if (e.Button == SButton.MouseLeft) {
-				Debug.Log($"Left mouse button clicked, while holding {Game1.player.CurrentItem}. Pick up a bot?");
-				GameLocation location = Game1.currentLocation;
-				Vector2 tile = e.Cursor.Tile;
-				if (location.objects.TryGetValue(tile, out StardewValley.Object obj)) {
-					Debug.Log($"Item clicked: {obj}");
-				}
-			}
 		}
 
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
@@ -80,6 +74,18 @@ namespace M1
 				if (whichAnswer == "M1") PresentComputer();
 				else prevHandler(who, whichAnswer);
 			};
+		}
+
+		public void OnSaving(object sender, SavingEventArgs args) {
+			if (Context.IsMainPlayer) Bot.ConvertBotsToChests();
+		}
+
+		public void OnSaved(object sender, SavedEventArgs args) {
+			if (Context.IsMainPlayer) Bot.ConvertChestsToBots();
+		}
+
+		public void OnSaveLoaded(object sender, SaveLoadedEventArgs args) {
+			if (Context.IsMainPlayer) Bot.ConvertChestsToBots();
 		}
 
 		private void PresentComputer() {

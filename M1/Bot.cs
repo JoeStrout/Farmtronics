@@ -53,7 +53,8 @@ namespace M1 {
 
 		static Texture2D botSprites;
 
-		public Bot(Vector2 tileLocation) :base(true, tileLocation) {
+		public Bot(Vector2 tileLocation, GameLocation location=null) :base(true, tileLocation) {
+			if (location == null) location = Game1.player.currentLocation;
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
 			}
@@ -74,7 +75,7 @@ namespace M1 {
 			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
 				tileLocation * 64, 2,
 				Name, initialTools, isMale: true);
-			farmer.currentLocation = Game1.player.currentLocation;
+			farmer.currentLocation = location;
 			uniqueFarmerID++;
 			//this.Type = "Crafting";	// (necessary for performDropDownAction to be called)
 			ModEntry.instance.print($"Type: {this.Type}  bigCraftable:{bigCraftable}");
@@ -82,6 +83,61 @@ namespace M1 {
 			NotePosition();
 
 			instances.Add(this);
+		}
+
+		public static void ConvertBotsToChests() {
+			Debug.Log("Bot.ConvertBotsToChests");
+			string isBotKey = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
+			int count = 0;
+			foreach (Bot bot in instances) {
+				// Figure out where the bot is.
+				// For now, ignoring bots in inventory; assume they're in the world.
+				var tileLoc = bot.TileLocation;
+				GameLocation location = bot.farmer.currentLocation;
+				StardewValley.Object obj = null;
+				location.overlayObjects.TryGetValue(tileLoc, out obj);
+				if (obj != bot) {
+					Debug.Log($"Oops!  Expected to find a bot at {tileLoc}, but instead found {obj}");
+					continue;
+				}
+				location.overlayObjects.Remove(tileLoc);
+				instances.Remove(bot);
+
+				var chest = new StardewValley.Objects.Chest();
+				chest.modData[isBotKey] = "1";
+				location.objects[tileLoc] = chest;
+				count++;
+				Debug.Log($"Converted {bot} to {chest} at {tileLoc} of {location}");
+			}
+			Debug.Log($"Total bots converted to chests: {count}");
+		}
+
+		public static void ConvertChestsToBots() {
+			Debug.Log("Bot.ConvertChestsToBots");
+			string isBotKey = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
+			GameLocation location = Game1.currentLocation;	// For now!
+			int count = 0;
+			var targetTileLocs = new List<Vector2>();
+			foreach (var kv in location.objects.Pairs) {
+				var tileLoc = kv.Key;
+				var obj = kv.Value;
+				if (obj is not StardewValley.Objects.Chest) continue;
+				string s = null;
+				obj.modData.TryGetValue(isBotKey, out s);
+				Debug.Log($"Found chest in {location} at {tileLoc} with isBot={s}");
+				if (s != "1") continue;
+				targetTileLocs.Add(tileLoc);
+			}
+			foreach (Vector2 tileLoc in targetTileLocs) {
+				var obj = location.objects[tileLoc];
+
+				Bot bot = new Bot(tileLoc, location);
+				location.objects.Remove(tileLoc);
+				location.overlayObjects[tileLoc] = bot;
+				count++;
+				Debug.Log($"Converted {obj} to {bot} at {tileLoc} of {location}");
+			}
+			Debug.Log($"Total chests converted to bots: {count}");
 		}
 
 		public static void UpdateAll(GameTime gameTime) {
@@ -118,6 +174,8 @@ namespace M1 {
 			// Copy other data from this item to bot.
 			bot.name = name;
 			// ToDo: other data?
+
+			instances.Remove(this);
 
 			location.playSound("hammer");
 			return true;
