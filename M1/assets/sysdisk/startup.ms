@@ -406,10 +406,10 @@ if bot then
 		if f == 3 then return here.tile(pos.x-1, pos.y)
 	end function
 
-	bot.equip = function(toolNameOrIndex)
+	bot.use = function(toolNameOrIndex)
 		if toolNameOrIndex isa number then
 			bot.currentToolIndex = toolNameOrIndex
-			print "Equipped " + inv[toolNameOrIndex].name + " (index " + toolNameOrIndex + ")"
+			print "Using " + inv[toolNameOrIndex].name + " (index " + toolNameOrIndex + ")"
 			return
 		end if
 		toolName = str(toolNameOrIndex).lower
@@ -417,7 +417,7 @@ if bot then
 		for i in inv.indexes
 			if inv[i] and inv[i].name.lower == toolName then
 				bot.currentToolIndex = i
-				print "Equipped " + inv[i].name + " (index " + i + ")"
+				print "Using " + inv[i].name + " (index " + i + ")"
 				return
 			end if
 		end for
@@ -432,13 +432,13 @@ if bot then
 		print "Clearing: " + what
 		if what == "Grass" or what == "Weeds" then
 			bot.statusColor = "#66FF66"
-			bot.equip "Scythe"
+			bot.use "Scythe"
 		else if what == "Stone" then
 			bot.statusColor = "#8888FF"
-			bot.equip "Pickaxe"
+			bot.use "Pickaxe"
 		else
 			bot.statusColor = "#FF8800"
-			bot.equip "Axe"
+			bot.use "Axe"
 		end if
 		while bot.ahead
 			bot.useTool
@@ -467,17 +467,17 @@ if bot then
 	end function
 
 	bot.till = function()
-		bot.equip "Hoe"
+		bot.use "Hoe"
 		bot.useTool
 	end function
 
 	bot.water = function()
-		bot.equip "Watering Can"
+		bot.use "Watering Can"
 		bot.useTool
 	end function
 
 	bot.plant = function(seedName)
-		bot.equip seedName
+		bot.use seedName
 		bot.placeItem
 	end function
 
