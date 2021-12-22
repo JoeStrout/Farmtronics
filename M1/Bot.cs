@@ -35,7 +35,6 @@ namespace M1 {
 		}
 
 		const int vanillaObjectTypeId = 130;	// "Chest"
-		//const int vanillaObjectTypeId = 125;	// "Golden Relic"
 
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
@@ -85,6 +84,7 @@ namespace M1 {
 			instances.Add(this);
 		}
 
+		// Convert all bots in the world into vanilla chests, with appropriate metadata.
 		public static void ConvertBotsToChests() {
 			Debug.Log("Bot.ConvertBotsToChests");
 			string isBotKey = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
@@ -101,7 +101,6 @@ namespace M1 {
 					continue;
 				}
 				location.overlayObjects.Remove(tileLoc);
-				instances.Remove(bot);
 
 				var chest = new StardewValley.Objects.Chest();
 				chest.modData[isBotKey] = "1";
@@ -109,35 +108,45 @@ namespace M1 {
 				count++;
 				Debug.Log($"Converted {bot} to {chest} at {tileLoc} of {location}");
 			}
+			instances.Clear();
 			Debug.Log($"Total bots converted to chests: {count}");
 		}
 
-		public static void ConvertChestsToBots() {
-			Debug.Log("Bot.ConvertChestsToBots");
+		/// <summary>
+		/// Convert all the chests with appropriate metadata into bots.
+		/// </summary>
+		/// <param name="inLocation">Location to search in, or if null, search all locations</param>
+		public static void ConvertChestsToBots(GameLocation inLocation=null) {
+			if (inLocation == null) {
+				foreach (var loc in Game1.locations) {
+					ConvertChestsToBots(loc);
+				}
+				return;
+			}
+			Debug.Log($"Bot.ConvertChestsToBots({inLocation.Name})");
 			string isBotKey = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
-			GameLocation location = Game1.currentLocation;	// For now!
 			int count = 0;
 			var targetTileLocs = new List<Vector2>();
-			foreach (var kv in location.objects.Pairs) {
+			foreach (var kv in inLocation.objects.Pairs) {
 				var tileLoc = kv.Key;
 				var obj = kv.Value;
 				if (obj is not StardewValley.Objects.Chest) continue;
 				string s = null;
 				obj.modData.TryGetValue(isBotKey, out s);
-				Debug.Log($"Found chest in {location} at {tileLoc} with isBot={s}");
+				Debug.Log($"Found chest in {inLocation} at {tileLoc} with isBot={s}");
 				if (s != "1") continue;
 				targetTileLocs.Add(tileLoc);
 			}
 			foreach (Vector2 tileLoc in targetTileLocs) {
-				var obj = location.objects[tileLoc];
+				var obj = inLocation.objects[tileLoc];
 
-				Bot bot = new Bot(tileLoc, location);
-				location.objects.Remove(tileLoc);
-				location.overlayObjects[tileLoc] = bot;
+				Bot bot = new Bot(tileLoc, inLocation);
+				inLocation.objects.Remove(tileLoc);
+				inLocation.overlayObjects[tileLoc] = bot;
 				count++;
-				Debug.Log($"Converted {obj} to {bot} at {tileLoc} of {location}");
+				Debug.Log($"Converted {obj} to {bot} at {tileLoc} of {inLocation}");
 			}
-			Debug.Log($"Total chests converted to bots: {count}");
+			if (count > 0) Debug.Log($"Converted {count} chests to bots in {inLocation}");
 		}
 
 		public static void UpdateAll(GameTime gameTime) {
