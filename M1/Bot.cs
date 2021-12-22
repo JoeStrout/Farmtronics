@@ -36,6 +36,10 @@ namespace M1 {
 
 		const int vanillaObjectTypeId = 130;	// "Chest"
 
+		// mod data keys, used for saving/loading extra data with the game save:
+		static string isBotKey = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
+		static string facingKey = $"{ModEntry.instance.ModManifest.UniqueID}/facing";
+
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
 		Farmer farmer;
@@ -87,7 +91,6 @@ namespace M1 {
 		// Convert all bots in the world into vanilla chests, with appropriate metadata.
 		public static void ConvertBotsToChests() {
 			Debug.Log("Bot.ConvertBotsToChests");
-			string isBotKey = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
 			int count = 0;
 			foreach (Bot bot in instances) {
 				// Figure out where the bot is.
@@ -104,6 +107,7 @@ namespace M1 {
 
 				var chest = new StardewValley.Objects.Chest();
 				chest.modData[isBotKey] = "1";
+				chest.modData[facingKey] = bot.facingDirection.ToString();
 				location.objects[tileLoc] = chest;
 				count++;
 				Debug.Log($"Converted {bot} to {chest} at {tileLoc} of {location}");
@@ -124,7 +128,6 @@ namespace M1 {
 				return;
 			}
 			Debug.Log($"Bot.ConvertChestsToBots({inLocation.Name})");
-			string isBotKey = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
 			int count = 0;
 			var targetTileLocs = new List<Vector2>();
 			foreach (var kv in inLocation.objects.Pairs) {
@@ -140,9 +143,16 @@ namespace M1 {
 			foreach (Vector2 tileLoc in targetTileLocs) {
 				var obj = inLocation.objects[tileLoc];
 
+				int facing = 0;
+				string facingStr = null;
+				if (obj.modData.TryGetValue(facingKey, out facingStr)) {
+					int.TryParse(facingStr, out facing);
+				}
+
 				Bot bot = new Bot(tileLoc, inLocation);
 				inLocation.objects.Remove(tileLoc);
 				inLocation.overlayObjects[tileLoc] = bot;
+				bot.farmer.faceDirection(facing);
 				count++;
 				Debug.Log($"Converted {obj} to {bot} at {tileLoc} of {inLocation}");
 			}
