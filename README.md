@@ -4,15 +4,15 @@ This project is a [Stardew Valley mod](https://stardewvalleywiki.com/Modding:Pla
 
 The Home Computer is a computer that connects to the TV in your cabin.  Despite its early-80s appearance, it actually runs a very modern and elegant language, [MiniScript](https://miniscript.org).  (See [Why MiniScript](https://luminaryapps.com/blog/miniscript-why/), if you're curious.)
 
-![Screen shot of the M-1 Home Computer](img/Demo-1.gif)
+![Screen shot of the Farmtronics Home Computer](img/Demo-1.gif)
 
 Bots each carry the same computer, but also have the ability to move around in the world and get things done.  All you have to do is program them!
 
 ## How to Play
 1. The mod is not yet available in precompiled form.  So you will need to install Visual Studio or MonoDevelop, clone this repo, and Build it yourself.
-2. To use the **M-1 Home Computer**:
+2. To use the **Farmtronics Home Computer**:
   - Activate the TV in your house.
-  - Select the bottom-most option, *MiniScript M-1 Home Computer*.
+  - Select the bottom-most option, *Farmtronics Home Computer*.
   - Type code at the prompt.  See https://miniscript.org for documentation on the language (and in particular, be sure to keep the [Quick Reference](https://miniscript.org/files/MiniScript-QuickRef.pdf) handy).
   4. Press **Esc** to exit.
 3. To create and use a **bot**:
