@@ -56,23 +56,26 @@ namespace M1 {
 
 		static Texture2D botSprites;
 
-		public Bot(Vector2 tileLocation, GameLocation location=null) :base(true, tileLocation) {
+		public Bot(Vector2 tileLocation, GameLocation location=null, bool createTools=true) :base(true, tileLocation) {
 			if (location == null) location = Game1.player.currentLocation;
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
 			}
 
-            var initialTools = new List<Item>
-            {
-				new Hoe(),
-                new Axe(),
-                new Pickaxe(),
-                new MeleeWeapon(47),  // (scythe)
-                new WateringCan(),
-				new StardewValley.Object(Vector2.Zero, 472, 5),	// some parsnip seeds, just for testing
-            };
+			List<Item> initialTools = null;
+			if (createTools) {
+	            initialTools = new List<Item>
+	            {
+					new Hoe(),
+	                new Axe(),
+	                new Pickaxe(),
+	                new MeleeWeapon(47),  // (scythe)
+	                new WateringCan(),
+					new StardewValley.Object(Vector2.Zero, 472, 5),	// some parsnip seeds, just for testing
+	            };
 
-            foreach (Item i in initialTools) addItem(i);
+	            foreach (Item i in initialTools) addItem(i);
+			} else initialTools = new List<Item>();
 
 			Name = "Bot " + uniqueFarmerID;
 			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
@@ -109,6 +112,11 @@ namespace M1 {
 				chest.modData[isBotKey] = "1";
 				chest.modData[facingKey] = bot.facingDirection.ToString();
 				location.objects[tileLoc] = chest;
+				for (int i=0; i<chest.items.Count && i<bot.inventory.Count; i++) {
+					Debug.Log($"Moving {bot.inventory[i]} from bot to chest in slot {i}");
+					chest.items[i] = bot.inventory[i];
+				}
+				bot.inventory.Clear();
 				count++;
 				Debug.Log($"Converted {bot} to {chest} at {tileLoc} of {location}");
 			}
@@ -127,7 +135,6 @@ namespace M1 {
 				}
 				return;
 			}
-			Debug.Log($"Bot.ConvertChestsToBots({inLocation.Name})");
 			int count = 0;
 			var targetTileLocs = new List<Vector2>();
 			foreach (var kv in inLocation.objects.Pairs) {
@@ -141,20 +148,26 @@ namespace M1 {
 				targetTileLocs.Add(tileLoc);
 			}
 			foreach (Vector2 tileLoc in targetTileLocs) {
-				var obj = inLocation.objects[tileLoc];
+				var chest = inLocation.objects[tileLoc] as StardewValley.Objects.Chest;
 
 				int facing = 0;
 				string facingStr = null;
-				if (obj.modData.TryGetValue(facingKey, out facingStr)) {
+				if (chest.modData.TryGetValue(facingKey, out facingStr)) {
 					int.TryParse(facingStr, out facing);
 				}
 
-				Bot bot = new Bot(tileLoc, inLocation);
+				Bot bot = new Bot(tileLoc, inLocation, false);
 				inLocation.objects.Remove(tileLoc);
 				inLocation.overlayObjects[tileLoc] = bot;
 				bot.farmer.faceDirection(facing);
+				for (int i=0; i<chest.items.Count && i<bot.inventory.Count; i++) { 
+					Debug.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
+					bot.inventory[i] = chest.items[i];
+				}
+				chest.items.Clear();
+
 				count++;
-				Debug.Log($"Converted {obj} to {bot} at {tileLoc} of {inLocation}");
+				Debug.Log($"Converted {chest} to {bot} at {tileLoc} of {inLocation}");
 			}
 			if (count > 0) Debug.Log($"Converted {count} chests to bots in {inLocation}");
 		}
