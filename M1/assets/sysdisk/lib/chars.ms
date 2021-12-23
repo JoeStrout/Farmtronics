@@ -73,7 +73,7 @@ dieFace[6] = char(9861)
 
 // Invisible characters that, when printed, make something happen:
 inverseOn = char(134)
-inverseOff = char(134)
+inverseOff = char(135)
 bell = char(7)
 
 // Other miscellaneous control characters:

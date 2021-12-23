@@ -292,7 +292,8 @@ end function
 // editText: main entry point.
 // Pass in a list of strings representing the text to edit.
 editText = function(textToEdit)
-	if textToEdit == null or not textToEdit then textToEdit = [""]
+	if textToEdit == null then textToEdit = []
+	if textToEdit.len == 0 then textToEdit.push ""
 	outer.data = textToEdit
 	
 	origColor = text.color
@@ -309,7 +310,7 @@ editText = function(textToEdit)
 		update
 	end while
 	key.clear
-	
+
 	text.delimiter = char(13)
 	text.color = origColor
 	text.backColor = origBackColor
