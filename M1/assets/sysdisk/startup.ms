@@ -6,6 +6,8 @@ _printOneLine = function(s)
 		row = text.row
 		print s[:cutPos]
 		text.setCell 39, row, s[cutPos]
+		text.setCellColor 39, row, text.color
+		text.setCellBackColor 39, row, text.backColor
 	end if
 end function
 
@@ -164,16 +166,16 @@ dir = function(path=".")
 		print "Invalid path"
 		return
 	end if
-
+	
 	lines = [dirInfo.path + " : "]
-
+	
 	files = file.children(dirInfo.path)
 	if files.len == 0 then
 		print lines[0]
 		print "  (Directory empty)"
 		return
 	end if
-
+	
 	files.sort
 	for i in range(0, files.len-1)
 		finfo = file.info(file.child(dirInfo.path,files[i]))
@@ -190,7 +192,7 @@ dir = function(path=".")
 end function
 
 _apiClassNames = {
-	Location:"Location",
+Location:"Location",
 }
 
 mapName = function(map)
@@ -252,10 +254,10 @@ view = function(path)
 		print "file name or path is required"
 		return
 	end if
-//	if path isa Image then
-//		_viewImage path
-//		return
-//	end if
+	//	if path isa Image then
+	//		_viewImage path
+	//		return
+	//	end if
 	info = file.info(path)
 	if info == null then
 		print "File not found (" + path + ")"
@@ -283,13 +285,13 @@ view = function(path)
 		end if
 	else if path[-4:] == ".wav" or path[-4:] == ".ogg" then
 		print "Playing sounds is not implemented."
-//		// Play a sound
-//		snd = file.loadSound(path)
-//		if snd == null then
-//			print "Unable to load sound: " + path
-//		else
-//			snd.play
-//		end if
+		//		// Play a sound
+		//		snd = file.loadSound(path)
+		//		if snd == null then
+		//			print "Unable to load sound: " + path
+		//		else
+		//			snd.play
+		//		end if
 	else
 		print "No viewer available for this file type"
 	end if
@@ -385,7 +387,7 @@ if bot then
 	here = function()
 		return bot.position.area
 	end function
-
+	
 	scan = function()
 		here = bot.position.area
 		for x in range(0, here.width-1)
@@ -396,7 +398,7 @@ if bot then
 			end for
 		end for
 	end function
-
+	
 	bot.ahead = function()
 		f = bot.facing
 		pos = bot.position
@@ -405,7 +407,7 @@ if bot then
 		if f == 2 then return here.tile(pos.x, pos.y+1)
 		if f == 3 then return here.tile(pos.x-1, pos.y)
 	end function
-
+	
 	bot.use = function(toolNameOrIndex)
 		if toolNameOrIndex isa number then
 			bot.currentToolIndex = toolNameOrIndex
@@ -423,7 +425,7 @@ if bot then
 		end for
 		print "No tool found matching: " + toolNameOrIndex
 	end function
-
+	
 	bot.clearAhead = function()
 		obstacle = bot.ahead
 		if not obstacle then return
@@ -444,7 +446,7 @@ if bot then
 			bot.useTool
 		end while
 	end function
-
+	
 	bot.clearAndMove = function(dist=1)
 		for i in range(dist-1)
 			pos = bot.position
@@ -454,7 +456,7 @@ if bot then
 			end while
 		end for
 	end function
-
+	
 	bot.clearGrid = function(width, height)
 		for h in range(0, height-1)
 			bot.clearAndMove width
@@ -465,22 +467,22 @@ if bot then
 			end if
 		end for
 	end function
-
+	
 	bot.till = function()
 		bot.use "Hoe"
 		bot.useTool
 	end function
-
+	
 	bot.water = function()
 		bot.use "Watering Can"
 		bot.useTool
 	end function
-
+	
 	bot.plant = function(seedName)
 		bot.use seedName
 		bot.placeItem
 	end function
-
+	
 end if
 
 // Stuff that applies both to bots and to the home computer

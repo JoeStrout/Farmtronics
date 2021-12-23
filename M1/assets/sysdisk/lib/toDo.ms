@@ -35,7 +35,7 @@ addTask "demo", "run a demo", [
 "  `cd ""/sys/demo""`",
 "  `dir`",
 "  `load ""dogYears""",
-"  `run'"]
+"  `run`"]
 
 addTask "edit", "edit a program", [
 "Use the `edit` command to view and",
@@ -49,15 +49,14 @@ addTask "save", "save a program", [
 "Save the current program to your",
 "/usr disk.  Example: `save ""foo""`",
 "",
-"(You can use `save` by itself with",
-"a program previously loaded or saved",
+"(You can use `save` by itself with a",
+"program previously loaded or saved",
 "on the user disk.  But you can't",
 "save anything to the /sys disk.)"]
 
-addTask "for", "print 1-100 using `for`", [
+addTask "for", "for-loop from 1 to 100", [
 "Write a small program that prints the",
-"numbers 1 through 100 using a `for`",
-"loop.",
+"numbers 1 through 100 using a `for` loop.",
 "",
 "For programming help, go to:",
 "   `https://miniscript.org`"]
@@ -89,6 +88,7 @@ btnDown = btn(chars.downArrow)
 btnEsc = btn("Esc")
 
 draw = function()
+	prevColor = text.color
 	text.clear
 	text.row = 19; text.column = 0
 	text.color = color.silver
@@ -113,8 +113,11 @@ draw = function()
 	
 	text.row = 0
 	text.color = color.silver
+	text.delimiter = ""
 	_printOneLine btnUp + "/" + btnDown + 
 	  ":view details; " + btnEsc + ": exit"
+	text.delimiter = char(13)
+	text.color = prevColor
 end function
 
 if locals == globals then
