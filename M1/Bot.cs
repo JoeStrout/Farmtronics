@@ -5,6 +5,7 @@ This class is a stardew valley Object subclass that represents a Bot.
 
 using System;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
@@ -12,9 +13,10 @@ using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Tools;
+using StardewValley.Network;
 
 namespace M1 {
-	public class Bot : StardewValley.Objects.Chest {
+	public class Bot : StardewValley.Object {
 		public IList<Item> inventory {  get {  return farmer.Items; } }
 		public Color screenColor = Color.Transparent;
 		public Color statusColor = Color.Yellow;
@@ -33,6 +35,9 @@ namespace M1 {
 				}
 			}
 		}
+
+		[XmlIgnore]
+		public readonly NetMutex mutex = new NetMutex();
 
 		const int vanillaObjectTypeId = 130;	// "Chest"
 
@@ -56,7 +61,13 @@ namespace M1 {
 
 		static Texture2D botSprites;
 
-		public Bot(Vector2 tileLocation, GameLocation location=null, bool createTools=true) :base(true, tileLocation) {
+		public Bot(Vector2 tileLocation, GameLocation location=null, bool createTools=true) :base(tileLocation, 130) {
+			Name = "Bot";
+			type.Value = "Crafting";
+			bigCraftable.Value = true;
+			canBeSetDown.Value = true;
+
+			this.TileLocation = tileLocation;
 			if (location == null) location = Game1.player.currentLocation;
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
@@ -70,11 +81,9 @@ namespace M1 {
 	                new Axe(),
 	                new Pickaxe(),
 	                new MeleeWeapon(47),  // (scythe)
-	                new WateringCan(),
-					new StardewValley.Object(Vector2.Zero, 472, 5),	// some parsnip seeds, just for testing
+	                new WateringCan()
 	            };
 
-	            foreach (Item i in initialTools) addItem(i);
 			} else initialTools = new List<Item>();
 
 			Name = "Bot " + uniqueFarmerID;
@@ -416,13 +425,29 @@ namespace M1 {
 			//Debug.Log($"Bot.checkForAction({who.Name}, {justCheckingForActivity}), tool {who.CurrentTool}");
 			if (justCheckingForActivity) return true;
 			// all this overriding... just to change the open sound.
-			if (!Game1.didPlayerJustRightClick(ignoreNonMouseHeldInput: true)) return false;
-			GetMutex().RequestLock(delegate {
-				frameCounter.Value = 5;
-				Game1.playSound("bigSelect");
-				Game1.player.Halt();
-				Game1.player.freezePause = 1000;
-				});
+			if (!Game1.didPlayerJustRightClick(ignoreNonMouseHeldInput: true)) {
+				Debug.Log($"Bailing because didPlayerJustRightClick is false");
+				return false;
+			}
+
+			// ToDo: use mutex to ensure only one player can open a bot at a time.
+			// (Tried, but couldn't get to work:
+			//Debug.Log($"Requesting mutex lock: {mutex}, IsLocked={mutex.IsLocked()}, IsLockHeld={mutex.IsLockHeld()}");
+			//mutex.RequestLock(delegate {
+			//	Game1.playSound("bigSelect");
+			//	Game1.player.Halt();
+			//	Game1.player.freezePause = 1000;
+			//	ShowMenu();
+			//}, delegate {
+			//	Debug.Log("Failed to get mutex lock :(");
+			//});
+
+			// For now, just dewit:
+			Game1.playSound("bigSelect");
+			Game1.player.Halt();
+			Game1.player.freezePause = 1000;
+			ShowMenu();
+		
 			return true;
 		}
 
@@ -567,11 +592,11 @@ namespace M1 {
 		}
 
 	
-		public override int GetActualCapacity() {
+		public int GetActualCapacity() {
 			return 12;
 		}
 
-		public override void ShowMenu() {
+		public void ShowMenu() {
 			ModEntry.instance.print($"{Name} ShowMenu()");
 
 			if (shell == null) {
@@ -579,31 +604,6 @@ namespace M1 {
 				shell.Init(this);
 			}
 			Game1.activeClickableMenu = new BotUIMenu(this, shell);
-
-			/*
-			// So this is what a normal chest does:
-			Game1.activeClickableMenu = new StardewValley.Menus.ItemGrabMenu(
-				GetItemsForPlayer(Game1.player.UniqueMultiplayerID),
-				reverseGrab: false,
-				showReceivingMenu: false,
-				StardewValley.Menus.InventoryMenu.highlightAllItems,
-				grabItemFromInventory,
-				Name,
-				grabItemFromChest,
-				snapToBottom: true,
-				canBeExitedWithKey: false,
-				playRightClickSound: true,
-				allowRightClick: true,
-				showOrganizeButton: true,
-				1,		// int source
-				this,	// sourceItem
-				-1,		// whichSpecialButton
-				this);	// context
-			*/
-
-			// ...but we're going to need to replace ItemGrabMenu with our own custom
-			// menu.  Fortunately it should be able to leverage the ItemsToGrabMenu
-			// (which is the container inventory space), as ItemGrabMenu does.
 		}
 	}
 }

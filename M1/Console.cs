@@ -120,6 +120,8 @@ namespace M1 {
 		}
 
 		private void Exit() {
+			Debug.Log("Console.Exit()");
+			Game1.playSound("smallSelect");
 			Game1.exitActiveMenu();
 			Game1.player.canMove = true;
 		}

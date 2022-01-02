@@ -349,7 +349,7 @@ namespace M1 {
 			botModule.assignOverride = (key,value) => {
 				string keyStr = key.ToString();
 				if (keyStr == "_") return false;
-				Debug.Log($"global {key} = {value}");
+				//Debug.Log($"global {key} = {value}");
 				if (keyStr == "statusColor") {
 					Shell.runningInstance.bot.statusColor = value.ToString().ToColor();
 					return true;
