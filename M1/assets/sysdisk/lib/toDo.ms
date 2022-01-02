@@ -4,7 +4,9 @@ Task = {}
 Task.key = ""      // short unique key
 Task.name = ""     // display name
 Task.details = []  // lines of text to print
-Task.done = false
+Task.done = function
+	return _taskDone(tasks.indexOf(self))
+end function
 
 tasks = []
 

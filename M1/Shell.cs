@@ -38,7 +38,7 @@ namespace M1 {
 			console = new M1.Console(this);
 
 			// prepare the interpreter
-			interpreter = new Interpreter(null, PrintLine, PrintLine);
+			interpreter = new Interpreter(null, PrintLineWithTaskCheck, PrintLine);
 			interpreter.implicitOutput = PrintLine;
 			interpreter.hostData = this;
 		}
@@ -321,5 +321,9 @@ namespace M1 {
 			disp.Print(disp.delimiter);
 		}
 
+		void PrintLineWithTaskCheck(string line) {
+			PrintLine(line);
+			ToDoManager.NotePrintOutput(line);
+		}
 	}
 }

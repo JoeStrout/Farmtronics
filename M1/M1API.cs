@@ -217,6 +217,12 @@ namespace M1 {
 				sh.Break(true);
 				sh.runProgram = true;
 				context.vm.yielding = true;
+
+				string sourcePath = "";
+				var sourceFile = context.GetVar("_sourceFile");
+				if (sourceFile != null) sourcePath = sourceFile.ToString();
+				ToDoManager.NoteRun(sourcePath);
+
 				return Intrinsic.Result.Null;
 			};
 
@@ -225,6 +231,14 @@ namespace M1 {
 				return new Intrinsic.Result(TextModule());
 			};
 
+			f = Intrinsic.Create("_taskDone");
+			f.AddParam("taskNum");
+			f.code = (context, partialResult) => {
+				int taskNum = context.GetLocalInt("taskNum");
+				if (taskNum < 0 || taskNum >= (int)ToDoManager.Task.kQtyTasks) return Intrinsic.Result.Null;
+				var task = (ToDoManager.Task)taskNum;
+				return new Intrinsic.Result(ValNumber.Truth(ToDoManager.IsTaskDone(task)));
+			};
 
 		}
 
@@ -387,7 +401,9 @@ namespace M1 {
 				string err;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
-			
+
+				ToDoManager.NoteCd(path);
+
 				sh.env["curdir"] = new ValString(path);
 				return Intrinsic.Result.Null;
 			};
