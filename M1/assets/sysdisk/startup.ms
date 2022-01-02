@@ -382,6 +382,12 @@ end function
 
 _saveGlobals
 
+toDo = function()
+	import "toDo"
+	toDo.present
+end function
+todo = @toDo	// (allow mistyping just this one time, because newbies)
+
 if bot then
 	// Additional bot functions
 	here = function()

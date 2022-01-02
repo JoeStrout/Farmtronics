@@ -120,29 +120,19 @@ draw = function()
 	text.color = prevColor
 end function
 
-if locals == globals then
-	if version.hostName == "Mini Micro" then
-		// Mask off the area beyond the Farmtronics screen
-		display(1).mode = displayMode.text
-		display(1).color = color.gray
-		display(1).clear
-		for row in range(0, 25)
-			for col in range(0, 67)
-				if row < 20 and col < 40 then continue
-				display(1).setCell col, row, "."
-			end for
-		end for
-	end if
-	
+present = function()
+	clear
 	while true
 		draw
 		k = key.get
 		if k == chars.up then
-			selectedIdx = (selectedIdx + tasks.len - 1) % tasks.len
+			outer.selectedIdx = (selectedIdx + tasks.len - 1) % tasks.len
 		else if k == chars.down then
-			selectedIdx = (selectedIdx + 1) % tasks.len
-		else if k == char(27) then
+			outer.selectedIdx = (selectedIdx + 1) % tasks.len
+		else if k == char(27) or k == char(10) then
 			break
 		end if
 	end while
-end if
+end function
+
+if locals == globals then present

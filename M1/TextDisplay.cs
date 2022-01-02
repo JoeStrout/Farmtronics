@@ -309,7 +309,7 @@ namespace M1 {
 					if (col >= cols) break;
 					// Now start a rectangle at this location.
 					int startCol = col;
-					Rectangle rect = new Rectangle(displayArea.Left + col*16, displayArea.Bottom - row * 24 - 24, 20, 24);
+					Rectangle rect = new Rectangle(displayArea.Left + col*16 + 1, displayArea.Bottom - row * 24 - 24, 15, 24);
 					// now skip ahead until a cell that's a different color from this one
 					while (++col < cols) {
 						var newBg = cells[row,col].inverse ? cells[row,col].foreColor : cells[row,col].backColor;

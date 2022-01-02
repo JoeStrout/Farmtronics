@@ -144,7 +144,11 @@ namespace M1 {
 
 		public override void receiveKeyPress(Keys key) {
 			var inp = ModEntry.instance.Helper.Input;
-			if (key == Keys.Escape) Exit();
+			if (key == Keys.Escape) {
+				if (inInputMode) Exit();
+				else HandleKey((char)27);
+				return;
+			}
 			//Debug.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
 
 			// Most keys are handled through one of the misspelled IKeyboardSubscriber
