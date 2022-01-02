@@ -105,7 +105,7 @@ Parser.parse = function(source=null)
 end function
 
 whitespace = " " + char(9) + cr + lf
-Parser._skipWhitespace = function()
+Parser._skipWhitespace = function
 	while self._p < self._sourceLen
 		c = self.source[self._p]
 		if c == "/" and self._p+1 < self._sourceLen and self.source[self._p+1] == "/" then
@@ -119,7 +119,7 @@ Parser._skipWhitespace = function()
 	end while
 end function
 
-Parser._skipToEOL = function()
+Parser._skipToEOL = function
 	while self._p < self._sourceLen
 		c = self.source[self._p]
 		self._p = self._p + 1
@@ -191,7 +191,7 @@ Parser._parseElement = function(asValue=false)
 	end while
 end function
 
-Parser._parseValue = function()
+Parser._parseValue = function
 	self._skipWhitespace
 	if self._p >= self._sourceLen then return null
 	c = self.source[self._p]
@@ -209,7 +209,7 @@ end function
 // Get a string literal from the source.  Stop at the delimiter
 // so the caller can see if it is a ":" or "}" or whatever.
 _delims = ":;}" + cr + lf
-Parser._parseString = function()
+Parser._parseString = function
 	startPos = self._p
 	anyEscape = false
 	while self._p < self._sourceLen
@@ -286,7 +286,7 @@ _eol = char(10)
 
 //----------------------------------------------------------------------
 // Unit tests (run when you load & run this script directly).
-runUnitTests = function()
+runUnitTests = function
 	print "Unit testing: grfon"
 	
 	errorCount = 0

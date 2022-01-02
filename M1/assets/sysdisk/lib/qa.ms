@@ -10,7 +10,7 @@ errDisplay = null
 
 // prepareErrDisplay is used internally to prepare the default error display.
 // You probably won't ever need to call this.
-prepareErrDisplay = function()
+prepareErrDisplay = function
 	outer._prevMode = display(0).mode
 	display(0).mode = displayMode.text
 	outer._prevDisp = display(0)
@@ -22,7 +22,7 @@ prepareErrDisplay = function()
 end function
 
 // clear: clears (just) the error display.
-clear = function()
+clear = function
 	if errDisplay == null then prepareErrDisplay
 	_prevDisp.install 0
 	display(0).mode = _prevMode
@@ -104,7 +104,7 @@ assertType = function(value, type, note)
 end function
 
 
-runUnitTests = function()
+runUnitTests = function
 	print "Unit testing: qa"
 
 	// We can't easily test the various assert methods, but we

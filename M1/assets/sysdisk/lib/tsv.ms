@@ -115,7 +115,7 @@ end function
 	
 //----------------------------------------------------------------------
 // Unit tests (run when you load & run this script directly).
-runUnitTests = function()
+runUnitTests = function
 	print "Unit testing: tsv"
 	
 	errorCount = 0

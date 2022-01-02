@@ -147,7 +147,7 @@ end function
 // getContent: Get the entire content of the text display as a 2D array
 // of Cell objects in [row][col] order.
 // (You can then restore this later with setContent.)
-getContent = function()
+getContent = function
 	rows = []
 	for row in range(0, 25)
 		cols = []
@@ -191,10 +191,10 @@ DialogButton = {}
 DialogButton.caption = "Button"
 DialogButton.visible = false
 DialogButton.key = ""  // shortcut key
-DialogButton.width = function(); return self.caption.len + 2; end function
+DialogButton.width = function; return self.caption.len + 2; end function
 DialogButton.x = 20
 DialogButton.y = 10
-DialogButton.draw = function()
+DialogButton.draw = function
 	c = text.backColor
 	text.row = self.y; text.column = self.x; print buttonLeft
 	text.backColor = color.black
@@ -206,7 +206,7 @@ DialogButton.contains = function(pt)
 	return textRow(pt.y) == self.y and 
 	   textCol(pt.x) >= self.x and textCol(pt.x) < self.x + self.width
 end function
-DialogButton.trackHit = function()
+DialogButton.trackHit = function
 	c = text.cellBackColor(self.x, self.y)
 	while mouse.button
 		text.color = c

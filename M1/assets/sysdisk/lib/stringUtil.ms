@@ -20,7 +20,7 @@ whitespace = " " + TAB + CR + LF
 // Examples:
 //		"hello".capitalized			// returns "Hello"
 //		"miniScript".capitalized	// returns "MiniScript"
-string.capitalized = function()
+string.capitalized = function
 	if self.len < 2 then return self.upper
 	return self[0].upper + self[1:]
 end function
@@ -129,7 +129,7 @@ string.ellideMiddle = function(maxLength=10)
 	return self[:ceil(maxLength/2)-1] + "…" + self[-maxLength/2:]
 end function
 
-string.reverse = function()
+string.reverse = function
 	chars = self.split("")
 	for i in range(0, chars.len/2-1)
 	    negi = -1 - i
@@ -143,7 +143,7 @@ end function
 // splitLines: split this string into lines, based on any of the 
 // common line break patterns (CR, LF, and CRLF).  Note that it
 // assumes only ONE of these patterns is used, not some crazy mix.
-string.splitLines = function()
+string.splitLines = function
 	lines = []
 	if self.indexOf(CR+LF) != null then
 		lines = self.split(CR+LF)
@@ -206,7 +206,7 @@ end function
 // of replacing each letter with the letter 13 positions away from
 // it in the alphabet.  Note that if you apply rot13 twice, you 
 // get back the original string.
-string.rot13 = function()
+string.rot13 = function
 	if not outer.hasIndex("rot13map") then
 		outer.rot13map = {}
 		c0 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -262,7 +262,7 @@ string.editDistance = function(s2)
 	return nextCost
 end function
 
-runUnitTests = function()
+runUnitTests = function
 	print "Unit testing: stringUtil"
 	
 	errorCount = 0

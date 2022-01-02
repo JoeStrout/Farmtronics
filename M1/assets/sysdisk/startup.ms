@@ -53,12 +53,12 @@ help = function(topic)
 	end if
 end function
 
-usr = function()
+usr = function
 	_printMark "Remember, you `must` use quotation marks  around file paths.", "#FFFF00"
 	_printMark "   Wrong: `cd /usr`", "#FF0000"
 	_printMark "   Right: `cd ""/usr""`"
 end function
-sys = function()
+sys = function
 	_printMark "Remember, you `must` use quotation marks  around file paths.", "#FFFF00"
 	_printMark "   Wrong: `cd /sys`", "#FF0000"
 	_printMark "   Right: `cd ""/sys""`"
@@ -340,23 +340,23 @@ source = function(fromLine=0, toLine=-1)
 	return _source[fromLine:toLine+1].join(char(13))
 end function
 
-edit = function()
+edit = function
 	import "editor"
 	if not globals.hasIndex("_source") or not _source then globals._source = [""]
 	editor.editText _source
 end function
 
-clear = function()
+clear = function
 	// Clear and reset all displays.
 	text.clear
 	text.row = 19
 end function
 
-_saveGlobals = function()
+_saveGlobals = function
 	globals._savedGlobals = {} + globals
 end function
 
-_restoreGlobals = function()
+_restoreGlobals = function
 	for key in globals.indexes
 		if key[0] != "_" then globals.remove(key)
 	end for
@@ -365,7 +365,7 @@ _restoreGlobals = function()
 	end for
 end function
 
-reset = function()
+reset = function
 	//Sound.stopAll
 	globals._source = []
 	globals._sourceFile = null
@@ -375,14 +375,14 @@ reset = function()
 	return null
 end function
 
-tip = function()
+tip = function
 	tips = file.readLines("/sys/tips.txt")
 	return tips[rnd * tips.len].replace("\n", char(13))
 end function
 
 _saveGlobals
 
-toDo = function()
+toDo = function
 	import "toDo"
 	toDo.present
 end function
@@ -390,11 +390,11 @@ todo = @toDo	// (allow mistyping just this one time, because newbies)
 
 if bot then
 	// Additional bot functions
-	here = function()
+	here = function
 		return bot.position.area
 	end function
 	
-	scan = function()
+	scan = function
 		here = bot.position.area
 		for x in range(0, here.width-1)
 			for y in range(0, here.height-1)
@@ -405,7 +405,7 @@ if bot then
 		end for
 	end function
 	
-	bot.ahead = function()
+	bot.ahead = function
 		f = bot.facing
 		pos = bot.position
 		if f == 0 then return here.tile(pos.x, pos.y-1)
@@ -432,7 +432,7 @@ if bot then
 		print "No tool found matching: " + toolNameOrIndex
 	end function
 	
-	bot.clearAhead = function()
+	bot.clearAhead = function
 		obstacle = bot.ahead
 		if not obstacle then return
 		what = obstacle.type
@@ -474,12 +474,12 @@ if bot then
 		end for
 	end function
 	
-	bot.till = function()
+	bot.till = function
 		bot.use "Hoe"
 		bot.useTool
 	end function
 	
-	bot.water = function()
+	bot.water = function
 		bot.use "Watering Can"
 		bot.useTool
 	end function

@@ -11,7 +11,7 @@ end function
 
 // deepcopy: clones this list, and if it contains sub-lists,
 // clones those as well.
-list.deepCopy = function()
+list.deepCopy = function
 	result = self[:]
 	for i in result.indexes
 		if result[i] isa list then result[i] = result[i].deepCopy
@@ -105,7 +105,7 @@ end function
 // Example:
 //		x = [1, 2, 3]
 //		x.reverse		// x is now [3, 2, 1]
-list.reverse = function()
+list.reverse = function
 	if not self then return self
 	for i in range(0, self.len/2-1)
 	    negi = -1 - i
@@ -119,7 +119,7 @@ end function
 // Example:
 //		x = [1, 2, 3]
 //		x.reversed		// returns [3, 2, 1]
-list.reversed = function()
+list.reversed = function
 	result = self[:]
 	result.reverse
 	return result
@@ -144,13 +144,13 @@ list.apply1 = function(func, arg1)
 end function
 
 // mean: return the average (sum divided by number of values)
-list.mean = function()
+list.mean = function
 	return self.sum / self.len
 end function
 
 // counts: return a map that maps each unique element of this list,
 // to the number of times that value occurs.
-list.counts = function()
+list.counts = function
 	result = {}
 	for item in self
 		if result.hasIndex(item) then
@@ -164,12 +164,12 @@ end function
 
 // distinct: return this list, with any duplicate entries removed.
 // (Note that order of the result is not guaranteed.)
-list.distinct = function()
+list.distinct = function
 	return self.counts.indexes
 end function
 
 // product: return the result of multiplying up all values in the list.
-list.product = function()
+list.product = function
 	first = true
 	for item in self
 		if first then
@@ -183,7 +183,7 @@ list.product = function()
 end function
 
 // min: return the minimum value of all elements in the list.
-list.min = function()
+list.min = function
 	first = true
 	for item in self
 		if first then
@@ -197,7 +197,7 @@ list.min = function()
 end function
 
 // max: return the maximum value of all elements in the list.
-list.max = function()
+list.max = function
 	first = true
 	for item in self
 		if first then
@@ -289,7 +289,7 @@ list.removeVal = function(val, removeAll=false)
 end function
 
 // any: return a random element of the list
-list.any = function()
+list.any = function
 	if self.len < 1 then return null
 	return self[self.len * rnd]
 end function
@@ -331,7 +331,7 @@ list.init3d = function(sizeA, sizeB, sizeC, initialValue)
 	return result
 end function
 
-runUnitTests = function()
+runUnitTests = function
 	print "Unit testing: listUtil"
 	
 	errorCount = 0

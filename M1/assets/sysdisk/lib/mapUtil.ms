@@ -2,21 +2,39 @@
 //	This module adds some additional methods to the `map` type.
 
 // get: look up the value for an index in this map, but if the given
-// index is not found, return a default value instead.
+// index is not found, return a default value instead.  Works with
+// inherited values, too.
 map.get = function(key, defaultValue=null)
-	if self.hasIndex(key) then return self[key]
+	m = self
+	while m
+		if m.hasIndex(key) then return m[key]
+		if not m.hasIndex("__isa") then break
+		m = m.__isa
+	end while
 	return defaultValue
 end function
 
 // hasValue: return true if this map contains the given value as
-// a value (contrast with built-in function .hasIndex).
-map.hasValue = function(v)
-	return self.indexOf(v) != null
+// a value (compare with built-in function .hasIndex, which checks
+// whether this map has a given value as a key).  By default this
+// does not walk the inheritance chain (just like .hasIndex), but
+// if you pass `true` as the second parameter, then it does.
+map.hasValue = function(v, includeInherited=false)
+	if self.indexOf(v) != null then return true
+	if includeInherited then
+		m = self
+		while m
+			if not m.hasIndex("__isa") then break
+			m = m.__isa
+			if m.indexOf(v) != null then return true
+		end while
+	end if
+	return false
 end function
 
 // sortedIndexes: get the indexes of this map, but in sorted order
 // (rather than undefined order as .indexes gives you).
-map.sortedIndexes = function()
+map.sortedIndexes = function
 	result = self.indexes
 	result.sort
 	return result
@@ -24,7 +42,7 @@ end function
 
 // inverse: return a map that has the keys and values swapped (keys
 // of this map become values of the result map, and vice versa).
-map.inverse = function()
+map.inverse = function
 	result = {}
 	for kv in self
 		result[kv.value] = kv.key
@@ -51,7 +69,7 @@ end function
 // pairs: get all key/value pairs as a list (in arbitrary order)
 // of little maps with "key" and "value", just like what you get
 // when you iterate over a map with a `for` loop.
-map.pairs = function()
+map.pairs = function
 	result = []
 	for kv in self
 		result.push kv
@@ -75,7 +93,7 @@ fromTo = function(fromSeq, toSeq)
 	return result
 end function
 
-runUnitTests = function()
+runUnitTests = function
 	print "Unit testing: mapUtil"
 	
 	errorCount = 0

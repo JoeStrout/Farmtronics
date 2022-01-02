@@ -284,7 +284,7 @@ numToStr = function(n, precision=null)
 	return s
 end function
 
-runUnitTests = function()
+runUnitTests = function
 	print "Unit testing: mathUtil"
 	
 	errorCount = 0

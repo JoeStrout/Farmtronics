@@ -202,10 +202,15 @@ namespace Miniscript {
 			return false;
 		}
 
-		public void Parse(string sourceCode, bool replMode=false) {
-			if (replMode) {
-				// Check for an incomplete final line by finding the last (non-comment) token.
-				bool isPartial;
+		/// <summary>
+		/// Return whether the given source code ends in a token that signifies that
+		/// the statement continues on the next line.  That includes binary operators,
+		/// open brackets or parentheses, etc.
+		/// </summary>
+		/// <param name="sourceCode">source code to analyze</param>
+		/// <returns>true if line continuation is called for; false otherwise</returns>
+		public static bool EndsWithLineContinuation(string sourceCode) {
+			try {
 				Token lastTok = Lexer.LastToken(sourceCode);
 				// Almost any token at the end will signify line continuation, except:
 				switch (lastTok.type) {
@@ -218,12 +223,19 @@ namespace Miniscript {
 				case Token.Type.RSquare:
 				case Token.Type.String:
 				case Token.Type.Unknown:
-					isPartial = false;
-					break;
+					return false;
 				default:
-					isPartial = true;
-					break;
-				}				
+					return true;
+				}
+			} catch (LexerException) {
+				return false;
+			}
+		}
+
+		public void Parse(string sourceCode, bool replMode=false) {
+			if (replMode) {
+				// Check for an incomplete final line by finding the last (non-comment) token.
+				bool isPartial = EndsWithLineContinuation(sourceCode);
 				if (isPartial) {
 					partialInput += Lexer.TrimComment(sourceCode);
 					return;
@@ -606,28 +618,29 @@ namespace Miniscript {
 			if (tok.type != Token.Type.Keyword || tok.text != "function") return nextLevel(tokens, asLval, statementStart);
 			tokens.Dequeue();
 
-			RequireToken(tokens, Token.Type.LParen);
-
 			Function func = new Function(null);
-
-			while (tokens.Peek().type != Token.Type.RParen) {
-				// parse a parameter: a comma-separated list of
-				//			identifier
-				//	or...	identifier = expr
-				Token id = tokens.Dequeue();
-				if (id.type != Token.Type.Identifier) throw new CompilerException(errorContext, tokens.lineNum,
-					"got " + id + " where an identifier is required");
-				Value defaultValue = null;
-				if (tokens.Peek().type == Token.Type.OpAssign) {
-					tokens.Dequeue();	// skip '='
-					defaultValue = ParseExpr(tokens);
+			tok = tokens.Peek();
+			if (tok.type != Token.Type.EOL) { 
+				var paren = RequireToken(tokens, Token.Type.LParen);
+				while (tokens.Peek().type != Token.Type.RParen) {
+					// parse a parameter: a comma-separated list of
+					//			identifier
+					//	or...	identifier = expr
+					Token id = tokens.Dequeue();
+					if (id.type != Token.Type.Identifier) throw new CompilerException(errorContext, tokens.lineNum,
+						"got " + id + " where an identifier is required");
+					Value defaultValue = null;
+					if (tokens.Peek().type == Token.Type.OpAssign) {
+						tokens.Dequeue();	// skip '='
+						defaultValue = ParseExpr(tokens);
+					}
+					func.parameters.Add(new Function.Param(id.text, defaultValue));
+					if (tokens.Peek().type == Token.Type.RParen) break;
+					RequireToken(tokens, Token.Type.Comma);
 				}
-				func.parameters.Add(new Function.Param(id.text, defaultValue));
-				if (tokens.Peek().type == Token.Type.RParen) break;
-				RequireToken(tokens, Token.Type.Comma);
-			}
 
-			RequireToken(tokens, Token.Type.RParen);
+				RequireToken(tokens, Token.Type.RParen);
+			}
 
 			// Now, we need to parse the function body into its own parsing context.
 			// But don't push it yet -- we're in the middle of parsing some expression

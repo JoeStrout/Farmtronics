@@ -22,14 +22,14 @@ Matrix.columns = 0		// how many columns we have
 // (but not the size of the lists).
 Matrix.elem = null
 
-Matrix.rowRange = function()
+Matrix.rowRange = function
 	// We cache the range() result, overriding this method on the instance
 	// with the resulting value.  This is valid because matrices should
 	// never change their size.
 	self.rowRange = range(0, self.rows-1)
 	return self.rowRange
 end function
-Matrix.colRange = function()
+Matrix.colRange = function
 	self.colRange = range(0, self.columns-1)
 	return self.colRange
 end function
@@ -108,7 +108,7 @@ end function
 
 // m.transpose: return a matrix with the rows and columns reversed
 // (so rows become columns, and vice versa).
-Matrix.transpose = function()
+Matrix.transpose = function
 	m = Matrix.ofSize(self.columns, self.rows)
 	for r in self.rowRange
 		for c in self.colRange
@@ -119,7 +119,7 @@ Matrix.transpose = function()
 end function
 
 // m.clone: return an exact copy of this matrix.
-Matrix.clone = function()
+Matrix.clone = function
 	m = new Matrix
 	m.rows = self.rows
 	m.columns = self.columns
@@ -269,7 +269,7 @@ Matrix.print = function(fieldWidth=10, precision=null, columnSep="", rowSep=null
 end function
 
 
-runUnitTests = function()
+runUnitTests = function
 	print "Unit testing: matrixUtil"
 	
 	errorCount = 0

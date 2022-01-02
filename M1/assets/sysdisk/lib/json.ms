@@ -115,18 +115,18 @@ Parser.parse = function(source=null)
 end function
 
 whitespace = " " + char(9) + char(10) + char(13)
-Parser._skipWhitespace = function()
+Parser._skipWhitespace = function
 	while self._p < self._sourceLen
 		if whitespace.indexOf(self.source[self._p]) == null then break
 		self._p = self._p + 1
 	end while
 end function
 		
-Parser._parseElement = function()
+Parser._parseElement = function
 	return self._parseValue	// for now!
 end function
 
-Parser._parseValue = function()
+Parser._parseValue = function
 	self._skipWhitespace
 	c = self.source[self._p]
 	if c == """" then return self._parseString
@@ -147,7 +147,7 @@ Parser._parseValue = function()
 	end if
 end function
 
-Parser._parseList = function()
+Parser._parseList = function
 	self._p = self._p + 1		// skip "["
 	self._skipWhitespace
 	result = []
@@ -167,7 +167,7 @@ Parser._parseList = function()
 	return result
 end function
 
-Parser._parseMap = function()
+Parser._parseMap = function
 	self._p = self._p + 1		// skip "{"
 	self._skipWhitespace
 	result = {}
@@ -210,7 +210,7 @@ end function
 
 // Get a string literal from the source.  Advance to the next
 // character after the closing quote.
-Parser._parseString = function()
+Parser._parseString = function
 	self._p = self._p + 1
 	startPos = self._p
 	anyEscape = false
@@ -230,7 +230,7 @@ end function
 
 // Get a numeric literal from the source.  Advance to the next
 // character after the number.
-Parser._parseNumber = function()
+Parser._parseNumber = function
 	startPos = self._p
 	while self._p < self._sourceLen
 		c = self.source[self._p]
@@ -303,7 +303,7 @@ _escapeIndexes = _escapeFrom.indexes
 
 //----------------------------------------------------------------------
 // Unit tests (run when you load & run this script directly).
-runUnitTests = function()
+runUnitTests = function
 	print "Unit testing: json"
 	
 	errorCount = 0
