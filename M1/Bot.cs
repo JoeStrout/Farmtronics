@@ -61,6 +61,15 @@ namespace M1 {
 
 		static Texture2D botSprites;
 
+		public Bot() {
+			// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
+			// We don't need or want a farmer at this time.
+			Name = "Bot";
+			type.Value = "Crafting";
+			bigCraftable.Value = true;
+			canBeSetDown.Value = true;
+		}
+
 		public Bot(Vector2 tileLocation, GameLocation location=null, bool createTools=true) :base(tileLocation, 130) {
 			Name = "Bot";
 			type.Value = "Crafting";
@@ -475,15 +484,6 @@ namespace M1 {
 			return base.performObjectDropInAction(dropIn, probe, who);
 		}
 
-		// Note: to change the close sound, we would need to override updateWhenCurrentLocation.
-		// But that's fairly complex code and relies on currentLidFrame, which is private to Chest.
-		// So we can't easily do that.  To make it work at all we'd need to either do away with
-		// or replace most of that functionality with our own, or use reflection to get/set the
-		// private variable, or do some other kind of hackery (patching localSound etc.).
-		// Best is to probably throw out (override) all the standard chest animation stuff.
-		// But that's a big job for another day.
-
-
 		public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1) {
 			// draw shadow
 			spriteBatch.Draw(Game1.shadowTexture, Game1.GlobalToLocal(Game1.viewport, new Vector2(position.X + 32, position.Y + 51 + 4)),
@@ -496,7 +496,9 @@ namespace M1 {
 				position.X + 32 + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0),
 				position.Y + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0)));
 			// Note: FacingDirection 0-3 is Up, Right, Down, Left
-			Rectangle srcRect = new Rectangle(16 * farmer.FacingDirection, 0, 16, 24);
+			int facing = 2;
+			if (farmer != null) facing = farmer.FacingDirection;
+			Rectangle srcRect = new Rectangle(16 * facing, 0, 16, 24);
 			Vector2 origin2 = new Vector2(8f, 8f);
 			float scale = (this.scale.Y > 1f) ? getScale().Y : 4f;
 			float z = (float)(getBoundingBox(new Vector2(x, y)).Bottom) / 10000f;
@@ -529,7 +531,7 @@ namespace M1 {
 
         public override void drawWhenHeld(SpriteBatch spriteBatch, Vector2 objectPosition, Farmer f) {
 			//Debug.Log($"Bot.drawWhenHeld");
-			Rectangle srcRect = new Rectangle(16 * 2, 0, 16, 24);
+			Rectangle srcRect = new Rectangle(16 * f.facingDirection, 0, 16, 24);
             spriteBatch.Draw(botSprites, objectPosition, srcRect, Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingY() + 3) / 10000f));
         }
 

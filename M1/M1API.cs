@@ -240,6 +240,12 @@ namespace M1 {
 				return new Intrinsic.Result(ValNumber.Truth(ToDoManager.IsTaskDone(task)));
 			};
 
+			f = Intrinsic.Create("_sendMail");
+			f.code = (context, partialResult) => {
+				ToDoManager.SendFirstBotMail();
+				return Intrinsic.Result.Null;
+			};
+
 		}
 
 		static bool DisallowAllAssignment(Value key, Value value) {

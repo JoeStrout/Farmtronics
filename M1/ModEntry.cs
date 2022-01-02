@@ -12,7 +12,7 @@ using StardewValley.TerrainFeatures;
 
 namespace M1
 {
-	public class ModEntry : Mod {
+	public class ModEntry : Mod, IAssetEditor {
 		public static IModHelper helper;
 		public static ModEntry instance;
 
@@ -21,14 +21,20 @@ namespace M1
 		public override void Entry(IModHelper helper) {
 			instance = this;
 			ModEntry.helper = helper;
+			helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
 			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
 			helper.Events.GameLoop.Saving += this.OnSaving;
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
+			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
 
 			print($"CurrentSavePath: {Constants.CurrentSavePath}");
+		}
+
+		private void OnGameLaunched(object sender, GameLaunchedEventArgs e) {
+			Helper.Content.AssetEditors.Add(this);
 		}
 
 		uint prevTicks;
@@ -58,10 +64,17 @@ namespace M1
 		}
 
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
-			var dlog = e.NewMenu as DialogueBox;
-			if (dlog == null || !dlog.isQuestion || dlog.responses[0].responseKey != "Weather") return;
+			Debug.Log($"Menu opened: {e.NewMenu}");
+			if (e.NewMenu is LetterViewerMenu) {
+				Debug.Log("Hey hey, it's a LetterViewerMenu!  Setting recoveredItem to Bot");
+				Game1.player.recoveredItem = new Bot();
+			}
 
-			// insert our new response
+			var dlog = e.NewMenu as DialogueBox;
+			if (dlog == null) return;
+			if (!dlog.isQuestion || dlog.responses[0].responseKey != "Weather") return;
+
+			// TV menu: insert a new option for the Home Computer
 			Response r = new Response("M1", "Farmtronics Home Computer");
 			dlog.responses.Insert(dlog.responses.Count-1, r);
 			// adjust the dialog height
@@ -86,6 +99,20 @@ namespace M1
 
 		public void OnSaveLoaded(object sender, SaveLoadedEventArgs args) {
 			if (Context.IsMainPlayer) Bot.ConvertChestsToBots();
+		}
+
+		public void OnDayStarted(object sender, DayStartedEventArgs args) {
+			Debug.Log($"OnDayStarted");
+			// Check whether we have our first-bot letter waiting in the mailbox.
+			// If so, set the item to be "recovered" via the mail:
+			foreach (var msg in Game1.player.mailReceived) {
+				Debug.Log($"Pending mail: {msg}");
+				if (msg == "FarmtronicsFirstBotMail") {
+					Debug.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
+					Game1.player.recoveredItem = new Bot();
+					break;
+				}
+			}
 		}
 
 		private void PresentComputer() {
@@ -122,6 +149,28 @@ namespace M1
 			shell.PrintLine($"Tilled Ground: {hoeDirts}");// at: {string.Join(',', hoeLocs)}");
 			shell.PrintLine($"Paved: {paths}");
 			shell.PrintLine($"Total features: {featureCount}");
+
+		}
+
+		bool IAssetEditor.CanEdit<T>(IAssetInfo asset) {
+			return asset.AssetNameEquals("Data\\mail");
+		}
+
+		void IAssetEditor.Edit<T>(IAssetData asset) {
+			Debug.Log($"ModEntry.Edit(Mail)");
+			var data = asset.AsDictionary<string, string>().Data;
+			data["FarmtronicsFirstBotMail"] = "Hello @!  I heard you've been playing with the Farmtronics home computer!  It's a lot of fun, isn't it?"
+				+ "^^I've been designing a little robot around that same computer.  Here's one for you to try!"
+				+ "^^- Maru"
+				+ "^^%item itemRecovery %%";
+			foreach (var msg in Game1.player.mailReceived) {
+				Debug.Log($"Pending mail: {msg}");
+				if (msg == "FarmtronicsFirstBotMail") {
+					Debug.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
+					Game1.player.recoveredItem = new Bot();
+					break;
+				}
+			}
 
 		}
 	}

@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using StardewModdingAPI;
+using StardewValley;
 
 namespace M1 {
 	public static class ToDoManager {
@@ -45,6 +47,15 @@ namespace M1 {
 			if (IsTaskDone(task)) return;	// (task was already done)
 			Debug.Log($"ToDoManager.MarkTaskDone({task})");
 			taskDone[task] = true;
+		}
+
+		public static void SendFirstBotMail() {
+			// Adds instantly, but doesn't save; better for testing:
+			//Game1.player.mailbox.Add("FarmtronicsFirstBotMail");
+			//Game1.player.recoveredItem = new Bot();
+
+			// Adds mail for the next day, and saves -- what we want for deployment:
+			Game1.addMailForTomorrow("FarmtronicsFirstBotMail");
 		}
 	}
 }
