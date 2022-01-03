@@ -126,7 +126,11 @@ pageThrough = function(lines, markup=false)
 	printed = 0
 	for i in range(0, lines.len-1)
 		line = "" + lines[i]
-		if markup then _printMark line[:40] else _printOneLine line[:40]
+		if markup then
+			_printMark line[:40 + line.split("`").len - 1]
+		else
+			_printOneLine line[:40]
+		end if
 		print char(13)
 		printed = printed + 1
 		if printed > 18 and i+1 < lines.len then
@@ -343,6 +347,7 @@ end function
 edit = function
 	import "editor"
 	if not globals.hasIndex("_source") or not _source then globals._source = [""]
+	print "Editing: " + _sourceFile
 	editor.editText _source
 end function
 

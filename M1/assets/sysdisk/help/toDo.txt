@@ -1,0 +1,13 @@
+To help you learn your way around the
+Farmtronics system, a `toDo` command has
+been included for your use.
+
+Just type `toDo` (or `todo`) at the prompt
+and press Return.  Then use the up/down
+arrow keys to examine the details of any
+task.  Tasks will be automatically 
+checked off when you complete them.
+
+4 out of 5 users surveyed found
+completing the `toDo` tasks to be very 
+rewarding!

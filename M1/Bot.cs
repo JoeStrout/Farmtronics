@@ -223,6 +223,7 @@ namespace M1 {
 
 			// Copy other data from this item to bot.
 			bot.name = name;
+			bot.farmer.FacingDirection = who.facingDirection;
 			// ToDo: other data?
 
 			instances.Remove(this);

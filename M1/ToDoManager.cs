@@ -20,6 +20,9 @@ namespace M1 {
 			kQtyTasks
 		}
 
+		static int nextForOutputExpected = 1;
+		static int nextFizzBuzzExpected = 1;
+
 		static Dictionary<Task, bool> taskDone = new Dictionary<Task, bool>();
 
 		public static bool IsTaskDone(Task task) {
@@ -27,10 +30,32 @@ namespace M1 {
 			return taskDone[task];
 		}
 
+		static string FizzBuzz(int i) {
+			if (i % 15 == 0) return "FizzBuzz";
+			if (i % 5 == 0) return "Buzz";
+			if (i % 3 == 0) return "Fizz";
+			return i.ToString();
+		}
+
 		public static void NotePrintOutput(string s) {
 			if (s == "Hello world!" || s == "Hello World!") {
 				MarkTaskDone(Task.helloWorld);
+			} else if (s.StartsWith("Editing: ")) {
+				MarkTaskDone(Task.editProgram);
+			} else if (s.Contains(" lines saved to ")) {
+				MarkTaskDone(Task.saveProgram);
 			}
+
+			if (nextForOutputExpected <= 100 && s == nextForOutputExpected.ToString()) {
+				nextForOutputExpected++;
+				if (nextForOutputExpected > 100) MarkTaskDone(Task.for1to100);
+			} else if (nextForOutputExpected <= 100) nextForOutputExpected = 1;
+
+			if (nextFizzBuzzExpected <= 100 && s == FizzBuzz(nextFizzBuzzExpected)) {
+				nextFizzBuzzExpected++;
+				if (nextFizzBuzzExpected > 100) MarkTaskDone(Task.fizzBuzz);
+			} else if (nextFizzBuzzExpected <= 100) nextFizzBuzzExpected = 1;
+
 		}
 
 		public static void NoteCd(string path) {
