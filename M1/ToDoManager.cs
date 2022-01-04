@@ -26,7 +26,14 @@ namespace M1 {
 		static Dictionary<Task, bool> taskDone = new Dictionary<Task, bool>();
 
 		public static bool IsTaskDone(Task task) {
-			if (!taskDone.ContainsKey(task)) return false;
+			if (!taskDone.ContainsKey(task)) {
+				string key = $"{ModEntry.instance.ModManifest.UniqueID}/task/{task}";
+				if (Game1.player.modData.ContainsKey(key)) {
+					taskDone[task] = (Game1.player.modData[key] == "1");
+				} else {
+					taskDone[task] = false;
+				}
+			}
 			return taskDone[task];
 		}
 
@@ -72,6 +79,8 @@ namespace M1 {
 			if (IsTaskDone(task)) return;	// (task was already done)
 			Debug.Log($"ToDoManager.MarkTaskDone({task})");
 			taskDone[task] = true;
+
+			Game1.player.modData[$"{ModEntry.instance.ModManifest.UniqueID}/task/{task}"] = "1";
 
 			// When all tasks have been done, send the mail!
 			for (int i=0; i<(int)Task.kQtyTasks; i++) {
