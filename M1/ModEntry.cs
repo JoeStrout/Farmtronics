@@ -24,7 +24,7 @@ namespace M1
 			helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
-			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+			//helper.Events.Input.ButtonPressed += this.OnButtonPressed;
 			helper.Events.GameLoop.Saving += this.OnSaving;
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
@@ -49,6 +49,7 @@ namespace M1
             this.Monitor.Log(s, LogLevel.Debug);
 		}
 
+		/* HACK used only for early testing/development:
 		public void OnButtonPressed(object sender, ButtonPressedEventArgs e) {
 			if (e.Button == SButton.PageUp) {
 				print($"CurrentSavePath: {Constants.CurrentSavePath}");
@@ -62,6 +63,7 @@ namespace M1
 				Game1.player.currentLocation.overlayObjects[tilePos] = bot;
 			}
 		}
+		*/
 
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
 			Debug.Log($"Menu opened: {e.NewMenu}");

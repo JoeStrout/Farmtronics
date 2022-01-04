@@ -72,6 +72,12 @@ namespace M1 {
 			if (IsTaskDone(task)) return;	// (task was already done)
 			Debug.Log($"ToDoManager.MarkTaskDone({task})");
 			taskDone[task] = true;
+
+			// When all tasks have been done, send the mail!
+			for (int i=0; i<(int)Task.kQtyTasks; i++) {
+				if (!IsTaskDone((Task)i)) return;
+			}
+			SendFirstBotMail();
 		}
 
 		public static void SendFirstBotMail() {
@@ -81,6 +87,8 @@ namespace M1 {
 
 			// Adds mail for the next day, and saves -- what we want for deployment:
 			Game1.addMailForTomorrow("FarmtronicsFirstBotMail");
+			Game1.player.recoveredItem = new Bot();
+			Debug.Log("first-bot mail sent; will be delivered in the morning");
 		}
 	}
 }
