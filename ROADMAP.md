@@ -23,7 +23,7 @@ This is our "minimum viable product".
 
 ### Bot Features
 - ☑ bots can be saved and reloaded with the game
-- ☐ initial bot received in mail from Maru after doing some task on the Home Computer
+- ☑ initial bot received in mail from Maru after completing `toDo` tasks on home computer
 - ☐ additional bots can be crafted using iron and batteries
 - ☑ inventory that can hold any items the farmer can hold
 - ☑ player can move items between their own inventory and the bot's
