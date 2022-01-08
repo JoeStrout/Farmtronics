@@ -70,6 +70,16 @@ namespace M1
 			if (e.NewMenu is LetterViewerMenu) {
 				Debug.Log("Hey hey, it's a LetterViewerMenu!  Setting recoveredItem to Bot");
 				Game1.player.recoveredItem = new Bot();
+				return;
+			}
+			if (e.NewMenu is ShopMenu shop) {
+				Debug.Log($"WELCOME TO {shop.portraitPerson.Name}'s SHOP!");
+				if (shop.portraitPerson != Game1.getCharacterFromName("Pierre")) return;
+				Debug.Log($"Pierre is selling {shop.forSale.Count} items and {shop.categoriesToSellHere.Count} categories");
+				var botForSale = new Bot();
+				shop.forSale.Insert(0, botForSale);
+				shop.itemPriceAndStock.Add(botForSale, new int[2] { 42, int.MaxValue });	// sale price and stock size
+				Debug.Log($"Inserted Bot at index 0");
 			}
 
 			var dlog = e.NewMenu as DialogueBox;
