@@ -75,6 +75,13 @@ namespace M1 {
 			}
 		}
 
+		public static bool AllTasksDone() {
+			for (int i=0; i<(int)Task.kQtyTasks; i++) {
+				if (!IsTaskDone((Task)i)) return false;
+			}
+			return true;
+		}
+
 		static void MarkTaskDone(Task task) {
 			if (IsTaskDone(task)) return;	// (task was already done)
 			Debug.Log($"ToDoManager.MarkTaskDone({task})");
@@ -83,10 +90,7 @@ namespace M1 {
 			Game1.player.modData[$"{ModEntry.instance.ModManifest.UniqueID}/task/{task}"] = "1";
 
 			// When all tasks have been done, send the mail!
-			for (int i=0; i<(int)Task.kQtyTasks; i++) {
-				if (!IsTaskDone((Task)i)) return;
-			}
-			SendFirstBotMail();
+			if (AllTasksDone()) SendFirstBotMail();
 		}
 
 		public static void SendFirstBotMail() {

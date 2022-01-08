@@ -537,16 +537,15 @@ namespace M1 {
         }
 
         public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow) {
- 			Debug.Log($"Bot.drawInMenu with scaleSize {scaleSize}");
+ 			//Debug.Log($"Bot.drawInMenu with scaleSize {scaleSize}");
             if ((bool)this.IsRecipe) {
                 transparency = 0.5f;
                 scaleSize *= 0.75f;
             }
-            bool shouldDrawStackNumber = ((drawStackNumber == StackDrawType.Draw && this.maximumStackSize() > 1 && this.Stack > 1) || drawStackNumber == StackDrawType.Draw_OneInclusive) && (double)scaleSize > 0.3 && this.Stack != int.MaxValue;
+            bool shouldDrawStackNumber = ((drawStackNumber == StackDrawType.Draw && this.maximumStackSize() > 1 && this.Stack > 1)
+				|| drawStackNumber == StackDrawType.Draw_OneInclusive) && (double)scaleSize > 0.3 && this.Stack != int.MaxValue;
 
-			Rectangle srcRect = new Rectangle(16 * 2, 4, 16, 16);		// ToDo: get special icon version of this
-			//spriteBatch.Draw(botSprites, location + new Vector2(32f, 32f), srcRect, color * transparency, 0f,
-				//new Vector2(8f, 16f), 4f * (((double)scaleSize < 0.2) ? scaleSize : (scaleSize / 2f)), SpriteEffects.None, layerDepth);
+			Rectangle srcRect = new Rectangle(0, 112, 16, 16);
 			spriteBatch.Draw(botSprites, location + new Vector2((int)(32f * scaleSize), (int)(32f * scaleSize)), srcRect, color * transparency, 0f,
 				new Vector2(8f, 8f) * scaleSize, 4f * scaleSize, SpriteEffects.None, layerDepth);
 
