@@ -64,7 +64,7 @@ namespace M1 {
 		public Bot() {
 			// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
 			// We don't need or want a farmer at this time.
-			Name = "Bot";
+			Name = "Farmtronics Bot";
 			type.Value = "Crafting";
 			bigCraftable.Value = true;
 			canBeSetDown.Value = true;

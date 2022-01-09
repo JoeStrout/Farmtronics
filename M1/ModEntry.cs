@@ -70,8 +70,8 @@ namespace M1
 			Debug.Log($"Menu opened: {e.NewMenu}");
 			if (e.NewMenu is LetterViewerMenu) {
 				Debug.Log("Hey hey, it's a LetterViewerMenu!");
-				foreach (var msg in Game1.player.mailReceived) {
-					Debug.Log($"Pending mail: {msg}");
+				foreach (var msg in Game1.player.mailbox) {
+					Debug.Log($"Mail in mailbox: {msg}");
 					if (msg == "FarmtronicsFirstBotMail") {
 						Debug.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 						Game1.player.recoveredItem = new Bot();
@@ -82,10 +82,17 @@ namespace M1
 			}
 			if (e.NewMenu is ShopMenu shop) {
 				if (shop.portraitPerson != Game1.getCharacterFromName("Pierre")) return;
-				if (ToDoManager.AllTasksDone()) {
+				if (Game1.player.mailReceived.Contains("FarmtronicsFirstBotMail")) {
 					// Add a bot to the store inventory.
+					// Let's insert it after Flooring but before Catalogue.
+					int index = 0;
+					for (; index < shop.forSale.Count; index++) {
+						var item = shop.forSale[index];
+						Debug.Log($"Shop item {index}: {item} with {item.Name}");
+						if (item.Name == "Catalogue" || (index>0 && shop.forSale[index-1].Name == "Flooring")) break;
+					}
 					var botForSale = new Bot();
-					shop.forSale.Insert(0, botForSale);
+					shop.forSale.Insert(index, botForSale);
 					shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });	// sale price and available stock
 				}
 			}
@@ -125,8 +132,8 @@ namespace M1
 			Debug.Log($"OnDayStarted");
 			// Check whether we have our first-bot letter waiting in the mailbox.
 			// If so, set the item to be "recovered" via the mail:
-			foreach (var msg in Game1.player.mailReceived) {
-				Debug.Log($"Pending mail: {msg}");
+			foreach (var msg in Game1.player.mailbox) {
+				Debug.Log($"Mail in mailbox: {msg}");
 				if (msg == "FarmtronicsFirstBotMail") {
 					Debug.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 					Game1.player.recoveredItem = new Bot();
@@ -184,8 +191,8 @@ namespace M1
 				+ "^With this robotic companion, your days of toiling in the fields will soon be over."
 				+ "^Check your local stores for additional bots as needed.  Enjoy!"
 				+ "^^%item itemRecovery %%";
-			foreach (var msg in Game1.player.mailReceived) {
-				Debug.Log($"Pending mail: {msg}");
+			foreach (var msg in Game1.player.mailbox) {
+				Debug.Log($"mail in mailbox: {msg}");
 				if (msg == "FarmtronicsFirstBotMail") {
 					Debug.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 					Game1.player.recoveredItem = new Bot();

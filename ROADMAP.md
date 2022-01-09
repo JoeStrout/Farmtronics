@@ -30,7 +30,7 @@ This is our "minimum viable product".
 - ☑ bot can move, turn, and update its screen and status light color
 - ☑ bot can select and use any basic tool: axe, hoe, pickaxe, scythe, watering can, seeds
 - ☐ bot energy starts full every day, and is depleted as it moves and use tools
-- ☐ bots can be saved & restored with the game, even in player inventory or chests
+- ☑ bots can be saved & restored with the game, even in player inventory or chests
 
 ### Support & Documentation
 - ☐ mod page at https://www.nexusmods.com/stardewvalley/mods/
