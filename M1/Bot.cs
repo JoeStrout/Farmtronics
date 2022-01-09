@@ -22,6 +22,7 @@ namespace M1 {
 		public Color statusColor = Color.Yellow;
 		public Shell shell { get; private set; }
 		public bool isUsingTool {  get {  return toolUseFrame > 0; } }
+		public int energy {  get {  return farmer == null ? 0 : (int)farmer.Stamina; } }
 
 		public GameLocation currentLocation {
 			get { return farmer.currentLocation; }

@@ -278,6 +278,13 @@ namespace M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(new ValNumber(sh.bot.energy));
+			};
+			botModule["energy"] = f.GetFunc();
+
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
 				return new Intrinsic.Result(new ValString(sh.bot.statusColor.ToHexString()));
 			};
 			botModule["statusColor"] = f.GetFunc();
@@ -371,14 +378,14 @@ namespace M1 {
 			botModule.assignOverride = (key,value) => {
 				string keyStr = key.ToString();
 				if (keyStr == "_") return false;
-				//Debug.Log($"global {key} = {value}");
+				//Debug.Log($"botModule {key} = {value}");
 				if (keyStr == "statusColor") {
 					Shell.runningInstance.bot.statusColor = value.ToString().ToColor();
 					return true;
 				} else if (keyStr == "currentToolIndex") {
 					Shell.runningInstance.bot.currentToolIndex = value.IntValue();
 					return true;
-				}
+				} else if (botModule.ContainsKey(keyStr)) return true;
 				return false;	// allow the assignment
 			};
 
