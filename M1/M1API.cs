@@ -17,7 +17,7 @@ using StardewValley.TerrainFeatures;
 
 
 
-namespace M1 {
+namespace Farmtronics {
 	public static class M1API  {
 
 		static bool initialized;

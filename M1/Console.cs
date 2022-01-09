@@ -9,7 +9,7 @@ using StardewModdingAPI;
 using StardewValley.Menus;
 using StardewValley.BellsAndWhistles;
 
-namespace M1 {
+namespace Farmtronics {
 	public class Console : IClickableMenu, IKeyboardSubscriber {
 		public new const int width = 800;	// total width/height including the frame
 		public new const int height = 640;

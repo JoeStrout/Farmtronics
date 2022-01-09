@@ -13,7 +13,7 @@ using StardewModdingAPI;
 using Miniscript;
 using Microsoft.Xna.Framework;
 
-namespace M1 {
+namespace Farmtronics {
 	public class Shell {
 		public Console console { get; private set; }
 		public Bot bot {  get; private set; }
@@ -35,7 +35,7 @@ namespace M1 {
 		public TextDisplay textDisplay {  get {  return console.display; } }
 		
 		public Shell() {
-			console = new M1.Console(this);
+			console = new Farmtronics.Console(this);
 
 			// prepare the interpreter
 			interpreter = new Interpreter(null, PrintLineWithTaskCheck, PrintLine);

@@ -7,7 +7,7 @@ using System;
 using StardewModdingAPI;
 using Microsoft.Xna.Framework;
 
-namespace M1 {
+namespace Farmtronics {
 	public class KeyWatcher {
 		public SButton keyButton;
 		public char keyChar;

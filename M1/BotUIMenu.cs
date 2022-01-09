@@ -14,7 +14,7 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace M1 {
+namespace Farmtronics {
 	public class BotUIMenu : MenuWithInventory {
 
 		Bot bot;

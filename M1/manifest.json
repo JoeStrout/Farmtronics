@@ -1,10 +1,10 @@
 ﻿{
   "Name": "Farmtronics",
   "Author": "Joe Strout",
-  "Version": "0.0.2",
+  "Version": "1.0",
   "Description": "Adds a high-tech \"home computer\" to your TV!",
   "UniqueID": "strout.farmtronics",
-  "EntryDll": "M1.dll",
+  "EntryDll": "Farmtronics.dll",
   "MinimumApiVersion": "3.0.0",
   "UpdateKeys": []
 }

@@ -15,7 +15,7 @@ using StardewValley;
 using StardewValley.Tools;
 using StardewValley.Network;
 
-namespace M1 {
+namespace Farmtronics {
 	public class Bot : StardewValley.Object {
 		public IList<Item> inventory {  get {  return farmer == null ? null : farmer.Items; } }
 		public Color screenColor = Color.Transparent;

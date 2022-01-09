@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewModdingAPI;
 
-namespace M1 {
+namespace Farmtronics {
 
 	public class TextDisplay {
 	

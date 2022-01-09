@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace M1 {
+namespace Farmtronics {
 	public static class ToDoManager {
 
 		public enum Task {
