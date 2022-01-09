@@ -23,13 +23,14 @@ This is our "minimum viable product".
 
 ### Bot Features
 - ☑ bots can be saved and reloaded with the game
-- ☑ initial bot received in mail from Maru after completing `toDo` tasks on home computer
-- ☐ additional bots can be crafted using iron and batteries
+- ☑ initial bot received in mail after completing `toDo` tasks on home computer
+- ☑ additional bots can be purchased at Pierre's
 - ☑ inventory that can hold any items the farmer can hold
 - ☑ player can move items between their own inventory and the bot's
 - ☑ bot can move, turn, and update its screen and status light color
 - ☑ bot can select and use any basic tool: axe, hoe, pickaxe, scythe, watering can, seeds
 - ☐ bot energy starts full every day, and is depleted as it moves and use tools
+- ☐ bots can be saved & restored with the game, even in player inventory or chests
 
 ### Support & Documentation
 - ☐ mod page at https://www.nexusmods.com/stardewvalley/mods/
