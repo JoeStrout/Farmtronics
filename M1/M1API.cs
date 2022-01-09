@@ -301,8 +301,10 @@ namespace M1 {
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				ValList result = new ValList();
-				foreach (var item in sh.bot.inventory) {
-					result.values.Add(ToMap(item));
+				if (sh.bot.inventory != null) {
+					foreach (var item in sh.bot.inventory) {
+						result.values.Add(ToMap(item));
+					}
 				}
 				return new Intrinsic.Result(result);
 			};

@@ -24,7 +24,7 @@ namespace M1
 			helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
-			//helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
 			helper.Events.GameLoop.Saving += this.OnSaving;
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
@@ -49,8 +49,9 @@ namespace M1
             this.Monitor.Log(s, LogLevel.Debug);
 		}
 
-		/* HACK used only for early testing/development:
+		// HACK used only for early testing/development:
 		public void OnButtonPressed(object sender, ButtonPressedEventArgs e) {
+			print($"OnButtonPressed: {e.Button}");
 			if (e.Button == SButton.PageUp) {
 				print($"CurrentSavePath: {Constants.CurrentSavePath}");
 				// Create a bot.
@@ -63,13 +64,20 @@ namespace M1
 				Game1.player.currentLocation.overlayObjects[tilePos] = bot;
 			}
 		}
-		*/
+		
 
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
 			Debug.Log($"Menu opened: {e.NewMenu}");
 			if (e.NewMenu is LetterViewerMenu) {
-				Debug.Log("Hey hey, it's a LetterViewerMenu!  Setting recoveredItem to Bot");
-				Game1.player.recoveredItem = new Bot();
+				Debug.Log("Hey hey, it's a LetterViewerMenu!");
+				foreach (var msg in Game1.player.mailReceived) {
+					Debug.Log($"Pending mail: {msg}");
+					if (msg == "FarmtronicsFirstBotMail") {
+						Debug.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
+						Game1.player.recoveredItem = new Bot();
+						break;
+					}
+				}
 				return;
 			}
 			if (e.NewMenu is ShopMenu shop) {

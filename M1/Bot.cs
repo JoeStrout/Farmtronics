@@ -17,7 +17,7 @@ using StardewValley.Network;
 
 namespace M1 {
 	public class Bot : StardewValley.Object {
-		public IList<Item> inventory {  get {  return farmer.Items; } }
+		public IList<Item> inventory {  get {  return farmer == null ? null : farmer.Items; } }
 		public Color screenColor = Color.Transparent;
 		public Color statusColor = Color.Yellow;
 		public Shell shell { get; private set; }
@@ -26,11 +26,11 @@ namespace M1 {
 		public GameLocation currentLocation {
 			get { return farmer.currentLocation; }
 		}
-		public int facingDirection {  get {  return farmer.FacingDirection; } }
+		public int facingDirection {  get {  return farmer == null ? 2 : farmer.FacingDirection; } }
 		public int currentToolIndex {
 			get { return farmer.CurrentToolIndex; }
 			set {
-				if (value >= 0 && value < inventory.Count) {
+				if (farmer != null && value >= 0 && value < inventory.Count) {
 					farmer.CurrentToolIndex = value;
 				}
 			}
@@ -68,6 +68,9 @@ namespace M1 {
 			type.Value = "Crafting";
 			bigCraftable.Value = true;
 			canBeSetDown.Value = true;
+
+			// Note that we don't add these to instances, as such items aren't in the world
+			// and can't carry out any processing.
 		}
 
 		public Bot(Vector2 tileLocation, GameLocation location=null, bool createTools=true) :base(tileLocation, 130) {
@@ -109,47 +112,117 @@ namespace M1 {
 			instances.Add(this);
 		}
 
-		// Convert all bots in the world into vanilla chests, with appropriate metadata.
+		//----------------------------------------------------------------------
+		// Conversion of bots to chests (before saving)
+		//----------------------------------------------------------------------
+
+		// Convert all bots everywhere into vanilla chests, with appropriate metadata.
 		public static void ConvertBotsToChests() {
 			Debug.Log("Bot.ConvertBotsToChests");
+			Debug.Log($"NOTE: Game1.player.recoveredItem = {Game1.player.recoveredItem}");
 			int count = 0;
-			foreach (Bot bot in instances) {
-				// Figure out where the bot is.
-				// For now, ignoring bots in inventory; assume they're in the world.
-				var tileLoc = bot.TileLocation;
-				GameLocation location = bot.farmer.currentLocation;
-				StardewValley.Object obj = null;
-				location.overlayObjects.TryGetValue(tileLoc, out obj);
-				if (obj != bot) {
-					Debug.Log($"Oops!  Expected to find a bot at {tileLoc}, but instead found {obj}");
-					continue;
-				}
-				location.overlayObjects.Remove(tileLoc);
 
-				var chest = new StardewValley.Objects.Chest();
-				chest.modData[isBotKey] = "1";
-				chest.modData[facingKey] = bot.facingDirection.ToString();
-				location.objects[tileLoc] = chest;
-				for (int i=0; i<chest.items.Count && i<bot.inventory.Count; i++) {
-					Debug.Log($"Moving {bot.inventory[i]} from bot to chest in slot {i}");
-					chest.items[i] = bot.inventory[i];
-				}
-				bot.inventory.Clear();
-				count++;
-				Debug.Log($"Converted {bot} to {chest} at {tileLoc} of {location}");
-			}
+			// New approach: search all game locations.
+			count += ConvertBotsInMapToChests();
+
+			// Also convert the player's inventory.
+			int playerBotCount = ConvertBotsInListToChests(Game1.player.Items);
+			Debug.Log($"Converted {playerBotCount} bots in player inventory");
+			count += playerBotCount;
+
+			// And watch out for a recoveredItem (mail attachment).
+			if (Game1.player.recoveredItem is Bot) Game1.player.recoveredItem = null;
+
 			instances.Clear();
 			Debug.Log($"Total bots converted to chests: {count}");
+		}
+
+		static StardewValley.Objects.Chest ConvertBotToChest(Bot bot) {
+			var chest = new StardewValley.Objects.Chest();
+			chest.Stack = bot.Stack;
+			chest.modData[isBotKey] = "1";
+			chest.modData[facingKey] = bot.facingDirection.ToString();
+			var inventory = bot.inventory;
+			if (inventory != null) {
+				for (int i=0; i<chest.items.Count && i<bot.inventory.Count; i++) {
+					chest.items[i] = inventory[i];
+				}
+				int convertedItems = ConvertBotsInListToChests(chest.items);
+				if (convertedItems > 0) Debug.Log($"Converted {convertedItems} bots inside a bot");
+				inventory.Clear();
+			}
+			return chest;
+		}
+
+
+		/// <summary>
+		/// Convert all bots in the given item list into chests with the appropriate metadata.
+		/// </summary>
+		/// <param name="items">Item list to search in</param>
+		static int ConvertBotsInListToChests(IList<Item> items) {
+			int count = 0;
+			for (int i=0; i<items.Count; i++) {
+				Bot bot = items[i] as Bot;
+				if (bot == null) continue;
+				items[i] = ConvertBotToChest(bot);
+				Debug.Log($"Converted list item {i} to {items[i]} of stack {items[i].Stack}");
+				count++;
+			}
+			return count;
+		}
+
+		/// <summary>
+		/// Convert all the bots in a map (or all maps) into chests with the appropriate metadata.
+		/// </summary>
+		/// <param name="inLocation">Location to search in, or if null, search all locations</param>
+		public static int ConvertBotsInMapToChests(GameLocation inLocation=null) {
+			if (inLocation == null) {
+				int totalCount = 0;
+				foreach (var loc in Game1.locations) {
+					totalCount += ConvertBotsInMapToChests(loc);
+				}
+				return totalCount;
+			}
+
+			int countInLoc = 0;
+			var targetTileLocs = new List<Vector2>();
+			foreach (var kv in inLocation.objects.Pairs) {
+				if (kv.Value is Bot) targetTileLocs.Add(kv.Key);
+			}
+			foreach (var tileLoc in targetTileLocs) {
+				Debug.Log($"Found bot in {inLocation.Name} at {tileLoc}; converting");
+				inLocation.objects[tileLoc] = ConvertBotToChest(inLocation.objects[tileLoc] as Bot);
+				countInLoc++;
+			}
+			if (countInLoc > 0) Debug.Log($"Converted {countInLoc} bots in {inLocation.Name}");
+			return countInLoc;
+		}
+
+		//----------------------------------------------------------------------
+		// Conversion of chests to bots (after loading)
+		//----------------------------------------------------------------------
+
+
+		/// <summary>
+		/// Convert all chests with appropriate metadat into bots, everywhere.
+		/// </summary>
+		public static void ConvertChestsToBots() {
+			// Convert chests in the world.
+			ConvertChestsInMapToBots();
+
+			// Convert chests in the player's inventory.
+			int count = ConvertChestsInListToBots(Game1.player.Items);
+			Debug.Log($"Converted {count} chests to bots in player inventory");
 		}
 
 		/// <summary>
 		/// Convert all the chests with appropriate metadata into bots.
 		/// </summary>
 		/// <param name="inLocation">Location to search in, or if null, search all locations</param>
-		public static void ConvertChestsToBots(GameLocation inLocation=null) {
+		static void ConvertChestsInMapToBots(GameLocation inLocation=null) {
 			if (inLocation == null) {
 				foreach (var loc in Game1.locations) {
-					ConvertChestsToBots(loc);
+					ConvertChestsInMapToBots(loc);
 				}
 				return;
 			}
@@ -157,10 +230,13 @@ namespace M1 {
 			var targetTileLocs = new List<Vector2>();
 			foreach (var kv in inLocation.objects.Pairs) {
 				var tileLoc = kv.Key;
-				var obj = kv.Value;
-				if (obj is not StardewValley.Objects.Chest) continue;
+				var chest = kv.Value as StardewValley.Objects.Chest;
+				if (chest == null) continue;
+				int inChestCount = ConvertChestsInListToBots(chest.items);
+				if (inChestCount > 0) Debug.Log($"Converted {inChestCount} chests stored in a chest into bots");
+
 				string s = null;
-				obj.modData.TryGetValue(isBotKey, out s);
+				chest.modData.TryGetValue(isBotKey, out s);
 				Debug.Log($"Found chest in {inLocation} at {tileLoc} with isBot={s}");
 				if (s != "1") continue;
 				targetTileLocs.Add(tileLoc);
@@ -189,6 +265,31 @@ namespace M1 {
 			}
 			if (count > 0) Debug.Log($"Converted {count} chests to bots in {inLocation}");
 		}
+
+		/// <summary>
+		/// Convert all chests (with appropriate metadata) in the given item list into bots.
+		/// </summary>
+		/// <param name="items">Item list to search in</param>
+		static int ConvertChestsInListToBots(IList<Item> items) {
+			int count = 0;
+			for (int i=0; i<items.Count; i++) {
+				var chest = items[i] as StardewValley.Objects.Chest;
+				if (chest == null) continue;
+				string s = null;
+				chest.modData.TryGetValue(isBotKey, out s);
+				if (s != "1") continue;
+				Bot bot = new Bot();
+				bot.Stack = chest.Stack;
+				items[i] = bot;
+				// Note: we assume that chests in an item list are just items,
+				// and can't themselves contain other stuff.
+				count++;
+			}
+			return count;
+		}
+
+
+		//----------------------------------------------------------------------
 
 		public static void UpdateAll(GameTime gameTime) {
 			foreach (Bot bot in instances) bot.Update(gameTime);
@@ -241,6 +342,7 @@ namespace M1 {
 		// Apply the currently-selected item as a tool (or weapon) on
 		// the square in front of the bot.
 		public void UseTool() {
+			if (farmer == null || inventory == null) return;
 			Tool tool = inventory[currentToolIndex] as Tool;
 			if (tool == null) return;
 			int useX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
@@ -343,6 +445,7 @@ namespace M1 {
 			// This is a big pain in the neck that is duplicated in many of the Tool subclasses.
 			// Here's how we do it:
 			// First, get the tool to apply, and the tile location to apply it.
+			if (farmer == null || inventory == null) return;
 			Tool tool = inventory[currentToolIndex] as Tool;
 			int tileX = (int)position.X / 64 + DxForDirection(farmer.FacingDirection);
 			int tileY = (int)position.Y / 64 + DyForDirection(farmer.FacingDirection);
