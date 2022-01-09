@@ -106,6 +106,12 @@ namespace M1 {
 			// globally, so we better call in now to make sure those are defined right away:
 			FileModule();
 
+			f = Intrinsic.Create("FileHandle");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(FileHandleClass());
+			};
+			
+
 			f = Intrinsic.Create("import");
 			f.AddParam("libname");
 			f.code = (context, partialResult) => {
@@ -133,27 +139,18 @@ namespace M1 {
 			
 				// Figure out what directories to look for import modules in.
 				string[] libDirs = new string[0];
-				string searchPaths = sh.GetEnvString("includePaths");
-				if (!string.IsNullOrEmpty(searchPaths)) {
-					// User is using the deprecated includePaths feature.
-					sh.PrintLine("WARNING: env.includePaths is deprecated, and will be removed");
-					searchPaths += ";/sys/lib;/usr/lib";
-					libDirs = searchPaths.Split(new char[] {';'});
-					// Remove this case ^ sometime before Mini Micro 1.0.
-				} else {
-					// Standard (0.9 and later) behavior: expect a list in env.importPaths
-					Value importPaths = sh.GetEnv("importPaths");
-					if (importPaths is ValList) {
-						var iplist = importPaths as ValList;
-						libDirs = new string[iplist.values.Count];
-						for (int i=0; i<iplist.values.Count; i++) {
-							libDirs[i] = iplist.values[i].ToString();
-						}
-					} else if (importPaths != null) {
-						// Not a list?  Assume a semicolon-delimited string.
-						libDirs = importPaths.ToString().Split(new char[] {';'});
+				Value importPaths = sh.GetEnv("importPaths");
+				if (importPaths is ValList) {
+					var iplist = importPaths as ValList;
+					libDirs = new string[iplist.values.Count];
+					for (int i=0; i<iplist.values.Count; i++) {
+						libDirs[i] = iplist.values[i].ToString();
 					}
+				} else if (importPaths != null) {
+					// Not a list?  Assume a semicolon-delimited string.
+					libDirs = importPaths.ToString().Split(new char[] {';'});
 				}
+
 				//Debug.Log("Got " + libDirs.Length + " lib dirs: " + string.Join(", ", libDirs));
 				List<string> lines = null;
 				foreach (string dir in libDirs) {

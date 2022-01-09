@@ -2,14 +2,11 @@ Welcome to Farmtronics! Enter MiniScript
 code at the prompt. For language help,
 see: `http://miniscript.org`
 
-When typing a command, the computer will
-sometimes make suggestions in faint text
-after the cursor.  Just press the `Tab`
-key to accept the suggested text.
-
 To break out of any program, press
 Control-C. To clear the screen, enter
 `clear`
+
+Enter `toDo` to see your To-Do list.
 
 For more help, enter `help "topics"`
 Remember to use quotation marks!

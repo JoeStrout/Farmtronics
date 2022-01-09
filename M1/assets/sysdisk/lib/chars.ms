@@ -93,11 +93,10 @@ printable = [leftArrow, upArrow, rightArrow, downArrow, unprintable,
 
 if locals == globals then
 	text.clear
-	text.row = 25
+	text.row = 20
 	print "Special characters:"
-	print
 	printAlign = function(label, text)
-		print " " * (30 - label.len) + label + ": " + text
+		print " " * (25 - label.len) + label + ": " + text
 	end function
 	printAlign "left or leftArrow", leftArrow
 	printAlign "up or upArrow", upArrow
@@ -116,10 +115,9 @@ if locals == globals then
 	printAlign "emptyBox", emptyBox
 	printAlign "checkedBox", checkedBox
 	printAlign "boxWithX", boxWithX
-	printAlign "spade, club, heart, diamond", [spade, club, heart, diamond].join
+	printAlign "spade club heart diamond", [spade, club, heart, diamond].join
 	printAlign "dieFace[1] - dieFace[6]", [dieFace[1], dieFace[2], dieFace[3],
 			 dieFace[4], dieFace[5], dieFace[6]].join
-	print
 	
 	// Since this code has been run in the global scope, it's hidden the
 	// intrinsic `pi` function, which will cause weird bugs in other code. So:

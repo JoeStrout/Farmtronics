@@ -1,0 +1,32 @@
+The `bot` module provides access to the
+bot hardware (note: with the exception
+of `screenColor`, these work only on an
+actual bot, not on the Home Computer).
+
+Read-only properties:
+ `bot.position`: current tile position
+ `bot.facing`: 0=north, 1=east, etc.
+ `bot.energy`: energy left (0-270)
+ `bot.inventory`: list of items carried
+ `bot.here`: same as `bot.position.area`
+ `bot.ahead`: info on tile ahead of bot
+ 
+Read/write properties:
+ `bot.currentToolIndex`: selected item
+ `bot.statusColor`: color of status light
+ `screenColor`: screen background color
+   (works on Home Computer too)
+
+Methods:
+ `bot.forward`: move forward 1 tile
+ `bot.left`: turn left
+ `bot.right`: turn right
+ `bot.use toolNameOrIndex`: select tool
+ `bot.useTool`: apply current tool
+ `bot.clearAhead`: choose/apply tool
+ `bot.clearAndMove`: clear ahead and move
+   (optionally specify # of tiles)
+
+Note that each bot must be given a
+suitable set of tools for the tasks you
+program them to do.

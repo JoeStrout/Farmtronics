@@ -16,7 +16,7 @@ interpretNull = true
 //	for reading GRFON data and converting it to native form.
 //	Example: parse("42")		// returns 42
 parse = function(grfonString)
-	if grfonString isa RawData then grfonString = grfonString.utf8
+	//if grfonString isa RawData then grfonString = grfonString.utf8
 	p = new Parser
 	return p.parse(grfonString)
 end function

@@ -132,112 +132,6 @@ nearestPointOnLine = function(endA, endB, p)
 	return _nearestPointOnLine(endA, endB, p)
 end function
 
-// nearestPointOnLineSegment: calculate the point on the line segment from 
-// endA to endB that is closest to the given point p.  This will never 
-// return a point outside the given line segment.
-//
-// Parameters:
-//  endA: one point on the line (map or list)
-//  endB: another point on the line (map or list)
-//  p: point of interest (map or list)
-// Returns: an [x,y] list of the nearest point on the line segment to p.
-nearestPointOnLineSegment = function(endA, endB, p)
-	return _nearestPointOnLineSegment(endA, endB, p)
-end function
-
-// distanceToLine: calculate the shortest distance between the given
-// point and an infinite line.
-// Parameters:
-//  endA: one point on the line (map or list)
-//  endB: another point on the line (map or list)
-//  p: point of interest (map or list)
-// Returns: distance from p to the line
-distanceToLine = function(endA, endB, p)
-	ptOnLine = _nearestPointOnLine(endA, endB, p)
-	return distance(p, ptOnLine)
-end function
-
-// distanceToLineSegment: calculate the shortest distance between 
-// the given point and a line segment between two points.
-// Parameters:
-//  endA: one point on the line (map or list)
-//  endB: another point on the line (map or list)
-//  p: point of interest (map or list)
-// Returns: distance from p to the line
-distanceToLineSegment = function(endA, endB, p)
-	ptOnLine = _nearestPointOnLineSegment(endA, endB, p)
-	return distance(p, ptOnLine)
-end function
-
-// polyPerimeter: Measure the total distance around the given polygon
-// (including from the last point back to the first).
-//
-// Parameters:
-//	polygon: list of [x,y] points defining a polygon
-// Returns: polygon perimeter.
-polyPerimeter = function(polygon)
-	return _polyPerimeter(polygon)
-end function
-
-// polyArea: Calculate the area within the given polygon.
-//
-// Parameters:
-//	polygon: list of [x,y] points defining a polygon
-// Returns: polygon area.
-polyArea = function(polygon)
-	return _polyArea(polygon)
-end function
-
-// pointInPoly: Test whether a given [x,y] point, or any of a list of
-// of [x,y] points, is contained within the given polygon.
-//
-// Parameters:
-//	point: either [x,y], or a list, e.g. [[x1,y1], [x2,y2], [x3,y3]]
-//	polygon: list of [x,y] points defining a polygon
-// Returns: true if any of the given points is within the polygon;
-//			false otherwise.
-pointInPoly = function(point, polygon)
-	return _pointInPoly(point, polygon)
-end function
-
-// offsetPoly: insets (shrinks) or outsets (grows) a polygon.  (Which
-// it does depends on whether the polygon is defined clockwise or
-// counter-clockwise.)  The given polygon is unchanged; instead a 
-// NEW list of points is returned with the result.
-//
-// Parameters:
-//	polygon: list of points defining a polygon
-//	delta: amount to inset/outset the polygon points
-// Returns: new list of points defining offset polygon
-offsetPoly = function(polygon, delta)
-	return _offsetPoly(point, delta)
-end function
-
-// shiftPoly: translates a polygon by adding some amount to the X
-// and Y values of each point. The given polygon is unchanged; instead
-// a NEW list of points is returned with the result.
-//
-// Parameters:
-//	polygon: list of points defining a polygon
-//	dx: amount to add to the X coordinate of each point
-//	dy: amount to add to the Y coordinate of each point
-// Returns: new list of points defining translated polygon
-shiftPoly = function(polygon, dx=0, dy=0)
-	return _translatePoly(point, dx, dy)
-end function
-
-// rotatePoly: rotates all points in the given list around 0,0.
-// The given polygon is unchanged; instead a NEW list of points
-// in returned with the result.
-//
-// Parameters:
-//	polygon: list of points defining a polygon
-//	degrees: amount of rotation to apply, in degrees clockwise
-// Returns: new list of points defining rotated polygon
-rotatePoly = function(polygon, degrees)
-	return _rotatePoly(point, degrees)
-end function
-
 // randNormal: return a normally-destributed (i.e. Gaussian) number
 // with the given mean and standard deviation.
 //  mean: average value of the returned numbers
@@ -277,7 +171,9 @@ numToStr = function(n, precision=null)
 	s = str(round(n, precision))
 	if precision > 0 then
 		dotPos = s.indexOf(".")
-		if dotPos > s.len - precision - 1 then
+		if dotPos == null then
+			s = s + "." + "0" * precision
+		else if dotPos > s.len - precision - 1 then
 			s = s + "0" * (dotPos - s.len + precision + 1)
 		end if
 	end if
@@ -295,20 +191,6 @@ runUnitTests = function
 		end if
 	end function
 	
-	quadPoly = [[0,0], [100,0], [100,50], [0,50]]
-	assertEqual polyPerimeter(quadPoly), 300, "polyPerimeter"
-	assertEqual polyArea(quadPoly), 5000, "polyArea"
-	
-	endA = [100,50]
-	endB = {"x":100, "y":150}
-	assertEqual proportionAlongLine(endA, endB, [200,100]), 0.5, "proportionAlongLine"
-	assertEqual nearestPointOnLine(endA, endB, [200,100]), [100,100], "nearestPointOnLine"
-	assertEqual nearestPointOnLineSegment(endA, endB, [200,100]), [100,100], "nearestPointOnLineSegment"
-	assertEqual nearestPointOnLine(endA, endB, [100,10]), [100,10], "nearestPointOnLine"
-	assertEqual nearestPointOnLineSegment(endA, endB, [100,10]), [100,50], "nearestPointOnLineSegment"
-	assertEqual distanceToLine(endA, endB, [200,80]), 100, "nearestPointOnLine"
-	assertEqual distanceToLineSegment(endA, endB, [100,200]), 50, "nearestPointOnLineSegment"
-
 	assertEqual moveTowards(100, 25, 10), 90, "moveTowards"
 	mover = {"x":50, "y":25}
 	target = {"x":60, "y":25}

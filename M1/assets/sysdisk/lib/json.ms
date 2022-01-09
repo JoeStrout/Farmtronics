@@ -13,7 +13,7 @@
 //	for reading JSON data and converting it to native form.
 //	Example: parse("42")		// returns 42
 parse = function(jsonString)
-	if jsonString isa RawData then jsonString = jsonString.utf8
+	//if jsonString isa RawData then jsonString = jsonString.utf8
 	p = new Parser
 	return p.parse(jsonString)
 end function

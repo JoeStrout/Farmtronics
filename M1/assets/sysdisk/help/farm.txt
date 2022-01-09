@@ -1,0 +1,12 @@
+The `farm` global provides access to a
+variety of information about your farm:
+
+ `farm.height`: number of tile rows
+ `farm.width`: number of tile columns
+ `farm.tile(x,y)`: get tile info
+
+Tile info includes `name`, `type`, and
+other information about any object or
+terrain feature at the given location.
+For crops that includes `readyForHarvest`
+and `minutesTillReady`.

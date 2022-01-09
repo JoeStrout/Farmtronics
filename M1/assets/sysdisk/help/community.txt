@@ -1,0 +1,17 @@
+Farmtronics users unite!
+
+Get help, share your code, and hang out
+with other users via these links:
+
+Discord:
+ `https://discord.gg/7s6zajx` (MiniScript)
+ `https://discord.gg/stardewvalley` (SDV)
+
+MiniScript home page:
+ `https://miniscript.org/`
+
+MiniScript forums:
+ `https://forums.miniscript.org/`
+
+GitHub repo:
+`https://github.com/JoeStrout/Farmtronics`

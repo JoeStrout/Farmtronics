@@ -16,9 +16,9 @@ This is our "minimum viable product".
 - ☑ file system (including `cd`, `dir`, etc.), with /sys and /usr disks
 - ☑ [`import`](https://miniscript.org/wiki/Import)
 - ☑ code editor, so you can write/edit/save your own programs on /usr
-- ☐ built-in help and some demo/utility programs on /sys
 - ☑ `Location` class for getting info about a location (map)
 - ☑ `farm` and `here` accessors for getting a Location describing your farm, or the location of the computer
+- ☐ built-in help and some demo/utility programs on /sys
 - ☐ no errors spewed to SMAPI under any conditions
 
 ### Bot Features
@@ -41,6 +41,8 @@ This is our "minimum viable product".
 
 The following features are definitely things we want to include, but they have not yet been scheduled for a particular version.
 
+- console autocompletion (as in Mini Micro)
+- `mouse` module (allowing for point-and-click UI)
 - bots can be recharged (energy refilled), perhaps via some craftable charging station
 - bots can use weapons to fight monsters
 - bots and Home Computer can communicate via networking

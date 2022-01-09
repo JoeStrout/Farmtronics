@@ -468,32 +468,6 @@ if bot then
 		end for
 	end function
 	
-	bot.clearGrid = function(width, height)
-		for h in range(0, height-1)
-			bot.clearAndMove width
-			if h % 2 then
-				bot.right; bot.clearAndMove; bot.right
-			else
-				bot.left; bot.clearAndMove; bot.left
-			end if
-		end for
-	end function
-	
-	bot.till = function
-		bot.use "Hoe"
-		bot.useTool
-	end function
-	
-	bot.water = function
-		bot.use "Watering Can"
-		bot.useTool
-	end function
-	
-	bot.plant = function(seedName)
-		bot.use seedName
-		bot.placeItem
-	end function
-	
 end if
 
 // Stuff that applies both to bots and to the home computer

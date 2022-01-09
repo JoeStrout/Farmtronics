@@ -24,7 +24,7 @@ namespace M1
 			helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
-			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+			//HACK not needed: helper.Events.Input.ButtonPressed += this.OnButtonPressed;
 			helper.Events.GameLoop.Saving += this.OnSaving;
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;

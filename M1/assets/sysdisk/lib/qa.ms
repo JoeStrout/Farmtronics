@@ -6,33 +6,10 @@
 
 _prevMode = 0
 
-errDisplay = null
-
-// prepareErrDisplay is used internally to prepare the default error display.
-// You probably won't ever need to call this.
-prepareErrDisplay = function
-	outer._prevMode = display(0).mode
-	display(0).mode = displayMode.text
-	outer._prevDisp = display(0)
-	outer.errDisplay = new TextDisplay
-	errDisplay.backColor = "#00000088"
-	errDisplay.color = color.red
-	errDisplay.clear
-	errDisplay.install 0
-end function
-
-// clear: clears (just) the error display.
-clear = function
-	if errDisplay == null then prepareErrDisplay
-	_prevDisp.install 0
-	display(0).mode = _prevMode
-	outer.errDisplay = null
-end function
-
 // abort: print a stack trace (optionally, after an error message),
 // then exit the program.
 abort = function(errMsg)
-	if errDisplay == null then prepareErrDisplay
+	errDisplay = text
 	if errMsg == null then errMsg = "qa.abort has been called."
 	errDisplay.print errMsg
 	errDisplay.print "Call stack:"
@@ -42,11 +19,6 @@ abort = function(errMsg)
 		errDisplay.print "  " + i + ". " + line
 		i = i + 1
 	end for
-	errDisplay.print "(To clear this display, enter: qa.clear)"
-	if not globals.hasIndex("qa") then
-		globals.qa = {}
-		globals.clear = @clear
-	end if
 	exit
 end function
 
@@ -71,11 +43,7 @@ end function
 
 namedMaps = {
 	number:"number", string:"string", list:"list", map:"map",
-	Display:"Display", TextDisplay:"TextDisplay", SpriteDisplay:"SpriteDisplay",
-	TileDisplay:"TileDisplay", PixelDisplay:"PixelDisplay", 
-	SolidColorDisplay:"SolidColorDisplay",
-	FileHandle:"FileHandle", Image:"Image", Sound:"Sound", Sprite:"Sprite",
-	Bounds:"Bounds" }
+	FileHandle:"FileHandle" }
 
 typeOf = function(value)
 	if @value isa funcRef then return "funcRef"
@@ -123,8 +91,8 @@ runUnitTests = function
 	assertEqual typeOf("abc"), "string"
 	assertEqual typeOf([1,2,3]), "list"
 	assertEqual typeOf(@rnd), "funcRef"
-	assertEqual typeOf(new Sprite), "Sprite"
-	assertEqual typeOf(gfx), "PixelDisplay"
+	//assertEqual typeOf(new Sprite), "Sprite"
+	//assertEqual typeOf(gfx), "PixelDisplay"
 	
 	if errorCount == 0 then
 		print "All tests passed.  Quality code!"

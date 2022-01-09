@@ -208,12 +208,13 @@ DialogButton.contains = function(pt)
 end function
 DialogButton.trackHit = function
 	c = text.cellBackColor(self.x, self.y)
-	while mouse.button
-		text.color = c
-		if self.contains(mouse) then text.color = color.lerp(c, color.black)
-		self.draw
-		yield
-	end while
+// Full functionality here is awaiting the mouse API...
+//	while mouse.button
+//		text.color = c
+//		if self.contains(mouse) then text.color = color.lerp(c, color.black)
+//		self.draw
+//		yield
+//	end while
 	if text.color == c then return false
 	text.color = c
 	self.draw
@@ -244,12 +245,12 @@ Dialog.show = function(timeout=null)
 	priorBgColor = text.backColor
 	priorDelim = text.delimiter
 
-	rows = range(12 - floor(self.height/2), 11 + ceil(self.height/2))
-	cols = range(34 - floor(self.width/2), 33 + ceil(self.width/2))
+	rows = range(9 - floor(self.height/2), 10 + ceil(self.height/2))
+	cols = range(20 - floor(self.width/2), 19 + ceil(self.width/2))
 	
 	text.delimiter = char(13)
 	text.row = 12 + ceil(self.height/2)
-	x = 34 - self.width/2
+	x = 20 - self.width/2
 	
 	// draw title
 	text.color = self.textColor
@@ -287,15 +288,15 @@ Dialog.show = function(timeout=null)
 	btnHit = null
 	startTime = time
 	while not btnHit
-		if mouse.button then
-			for btn in buttons
-				if not btn.visible or not btn.contains(mouse) then continue
-				if btn.trackHit then
-					btnHit = btn
-					break
-				end if
-			end for
-		end if
+//		if mouse.button then
+//			for btn in buttons
+//				if not btn.visible or not btn.contains(mouse) then continue
+//				if btn.trackHit then
+//					btnHit = btn
+//					break
+//				end if
+//			end for
+//		end if
 		if key.available then
 			k = key.get
 			if k.code == 3 or k.code == 13 then k = char(10)

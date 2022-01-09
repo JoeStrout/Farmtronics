@@ -774,6 +774,9 @@ if locals == globals then
 	" When you press the knob inside, the panel spins around," +
 	" carrying you with it."
 	print
+	input "[Press Return.]"
+	text.row = text.row + 1
+
 	printWrap "You find yourself in a small room.  The panel through " +
 	"which you entered joins perfectly with the wall on this side," +
 	" leaving no hope of returning the way you came.  You'd been" +
