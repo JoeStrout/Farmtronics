@@ -25,6 +25,10 @@ Bots each carry the same computer, but also have the ability to move around in t
 
 See the [Wiki](https://github.com/JoeStrout/Farmtronics/wiki) for more documentation and sample code.
 
+## Questions? Issues? Things to share?
+
+Best place to discuss this mod is on the [MiniScript Discord](https://discord.gg/7s6zajx).  There is a #farmtronics channel there.
+
 ## Road Map
 
 See [ROADMAP.md](ROADMAP.md) for our development plan, including what features are expected in which future versions of the mod.
