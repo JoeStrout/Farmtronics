@@ -9,7 +9,7 @@ The Home Computer is a computer that connects to the TV in your cabin.  Despite 
 Bots each carry the same computer, but also have the ability to move around in the world and get things done.  All you have to do is program them!
 
 ## How to Play
-1. Download the mod zip file from the [Releases](https://github.com/JoeStrout/Farmtronics/releases) page (or from [NexusMods](https://www.nexusmods.com/stardewvalley/mods/10634/), and install it in the [usual way](https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started#Find_your_game_folder).
+1. Download the mod zip file from the [Releases](https://github.com/JoeStrout/Farmtronics/releases) page (or from [NexusMods](https://www.nexusmods.com/stardewvalley/mods/10634/)), and install it in the [usual way](https://stardewvalleywiki.com/Modding:Player_Guide/Getting_Started#Find_your_game_folder).
 2. To use the **Farmtronics Home Computer**:
   - Activate the TV in your house.
   - Select the bottom-most option, *Farmtronics Home Computer*.
