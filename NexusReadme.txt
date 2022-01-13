@@ -16,6 +16,7 @@ Both include built-in help and are fully programmable.
 
 :: KNOWN ISSUES ::
 • Bots may not work outside the farmhouse and farm
+• This mod has not been tested (and probably does not work correctly) with multiplayer
 • Documentation is still a bit thin
 • Currently available only in English
 
