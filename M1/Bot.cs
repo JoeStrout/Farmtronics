@@ -63,6 +63,10 @@ namespace Farmtronics {
 		static Texture2D botSprites;
 
 		public Bot() {
+			if (botSprites == null) {
+				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
+			}
+
 			// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
 			// We don't need or want a farmer at this time.
 			Name = "Farmtronics Bot";
@@ -75,6 +79,10 @@ namespace Farmtronics {
 		}
 
 		public Bot(Vector2 tileLocation, GameLocation location=null, bool createTools=true) :base(tileLocation, 130) {
+			if (botSprites == null) {
+				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
+			}
+
 			Name = "Bot";
 			type.Value = "Crafting";
 			bigCraftable.Value = true;
@@ -82,9 +90,6 @@ namespace Farmtronics {
 
 			this.TileLocation = tileLocation;
 			if (location == null) location = Game1.player.currentLocation;
-			if (botSprites == null) {
-				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
-			}
 
 			List<Item> initialTools = null;
 			if (createTools) {
@@ -597,6 +602,11 @@ namespace Farmtronics {
 				SpriteEffects.None, (float)getBoundingBox(new Vector2(x, y)).Bottom / 15000f);
 
 			// draw sprite
+			if (botSprites == null) {
+				Debug.Log("Bot.draw: botSprites is null; bailing out");
+				return;
+			}
+
 			Vector2 position3 = Game1.GlobalToLocal(Game1.viewport, new Vector2(
 				position.X + 32 + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0),
 				position.Y + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0)));
@@ -636,11 +646,19 @@ namespace Farmtronics {
 
         public override void drawWhenHeld(SpriteBatch spriteBatch, Vector2 objectPosition, Farmer f) {
 			//Debug.Log($"Bot.drawWhenHeld");
+			if (botSprites == null) {
+				Debug.Log("Bot.drawWhenHeld: botSprites is null; bailing out");
+				return;
+			}
 			Rectangle srcRect = new Rectangle(16 * f.facingDirection, 0, 16, 24);
             spriteBatch.Draw(botSprites, objectPosition, srcRect, Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingY() + 3) / 10000f));
         }
 
         public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow) {
+			if (botSprites == null) {
+				Debug.Log("Bot.drawInMenu: botSprites is null; bailing out");
+				return;
+			}
  			//Debug.Log($"Bot.drawInMenu with scaleSize {scaleSize}");
             if ((bool)this.IsRecipe) {
                 transparency = 0.5f;
@@ -661,7 +679,11 @@ namespace Farmtronics {
 
         public override void drawAsProp(SpriteBatch b) {
   			Debug.Log($"Bot.drawAsProp");
-           if (this.isTemporarilyInvisible) return;
+ 			if (botSprites == null) {
+				Debug.Log("Bot.drawAsProp: botSprites is null; bailing out");
+				return;
+			}
+			if (this.isTemporarilyInvisible) return;
             int x = (int)this.TileLocation.X;
             int y = (int)this.TileLocation.Y;
 

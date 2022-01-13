@@ -37,6 +37,14 @@ This is our "minimum viable product".
 - ☑ basic documentation on how to install and use the mod
 - ☐ API reference for all classes/functions added to MiniScript
 
+## Known Issues
+
+These will be addressed ASAP.
+
+- The command line cursor gets misplaced if, at the bottom of the screen, you type a command longer than 40 characters (so that it wraps) and then back up with the left arrow key to the previous line.
+- If you pick up a bot by repeatedly left-clicking it with empty hands, it leaves a "ghost" image behind until you put it down again.
+- If you use a hoe on a bot, it turns into a chest.  (Work-around for this and the previous issue: pick up a bot with axe or pickaxe only.)
+
 ## Unscheduled Future Version
 
 The following features are definitely things we want to include, but they have not yet been scheduled for a particular version.

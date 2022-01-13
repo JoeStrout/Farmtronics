@@ -216,7 +216,11 @@ handleKey = function(k)
 		outer.cursorY = cursorY + amount
 		outer.cursorX = idealCursorX
 	else if kcode == 10 then  // return
-		data.insert cursorY+1, data[cursorY][cursorX:]
+		if cursorY >= data.len then
+			data.push ""
+		else
+			data.insert cursorY+1, data[cursorY][cursorX:]
+		end if
 		data[cursorY] = data[cursorY][:cursorX]
 		outer.cursorY = cursorY + 1
 		outer.cursorX = 0
