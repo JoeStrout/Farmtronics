@@ -149,6 +149,7 @@ namespace Farmtronics
 			}
 			shell.console.Present();
 
+			/*
 			var farm = (Farm)Game1.getLocationFromName("Farm");
 
 			var layer = farm.map.Layers[0];
@@ -176,7 +177,7 @@ namespace Farmtronics
 			shell.PrintLine($"Tilled Ground: {hoeDirts}");// at: {string.Join(',', hoeLocs)}");
 			shell.PrintLine($"Paved: {paths}");
 			shell.PrintLine($"Total features: {featureCount}");
-
+			*/
 		}
 
 		bool IAssetEditor.CanEdit<T>(IAssetInfo asset) {

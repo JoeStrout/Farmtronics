@@ -262,6 +262,69 @@ string.editDistance = function(s2)
 	return nextCost
 end function
 
+// string.fill: substitute values from argMap into
+// this string at places identified by {key}.
+// (See string.match for the inverse operation.)
+string.fill = function(args)
+	s = self
+	for idx in args.indexes
+		s = s.replace("{" + idx + "}", args[idx])
+	end for
+	return s
+end function
+
+// string.match: takes a pattern string that may
+// contain fields to fill in, identified by {key}.  If
+// the this string can be matched to that pattern, then
+// it returns a map with the key-value pairs filled in
+// with the corresponding parts of this string.  If it
+// can't match, then returns null.
+// (See string.fill for the inverse operation.)
+string.match = function(pattern)
+	// Start by splitting this pattern into literal and field parts.
+	parts = []
+	p = 0
+	while p < pattern.len
+		// find the end of a literal part
+		nextp = pattern.indexOf("{", p-1)
+		if nextp == null then
+			parts.push pattern[p:]
+			break
+		end if
+		if nextp > p then parts.push pattern[p:nextp]
+		p = nextp
+		// find the end of a field part
+		nextp = pattern.indexOf("}", p)
+		if p == null then
+			parts[-1] = parts[-1] + pattern[p:]
+			break
+		end if
+		parts.push pattern[p:nextp+1]
+		p = nextp + 1
+	end while
+	// Now, find each literal parts in this string,
+	// and fill in the variable parts (fields) in between.
+	result = {}
+	p = 0
+	lastStartPos = 0
+	for i in parts.indexes
+		part = parts[i]
+		if part[0] == "{" and part[-1] == "}" then
+			lastStartPos = p
+			if i == parts.len-1 then result[part[1:-1]] = self[p:]
+			continue
+		end if
+		p = self.indexOf(part, p-1)
+		if p == null then return null  // literal part not found
+		if i > 0 then
+			result[parts[i-1][1:-1]] = self[lastStartPos:p]
+		end if
+		lastStartPos = p
+		p = p + part.len
+	end for
+	return result
+end function
+
 runUnitTests = function
 	print "Unit testing: stringUtil"
 	
@@ -336,12 +399,30 @@ runUnitTests = function
 	assertEqual "Now is the time for all good folks to come together".wrap(24),
 		["Now is the time for all", "good folks to come", "together"]
 	
+	testing = "editDistance"
 	assertEqual "Foo".editDistance(""), 3
 	assertEqual "".editDistance("Foo"), 3
 	assertEqual "Foo".editDistance("FOO"), 2
 	assertEqual "FOO".editDistance("Foo"), 2
 	assertEqual "Foobar".editDistance("Boobear"), 2
 	assertEqual "Boobear".editDistance("Foobar"), 2
+	
+	testing = "fill"
+	m = {"greeting":"Hello", "place":"world"}
+	assertEqual "{greeting} {place}!".fill(m), "Hello world!"
+	assertEqual "{greeting} {extra}!".fill(m), "Hello {extra}!"
+	assertEqual "a {1} and a {2}".fill(["zero", "one", "two"]), "a one and a two"
+	
+	testing = "match"
+	pat = "Give {who} a {what}"
+	m = "Give me a treat".match(pat)
+	assertEqual m, {"who":"me", "what":"treat"}	
+	assertEqual "Lend me a book".match(pat), null
+	pat = "{verb} the {noun}!"
+	m = "Jump the shark!".match(pat)
+	assertEqual m, {"verb":"Jump", "noun":"shark"}
+	m = "Batten down the hatches!".match(pat)
+	assertEqual m, {"verb":"Batten down", "noun":"hatches"}
 	
 	if errorCount == 0 then
 		print "All tests passed.  Yay!"

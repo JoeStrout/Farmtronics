@@ -1108,14 +1108,14 @@ namespace Farmtronics {
 				// check objects
 				StardewValley.Object obj = null;
 				loc.objects.TryGetValue(xy, out obj);
-				Debug.Log($"Object at {xy}: {obj}");
+				//Debug.Log($"Object at {xy}: {obj}");
 				if (obj != null) {
 					result = ToMap(obj);
 				} else {
 					// check terrain features
 					TerrainFeature feature = null;
 					if (!loc.terrainFeatures.TryGetValue(new Vector2(x,y), out feature)) {
-						Debug.Log($"no terrain features at {xy}");
+						//Debug.Log($"no terrain features at {xy}");
 						return Intrinsic.Result.Null;
 					}
 					Debug.Log($"terrain features at {xy}: {feature}");

@@ -399,17 +399,6 @@ if bot then
 		return bot.position.area
 	end function
 	
-	scan = function
-		here = bot.position.area
-		for x in range(0, here.width-1)
-			for y in range(0, here.height-1)
-				t = here.tile(x,y)
-				if not t then continue
-				print x+","+y + ": " + t
-			end for
-		end for
-	end function
-	
 	bot.ahead = function
 		f = bot.facing
 		pos = bot.position
