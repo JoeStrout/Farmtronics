@@ -18,7 +18,7 @@ This is our "minimum viable product".
 - ☑ code editor, so you can write/edit/save your own programs on /usr
 - ☑ `Location` class for getting info about a location (map)
 - ☑ `farm` and `here` accessors for getting a Location describing your farm, or the location of the computer
-- ☐ built-in help and some demo/utility programs on /sys
+- ☑ built-in help and some demo/utility programs on /sys
 - ☐ no errors spewed to SMAPI under any conditions
 
 ### Bot Features
@@ -33,8 +33,8 @@ This is our "minimum viable product".
 - ☑ bots can be saved & restored with the game, even in player inventory or chests
 
 ### Support & Documentation
-- ☐ mod page at https://www.nexusmods.com/stardewvalley/mods/
-- ☐ basic documentation on how to install and use the mod
+- ☑ mod page at https://www.nexusmods.com/stardewvalley/mods/
+- ☑ basic documentation on how to install and use the mod
 - ☐ API reference for all classes/functions added to MiniScript
 
 ## Unscheduled Future Version
