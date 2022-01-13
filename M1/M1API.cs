@@ -545,8 +545,8 @@ namespace Farmtronics {
 			};
 			fileModule["child"] = f.GetFunc();
 
-			// File.delete
-			f = Intrinsic.Create("");
+			// File.delete (also known as global delete)
+			f = Intrinsic.Create("delete");
 			f.AddParam("path", "");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
