@@ -50,7 +50,7 @@ The following features are definitely things we want to include, but they have n
 
 ## Features of Uncertain Fate
 
-The features below are under consideration, but may not make they unbalance the game, are impractical to implement, etc.
+The features below are under consideration, but may not make it if they unbalance the game, are impractical to implement, etc.
 
 - bots can craft things (including other bots)
 - bots can buy/sell goods at shops
