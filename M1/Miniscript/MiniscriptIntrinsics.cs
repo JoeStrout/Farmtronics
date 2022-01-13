@@ -1445,13 +1445,20 @@ namespace Miniscript {
 					d["miniscript"] = new ValString("1.5.1");
 			
 					// Getting the build date is annoyingly hard in C#.
-					// This will work if the assembly.cs file uses the version format: 1.0.*
-					DateTime buildDate;
-					System.Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-					buildDate = new DateTime(2000, 1, 1);
-					buildDate = buildDate.AddDays(version.Build);
-					buildDate = buildDate.AddSeconds(version.Revision * 2);
-					d["buildDate"] = new ValString(buildDate.ToString("yyyy-MM-dd"));
+					// The following requires that you paste a line such as:
+					// <Copyright>Copyright © $([System.DateTime]::UtcNow.Year) Your Name ($([System.DateTime]::UtcNow.ToString("s")))</Copyright>
+					// ...into your .csproj file, inside the first PropertyGroup block.
+					string buildDate = "2000-01-01";
+					// For MOST contexts you would just do this:
+					//var vers = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
+					// But for a Stardew mod, we must hack this file and do this:
+					var vers = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.IO.Path.Combine(Farmtronics.ModEntry.instance.Helper.DirectoryPath, "Farmtronics.dll"));
+					if (!string.IsNullOrEmpty(vers.LegalCopyright)) {
+						var re = new System.Text.RegularExpressions.Regex(@"(20\d\d-\d\d-\d\d)");
+						var match = re.Match(vers.LegalCopyright);
+						if (match.Success) buildDate = match.Value;
+					}
+					d["buildDate"] = new ValString(buildDate);
 
 					d["host"] = new ValNumber(HostInfo.version);
 					d["hostName"] = new ValString(HostInfo.name);

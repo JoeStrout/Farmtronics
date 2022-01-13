@@ -48,8 +48,8 @@ namespace Farmtronics {
 
 			if (shell.bot == null) HostInfo.name = "Farmtronics Home Computer";
 			else HostInfo.name = "Farmtronics Bot";
-			HostInfo.version = 0.1;
-			HostInfo.info = "http://miniscript.org/";	// to-do: put our mod URL here
+			HostInfo.version = 1.01;
+			HostInfo.info = "https://github.com/JoeStrout/Farmtronics/";
 		
 			Intrinsic f;
 
