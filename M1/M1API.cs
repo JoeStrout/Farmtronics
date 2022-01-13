@@ -395,8 +395,8 @@ namespace Farmtronics {
 			fileModule = new ValMap();
 			fileModule.assignOverride = DisallowAllAssignment;
 		
-			// File.curdir
-			Intrinsic f = Intrinsic.Create("");
+			// File.curdir (also goes by "pwd")
+			Intrinsic f = Intrinsic.Create("pwd");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				return new Intrinsic.Result(sh.env["curdir"]);

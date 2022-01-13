@@ -88,7 +88,7 @@ public static class FileUtils {
 			}				
 		}
 		path = string.Join("/", parts.ToArray());
-		//Debug.Log("resolved to: " + path);
+		//Debug.Log($"resolved path to: {path}");
 		return path;
 	}
 	

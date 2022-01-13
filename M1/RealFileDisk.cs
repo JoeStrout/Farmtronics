@@ -12,6 +12,10 @@ public class RealFileDisk : Disk {
 	public void Open(string basePath) {
 		this.basePath = Path.GetFullPath(basePath);
 		//Debug.Log("Set base path to: " + this.basePath);
+		if (!Directory.Exists(this.basePath)) {
+			var dirInfo = Directory.CreateDirectory(this.basePath);
+			Debug.Log($"Created directory {this.basePath} with result {dirInfo.Exists}");
+		}
 	}
 	
 	string NativePath(string path) {
