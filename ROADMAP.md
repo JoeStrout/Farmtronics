@@ -41,6 +41,7 @@ This is our "minimum viable product".
 
 The following features are definitely things we want to include, but they have not yet been scheduled for a particular version.
 
+- improved copy/paste support in the editor
 - console autocompletion (as in Mini Micro)
 - `mouse` module (allowing for point-and-click UI)
 - bots can be recharged (energy refilled), perhaps via some craftable charging station
