@@ -385,8 +385,6 @@ tip = function
 	return tips[rnd * tips.len].replace("\n", char(13))
 end function
 
-_saveGlobals
-
 toDo = function
 	import "toDo"
 	toDo.present
@@ -461,3 +459,5 @@ end if
 
 // Stuff that applies both to bots and to the home computer
 screenColor = "#333399"
+
+_saveGlobals
