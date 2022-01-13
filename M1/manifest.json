@@ -6,5 +6,5 @@
   "UniqueID": "strout.farmtronics",
   "EntryDll": "Farmtronics.dll",
   "MinimumApiVersion": "3.0.0",
-  "UpdateKeys": []
+  "UpdateKeys": ["Nexus:10634", "GitHub:JoeStrout/Farmtronics"]
 }
