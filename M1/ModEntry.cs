@@ -22,6 +22,7 @@ namespace Farmtronics
 			instance = this;
 			ModEntry.helper = helper;
 			helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
+			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
 			//HACK not needed: helper.Events.Input.ButtonPressed += this.OnButtonPressed;
@@ -35,6 +36,10 @@ namespace Farmtronics
 
 		private void OnGameLaunched(object sender, GameLaunchedEventArgs e) {
 			Helper.Content.AssetEditors.Add(this);
+		}
+
+		private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e) {
+			Bot.ClearAll();
 		}
 
 		uint prevTicks;

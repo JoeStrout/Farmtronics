@@ -303,6 +303,10 @@ namespace Farmtronics {
 			}
 		}
 
+		public static void ClearAll() {
+			instances.Clear();
+		}
+
 		public override void dropItem(GameLocation location, Vector2 origin, Vector2 destination) {
 			Debug.Log($"Bot.dropItem({location}, {origin}, {destination}");
 			base.dropItem(location, origin, destination);
