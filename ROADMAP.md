@@ -41,6 +41,9 @@ This is our "minimum viable product".
 
 These will be addressed ASAP.
 
+- If you break a bot (e.g. using a pickaxe) while it is running, it will duplicate it (you'll pick up one but the original continues to run on the ground).
+- When you exit to title while a bot is running, it continues to run and will still be there if you return.
+- If you leave the farm while a bot is running, it leaves an invisible bot behind at its last location.  This invisible bot can't be destroyed; whacking it produces a duplicate bot.
 - The command line cursor gets misplaced if, at the bottom of the screen, you type a command longer than 40 characters (so that it wraps) and then back up with the left arrow key to the previous line.
 - If you pick up a bot by repeatedly left-clicking it with empty hands, it leaves a "ghost" image behind until you put it down again.
 - If you use a hoe on a bot, it turns into a chest.  (Work-around for this and the previous issue: pick up a bot with axe or pickaxe only.)
