@@ -228,6 +228,7 @@ namespace Farmtronics {
 		static void ConvertChestsInMapToBots(GameLocation inLocation=null) {
 			if (inLocation == null) {
 				foreach (var loc in Game1.locations) {
+					//Debug.Log($"Converting in location: {loc}");
 					ConvertChestsInMapToBots(loc);
 				}
 				return;

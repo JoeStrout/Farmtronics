@@ -36,6 +36,12 @@ namespace Farmtronics {
 		static ValString _tapped = new ValString("tapped");
 		static ValString _hasSeed = new ValString("hasSeed");
 		static ValString _handle = new ValString("_handle");
+		static ValString _crop = new ValString("crop");
+		static ValString _mature = new ValString("mature");
+		static ValString _phase = new ValString("phase");
+		static ValString _dry = new ValString("dry");
+		static ValString _dead = new ValString("dead");
+		static ValString _harvestMethod = new ValString("harvestMethod");
 
 		public static void Init(Shell shell) {
 			M1API.shell = shell;
@@ -1128,6 +1134,20 @@ namespace Farmtronics {
 						result.map[_stump] = ValNumber.Truth(tree.stump.Value);
 						result.map[_tapped] = ValNumber.Truth(tree.tapped.Value);
 						result.map[_hasSeed] = ValNumber.Truth(tree.hasSeed.Value);
+					} else if (feature is HoeDirt hoeDirt) {
+						result.map[_dry] = ValNumber.Truth(hoeDirt.state.Value != 1);
+						var crop = hoeDirt.crop;
+						if (crop == null) result.map[_crop] = null;
+						else {
+							ValMap cropInfo = new ValMap();
+							cropInfo.map[_phase] = new ValNumber(crop.currentPhase.Value);
+							cropInfo.map[_mature] = ValNumber.Truth(crop.fullyGrown.Value);
+							cropInfo.map[_dead] = ValNumber.Truth(crop.dead.Value);
+							cropInfo.map[_harvestMethod] = ValNumber.Truth(crop.harvestMethod.Value);
+							//Note: we might be able to get the name of the crop
+							// using crop.indexOfHarvest or crop.netSeedIndex
+							result.map[_crop] = cropInfo;
+						}
 					}
 				}
 				if (result == null) return Intrinsic.Result.Null;

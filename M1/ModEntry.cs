@@ -25,7 +25,8 @@ namespace Farmtronics
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
-			//HACK not needed: helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+			//HACK not needed:
+			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
 			helper.Events.GameLoop.Saving += this.OnSaving;
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
