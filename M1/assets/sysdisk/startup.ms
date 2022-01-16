@@ -433,7 +433,7 @@ if bot then
 		if what == "Grass" or what == "Weeds" then
 			bot.statusColor = "#66FF66"
 			bot.use "Scythe"
-		else if what == "Stone" then
+		else if what == "Stone" or what == "HoeDirt" then
 			bot.statusColor = "#8888FF"
 			bot.use "Pickaxe"
 		else

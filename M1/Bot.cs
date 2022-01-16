@@ -298,7 +298,9 @@ namespace Farmtronics {
 		//----------------------------------------------------------------------
 
 		public static void UpdateAll(GameTime gameTime) {
-			foreach (Bot bot in instances) bot.Update(gameTime);
+			for (int i=instances.Count - 1; i >= 0; i--) {
+				instances[i].Update(gameTime);
+			}
 		}
 
 		public override void dropItem(GameLocation location, Vector2 origin, Vector2 destination) {
@@ -467,7 +469,7 @@ namespace Farmtronics {
 			// Otherwise, big pain in the neck time.
 
 			// Apply it to the location itself.
-			Debug.Log($"Performing {tool} action at {tileX},{tileY}");
+			Debug.Log($"{name} Performing {tool} action at {tileX},{tileY}");
 			location.performToolAction(tool, tileX, tileY);
 
 			// Then, apply it to any terrain feature (grass, weeds, etc.) at this location.
@@ -504,6 +506,11 @@ namespace Farmtronics {
 		}
 
 		public void Update(GameTime gameTime) {
+			// Weird things happen if we try to update bots in locations other than
+			// the current location.  We should try harder to get that to work sometime,
+			// but for now, let's just detect that case and bail out.
+			if (farmer.currentLocation != Game1.currentLocation) return;
+
 			if (shell != null) {
 				shell.console.update(gameTime);
 			}
@@ -571,26 +578,34 @@ namespace Farmtronics {
 		}
 
 		public override bool performToolAction(Tool t, GameLocation location) {
-			Debug.Log($"Bot.performToolAction({t}, {location})");
+			Debug.Log($"{name} Bot.performToolAction({t}, {location})");
 
-           if (t is Pickaxe or Axe) {
-				Debug.Log("Bot.performToolAction: creating custom debris");
+           if (t is Pickaxe or Axe or Hoe) {
+				Debug.Log("{name} Bot.performToolAction: creating custom debris");
 				var who = t.getLastFarmerToUse();
                 this.performRemoveAction(this.TileLocation, location);
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
                 Game1.currentLocation.debris.Add(deb);
-				Debug.Log($"Created debris with item {deb.item}");
+				Debug.Log($"{name} Created debris with item {deb.item}");
+				// Remove, stop, and destroy this bot
                 Game1.currentLocation.objects.Remove(this.TileLocation);
+				if (shell != null) shell.interpreter.Stop();
+				instances.Remove(this);
                 return false;
             }
 
-			bool result = base.performToolAction(t, location);
-			Debug.Log($"My TileLocation is now {this.TileLocation}");
-			return result;
+			// previous code, that called the base... this sometimes resulted
+			// in picking up a chest, while leaving a ghost bot behind:
+			//bool result = base.performToolAction(t, location);
+			//Debug.Log($"{name} Bot.performToolAction: My TileLocation is now {this.TileLocation}");
+			//return result;
+			// I'm not aware of any use case for doing the default tool action on a bot.
+			// So now we're going to avoid that whole issue by always doing:
+			return false;
 		}
 
 		public override bool performObjectDropInAction(Item dropIn, bool probe, Farmer who) {
-			Debug.Log($"Bot.performObjectDropInAction({dropIn}, {probe}, {who.Name}");
+			Debug.Log($"{name} Bot.performObjectDropInAction({dropIn}, {probe}, {who.Name}");
 			return base.performObjectDropInAction(dropIn, probe, who);
 		}
 
