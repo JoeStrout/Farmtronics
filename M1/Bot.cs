@@ -150,8 +150,10 @@ namespace Farmtronics {
 			chest.modData[facingKey] = bot.facingDirection.ToString();
 			var inventory = bot.inventory;
 			if (inventory != null) {
-				for (int i=0; i<chest.items.Count && i<bot.inventory.Count; i++) {
-					chest.items[i] = inventory[i];
+				if (chest.items.Count < inventory.Count) chest.items.Set(inventory);
+				for (int i=0; i<chest.items.Count && i<inventory.Count; i++) {
+					//chest.items[i] = inventory[i];
+					Debug.Log($"Moved {chest.items[i]} in slot {i} from bot to chest");
 				}
 				int convertedItems = ConvertBotsInListToChests(chest.items);
 				if (convertedItems > 0) Debug.Log($"Converted {convertedItems} bots inside a bot");
@@ -197,7 +199,9 @@ namespace Farmtronics {
 			}
 			foreach (var tileLoc in targetTileLocs) {
 				Debug.Log($"Found bot in {inLocation.Name} at {tileLoc}; converting");
-				inLocation.objects[tileLoc] = ConvertBotToChest(inLocation.objects[tileLoc] as Bot);
+				var chest = ConvertBotToChest(inLocation.objects[tileLoc] as Bot);
+				inLocation.objects.Remove(tileLoc);
+				inLocation.objects.Add(tileLoc, chest);
 				countInLoc++;
 			}
 			if (countInLoc > 0) Debug.Log($"Converted {countInLoc} bots in {inLocation.Name}");
@@ -210,7 +214,7 @@ namespace Farmtronics {
 
 
 		/// <summary>
-		/// Convert all chests with appropriate metadat into bots, everywhere.
+		/// Convert all chests with appropriate metadata into bots, everywhere.
 		/// </summary>
 		public static void ConvertChestsToBots() {
 			// Convert chests in the world.
@@ -259,10 +263,10 @@ namespace Farmtronics {
 
 				Bot bot = new Bot(tileLoc, inLocation, false);
 				inLocation.objects.Remove(tileLoc);
-				inLocation.overlayObjects[tileLoc] = bot;
+				inLocation.overlayObjects.Add(tileLoc, bot);
 				bot.farmer.faceDirection(facing);
 				for (int i=0; i<chest.items.Count && i<bot.inventory.Count; i++) { 
-					Debug.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
+					//Debug.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
 					bot.inventory[i] = chest.items[i];
 				}
 				chest.items.Clear();

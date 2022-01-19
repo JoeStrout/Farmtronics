@@ -57,7 +57,7 @@ namespace Farmtronics
 
 		// HACK used only for early testing/development:
 		public void OnButtonPressed(object sender, ButtonPressedEventArgs e) {
-			print($"OnButtonPressed: {e.Button}");
+			//print($"OnButtonPressed: {e.Button}");
 			if (e.Button == SButton.PageUp) {
 				print($"CurrentSavePath: {Constants.CurrentSavePath}");
 				// Create a bot.
