@@ -1619,7 +1619,12 @@ namespace Farmtronics {
 			result["maxStack"] = new ValNumber(item.maximumStackSize());
 			result["category"] = new ValString(item.getCategoryName());
 			result["value"] = new ValNumber(item.salePrice());
-			result["description"] = new ValString(item.getDescription());
+			result["description"] = new ValString(item.getDescription().Trim());
+			if (item is StardewValley.Tools.WateringCan can) {
+				result["waterLeft"] = new ValNumber(can.WaterLeft);
+				result["waterMax"] = new ValNumber(can.waterCanMax);
+			}
+
 			return result;
 		}
 
