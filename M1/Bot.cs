@@ -14,6 +14,7 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Tools;
 using StardewValley.Network;
+using StardewValley.TerrainFeatures;
 
 namespace Farmtronics {
 	public class Bot : StardewValley.Object {
@@ -372,6 +373,26 @@ namespace Farmtronics {
 			// Count how many frames into the swipe effect we are.
 			// We'll actually apply the tool effect later, in Update.
 			toolUseFrame = 1;
+		}
+
+		// Attempt to harvest the crop in front of the bot.
+		public bool Harvest() {
+			if (farmer == null) return false;
+			farmer.setTileLocation(TileLocation);
+
+			GameLocation loc = this.currentLocation;
+			int aheadX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
+			int aheadY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
+			Vector2 tileLocation = new Vector2(aheadX/64, aheadY/64);
+			TerrainFeature feature = null;
+			if (!loc.terrainFeatures.TryGetValue(tileLocation, out feature)) return false;
+
+			var origPlayer = Game1.player;
+			Game1.player = farmer;
+			bool result = feature.performUseAction(tileLocation, loc);
+			Game1.player = origPlayer;
+
+			return result;
 		}
 
 		// Place the currently selected item (e.g., seed) in/on the ground

@@ -41,6 +41,8 @@ namespace Farmtronics {
 		static ValString _phase = new ValString("phase");
 		static ValString _dry = new ValString("dry");
 		static ValString _dead = new ValString("dead");
+		static ValString _maxPhase = new ValString("maxPhase");
+		static ValString _harvestable = new ValString("harvestable");
 		static ValString _harvestMethod = new ValString("harvestMethod");
 
 		public static void Init(Shell shell) {
@@ -376,6 +378,15 @@ namespace Farmtronics {
 				}
 			};
 			botModule["useTool"] = f.GetFunc();
+
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+
+				bool result = sh.bot.Harvest();
+				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
+			};
+			botModule["harvest"] = f.GetFunc();
 
 
 			botModule.assignOverride = (key,value) => {
@@ -1141,11 +1152,19 @@ namespace Farmtronics {
 						else {
 							ValMap cropInfo = new ValMap();
 							cropInfo.map[_phase] = new ValNumber(crop.currentPhase.Value);
+							cropInfo.map[_maxPhase] = new ValNumber(crop.phaseDays.Count - 1);
 							cropInfo.map[_mature] = ValNumber.Truth(crop.fullyGrown.Value);
 							cropInfo.map[_dead] = ValNumber.Truth(crop.dead.Value);
 							cropInfo.map[_harvestMethod] = ValNumber.Truth(crop.harvestMethod.Value);
+							bool harvestable = (int)crop.currentPhase.Value >= crop.phaseDays.Count - 1
+							  && (!crop.fullyGrown.Value || (int)crop.dayOfCurrentPhase.Value <= 0);
+							cropInfo.map[_harvestable] = ValNumber.Truth(harvestable);
+
 							//Note: we might be able to get the name of the crop
 							// using crop.indexOfHarvest or crop.netSeedIndex
+							var product = new StardewValley.Object(crop.indexOfHarvest.Value, 0);
+							cropInfo.map[_name] = new ValString(product.DisplayName);
+
 							result.map[_crop] = cropInfo;
 						}
 					}
