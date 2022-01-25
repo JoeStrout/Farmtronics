@@ -5,6 +5,7 @@ custom intrinsic functions/classes for use on the M-1.
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Miniscript;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -942,6 +943,7 @@ namespace Farmtronics {
 
 		static ValList keyNames = null;
 		static ValMap keyModule;
+		static Dictionary<string, SButton> keyNameMap;
 		static ValMap KeyModule() {
 			if (keyModule != null) return keyModule;
 			keyModule = new ValMap();
@@ -1005,16 +1007,68 @@ namespace Farmtronics {
 			f.code = (context, partialResult) => {
 				string keyName = context.GetLocalString("keyName");
 				SButton button = SButton.None;
-				switch (keyName) {
-				case "left ctrl":	button = SButton.LeftControl;		break;
-				case "right ctrl":	button = SButton.RightControl;		break;
-				case "left alt":	button = SButton.LeftAlt;			break;
-				case "right alt":	button = SButton.RightAlt;			break;
-				// ToDo: complete mappings (probably via a dictionary)
+				if (keyNameMap == null) {
+					// Note: in SMAPI, use test_input to check key codes
+					keyNameMap = new Dictionary<string, SButton>();
+					keyNameMap["left ctrl"] = SButton.LeftControl;
+					keyNameMap["right ctrl"] = SButton.RightControl;
+					keyNameMap["left alt"] = SButton.LeftAlt;
+					keyNameMap["right alt"] = SButton.RightAlt;
+					keyNameMap["left shift"] = SButton.LeftShift;
+					keyNameMap["right shift"] = SButton.RightShift;
+					keyNameMap["up"] = SButton.Up;
+					keyNameMap["down"] = SButton.Down;
+					keyNameMap["left"] = SButton.Left;
+					keyNameMap["right"] = SButton.Right;
+					for (int num=0; num<=9; num++) {
+						keyNameMap[num.ToString(CultureInfo.InvariantCulture)] = SButton.D0 + num;
+						keyNameMap["[" + num + "]"] = SButton.NumPad0 + num;
+					}
+					for (char c='a'; c<='z'; c++) {
+						keyNameMap[c.ToString()] = SButton.A + (c - 'a');
+					}
+					for (int f=1; f<=15; f++) {
+						keyNameMap["f" + f] = SButton.F1 + (f - 1);
+					}
+					keyNameMap["-"] = SButton.OemMinus;
+					keyNameMap["="] = SButton.OemPlus;
+					keyNameMap["["] = SButton.OemOpenBrackets;
+					keyNameMap["]"] = SButton.OemCloseBrackets;
+					keyNameMap["\\"] = SButton.OemPipe;
+					keyNameMap[","] = SButton.OemComma;
+					keyNameMap["."] = SButton.OemPeriod;
+					keyNameMap["/"] = SButton.OemQuestion;
+					keyNameMap[";"] = SButton.OemSemicolon;
+					keyNameMap["'"] = SButton.OemQuotes;
+					keyNameMap["`"] = SButton.OemTilde;
+					keyNameMap["[+]"] = SButton.Add;
+					keyNameMap["[-]"] = SButton.Subtract;
+					keyNameMap["[*]"] = SButton.Multiply;
+					keyNameMap["[/]"] = SButton.Divide;
+					keyNameMap["equals"] = SButton.Execute;
+					keyNameMap["clear"] = SButton.OemClear;
+					keyNameMap["backspace"] = SButton.Back;
+					keyNameMap["tab"] = SButton.Tab;
+					keyNameMap["return"] = SButton.Enter;
+					keyNameMap["enter"] = SButton.Enter;
+					keyNameMap["escape"] = SButton.Escape;
+					keyNameMap["space"] = SButton.Space;
+					keyNameMap["delete"] = SButton.Delete;
+					keyNameMap["insert"] = SButton.Insert;
+					keyNameMap["home"] = SButton.Home;
+					keyNameMap["end"] = SButton.End;
+					keyNameMap["page up"] = SButton.PageUp;
+					keyNameMap["page down"] = SButton.PageDown;
+					keyNameMap["mouse 0"] = SButton.MouseLeft;
+					keyNameMap["mouse 1"] = SButton.MouseRight;
+					keyNameMap["mouse 2"] = SButton.MouseMiddle;
+					keyNameMap["mouse 3"] = SButton.MouseX1;
+					keyNameMap["mouse 4"] = SButton.MouseX2;
 				}
+				keyNameMap.TryGetValue(keyName, out button);
 				if (button == SButton.None) throw new RuntimeException($"Invalid key name: {keyName}");
 				bool result = ModEntry.instance.Helper.Input.IsDown(button);
-				return new Intrinsic.Result(ValNumber.Truth(result));
+				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
 			};
 			keyModule["pressed"] = f.GetFunc();
 		

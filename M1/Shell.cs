@@ -15,9 +15,18 @@ using Microsoft.Xna.Framework;
 
 namespace Farmtronics {
 	public class Shell {
+		static Value _bootOpts = new ValString("bootOpts");
+		static Value _controlC = new ValString("controlC");
 		public Console console { get; private set; }
 		public Bot bot {  get; private set; }
-		public bool allowControlCBreak = true;
+		public bool allowControlCBreak {
+			get {
+				ValMap bootOpts = env.Lookup(_bootOpts) as ValMap;
+				if (bootOpts == null) return true;
+				Value v = bootOpts.Lookup(_controlC);
+				return v == null || v.BoolValue();
+			}
+		}
 
 		public static Shell runningInstance;
 
