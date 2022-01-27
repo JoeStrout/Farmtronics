@@ -406,7 +406,7 @@ if bot then
 		if f == 3 then return here.tile(pos.x-1, pos.y)
 	end function
 	
-	bot.use = function(toolNameOrIndex)
+	bot.select = function(toolNameOrIndex)
 		if toolNameOrIndex isa number then
 			bot.currentToolIndex = toolNameOrIndex
 			print "Using " + inv[toolNameOrIndex].name + " (index " + toolNameOrIndex + ")"
@@ -422,6 +422,12 @@ if bot then
 			end if
 		end for
 		print "No tool found matching: " + toolNameOrIndex
+	end function
+
+	bot.use = function(toolNameOrIndex)
+		_printMark "`bot.use` is deprecated and will be removed."
+		_printMark "Please call `bot.select` instead."
+		bot.select toolNameOrIndex
 	end function
 
 	// Clear ahead: try to select the right tool for whatever is in front

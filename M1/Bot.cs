@@ -15,6 +15,7 @@ using StardewValley;
 using StardewValley.Tools;
 using StardewValley.Network;
 using StardewValley.TerrainFeatures;
+using StardewValley.Objects;
 
 namespace Farmtronics {
 	public class Bot : StardewValley.Object {
@@ -144,8 +145,8 @@ namespace Farmtronics {
 			Debug.Log($"Total bots converted to chests: {count}");
 		}
 
-		static StardewValley.Objects.Chest ConvertBotToChest(Bot bot) {
-			var chest = new StardewValley.Objects.Chest();
+		static Chest ConvertBotToChest(Bot bot) {
+			var chest = new Chest();
 			chest.Stack = bot.Stack;
 			chest.modData[isBotKey] = "1";
 			chest.modData[facingKey] = bot.facingDirection.ToString();
@@ -197,6 +198,10 @@ namespace Farmtronics {
 			var targetTileLocs = new List<Vector2>();
 			foreach (var kv in inLocation.objects.Pairs) {
 				if (kv.Value is Bot) targetTileLocs.Add(kv.Key);
+				if (kv.Value is Chest chest) {
+					Debug.Log($"Found a chest in {inLocation.Name} at {kv.Key}");
+					countInLoc += ConvertBotsInListToChests(chest.items);
+				}
 			}
 			foreach (var tileLoc in targetTileLocs) {
 				Debug.Log($"Found bot in {inLocation.Name} at {tileLoc}; converting");
@@ -242,7 +247,7 @@ namespace Farmtronics {
 			var targetTileLocs = new List<Vector2>();
 			foreach (var kv in inLocation.objects.Pairs) {
 				var tileLoc = kv.Key;
-				var chest = kv.Value as StardewValley.Objects.Chest;
+				var chest = kv.Value as Chest;
 				if (chest == null) continue;
 				int inChestCount = ConvertChestsInListToBots(chest.items);
 				if (inChestCount > 0) Debug.Log($"Converted {inChestCount} chests stored in a chest into bots");
@@ -254,7 +259,7 @@ namespace Farmtronics {
 				targetTileLocs.Add(tileLoc);
 			}
 			foreach (Vector2 tileLoc in targetTileLocs) {
-				var chest = inLocation.objects[tileLoc] as StardewValley.Objects.Chest;
+				var chest = inLocation.objects[tileLoc] as Chest;
 
 				int facing = 0;
 				string facingStr = null;
@@ -285,7 +290,7 @@ namespace Farmtronics {
 		static int ConvertChestsInListToBots(IList<Item> items) {
 			int count = 0;
 			for (int i=0; i<items.Count; i++) {
-				var chest = items[i] as StardewValley.Objects.Chest;
+				var chest = items[i] as Chest;
 				if (chest == null) continue;
 				string s = null;
 				chest.modData.TryGetValue(isBotKey, out s);
