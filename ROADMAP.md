@@ -41,6 +41,9 @@ This is our "minimum viable product".
 
 These will be addressed ASAP.
 
+- Trying to update/replace a value in the `bot` module does not work; you can only assign new values.
+- In the text/code editor, typing on the very last row of the screen causes visual errors until you hit return or scroll the text.
+- Some bot duplication glitch exists -- exact details still unclear, but it might be when accidentally hitting your bot while dismissing the bot dialog.
 - The command line cursor gets misplaced if, at the bottom of the screen, you type a command longer than 40 characters (so that it wraps) and then back up with the left arrow key to the previous line.
 - If you pick up a bot by repeatedly left-clicking it with empty hands, it leaves a "ghost" image behind until you put it down again.
 
