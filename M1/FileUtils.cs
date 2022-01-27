@@ -147,11 +147,15 @@ public static class FileUtils {
 				else if (!overwriteDest) return "Error: target file already exists";
 			}
 		}
-		byte[] data = oldDisk.ReadBinary(oldPath);
-		string err;
-		if (deleteSource) oldDisk.Delete(oldPath, out err);	// (it's actually OK if we can't delete the original)
-		newDisk.WriteBinary(newPath, data);
-		return null;	// Success!
+		try {
+			byte[] data = oldDisk.ReadBinary(oldPath);
+			string err;
+			if (deleteSource) oldDisk.Delete(oldPath, out err);	// (it's actually OK if we can't delete the original)
+			newDisk.WriteBinary(newPath, data);
+			return null;	// Success!
+		} catch (System.Exception e) {
+			return e.Message;
+		}
 	}
 }
 

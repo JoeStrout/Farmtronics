@@ -31,26 +31,10 @@ drawTopBar = function()
 	text.color = pal.topBarText
 	text.row = screenH-1; text.column = 0
 	print " " + _sourceFile
-	print " " * (screenW - 17 - text.column)
-	print "^Q: Quit   L: " + (cursorY + 1)
+	lstr = str(cursorY + 1)
+	print " " * (screenW - 13 - lstr.len - text.column)
+	print "^Q: Quit   L" + lstr
 	print " " * (screenW - text.column)
-end function
-
-refreshLine = function(lineNum)
-	y = lineNum - scrollY  // (rows from the top)
-	if y < 0 or y >= screenLines then return
-	text.backColor = pal.background
-	text.color = pal.text
-	text.row = screenLines - 1 - y; text.column = 0
-	if lineNum < data.len then
-		s = data[lineNum][scrollX:]
-		if s.len < screenW then s = s + " " * (screenW - s.len)
-		if s.len > screenW then s = s[:screenW]
-	else 
-		s = " " * screenW
-	end if
-	if lineNum == cursorY then outer.cursorShown = false
-	print s
 end function
 
 printLine = function(row, s)
@@ -71,6 +55,7 @@ printLine = function(row, s)
 end function
 
 refreshRow = function(screenRow)
+	if screenRow < 0 or screenRow >= screenLines then return
 	text.backColor = pal.background
 	text.color = pal.text
 	i = scrollY + screenLines - 1 - screenRow
@@ -82,6 +67,12 @@ refreshRow = function(screenRow)
 	end if
 	printLine screenRow, s
 	if i == cursorY then outer.cursorShown = false
+end function
+
+refreshLine = function(lineNum)
+	y = lineNum - scrollY  // (rows from the top)
+	row = screenLines - 1 - y
+	refreshRow row
 end function
 
 refreshDisplay = function()
@@ -320,10 +311,6 @@ handleKey = function(k, fakeControl=false)
 	else if kcode == 27 then  // Escape
 		outer.quitting = true
 	else if k >= " " then  // printable key
-		anyAlt = key.pressed("left alt") or key.pressed("right alt")
-		anyShift = key.pressed("left shift") or key.pressed("right shift")
-		byWord = anyCtrl or anyAlt
-	
 		if cursorY >= data.len then
 			data.push k
 		else if not data[cursorY] then
