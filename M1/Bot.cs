@@ -65,6 +65,7 @@ namespace Farmtronics {
 		static Texture2D botSprites;
 
 		public Bot() {
+			Debug.Log($"Creating Bot():\n{Environment.StackTrace}");
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
 			}
@@ -81,6 +82,8 @@ namespace Farmtronics {
 		}
 
 		public Bot(Vector2 tileLocation, GameLocation location=null, bool createTools=true) :base(tileLocation, 130) {
+			Debug.Log($"Creating Bot({tileLocation}, {location}, {createTools}):\n{Environment.StackTrace}");
+
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
 			}
@@ -268,8 +271,8 @@ namespace Farmtronics {
 				}
 
 				Bot bot = new Bot(tileLoc, inLocation, false);
-				inLocation.objects.Remove(tileLoc);
-				inLocation.overlayObjects.Add(tileLoc, bot);
+				inLocation.objects.Remove(tileLoc);				// remove chest from "objects"
+				inLocation.overlayObjects.Add(tileLoc, bot);	// add bot to "overlayObjects"
 				bot.farmer.faceDirection(facing);
 				for (int i=0; i<chest.items.Count && i<bot.inventory.Count; i++) { 
 					//Debug.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
@@ -562,7 +565,7 @@ namespace Farmtronics {
 				Vector2 newTile = new Vector2((int)position.X / 64, (int)position.Y / 64);
 				if (newTile != TileLocation) {
 					// Remove this object from the Objects list at its old position
-					var location = Game1.currentLocation;	// ToDo: find correct location!
+					var location = currentLocation;
 					location.overlayObjects.Remove(TileLocation);
 					// Update our tile pos, and add this object to the Objects list at the new position
 					TileLocation = newTile;
@@ -623,7 +626,7 @@ namespace Farmtronics {
                 Game1.currentLocation.debris.Add(deb);
 				Debug.Log($"{name} Created debris with item {deb.item}");
 				// Remove, stop, and destroy this bot
-                Game1.currentLocation.objects.Remove(this.TileLocation);
+                Game1.currentLocation.overlayObjects.Remove(this.TileLocation);
 				if (shell != null) shell.interpreter.Stop();
 				instances.Remove(this);
                 return false;
@@ -639,14 +642,36 @@ namespace Farmtronics {
 			return false;
 		}
 
+		/// <summary>
+		/// I think this is called when the player tries to drop something into the bot
+		/// (or might be considering it, e.g., is hovering over the bot with an item).
+		/// But it's still not entirely clear; it also seems to get called when I'm holding
+		/// a bot and hovering over various tiles on the ground.
+		/// </summary>
+		/// <param name="dropIn"></param>
+		/// <param name="probe"></param>
+		/// <param name="who"></param>
+		/// <returns></returns>
 		public override bool performObjectDropInAction(Item dropIn, bool probe, Farmer who) {
 			Debug.Log($"{name} Bot.performObjectDropInAction({dropIn}, {probe}, {who.Name}");
 			return base.performObjectDropInAction(dropIn, probe, who);
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1) {
+			//ModEntry.instance.print($"draw 1 at {x},{y}, {alpha}");
+
+			if (alpha < 0.9f) {
+				// Drawing with alpha=0.5 is done when the player is placing the bot down
+				// in the world.  In this case, our internal position doesn't matter;
+				// we want to update that to match the given tile position.
+				position.X = x * 64;
+				position.Y = y * 64;
+				targetPos = position;
+			}
+
 			// draw shadow
-			spriteBatch.Draw(Game1.shadowTexture, Game1.GlobalToLocal(Game1.viewport, new Vector2(position.X + 32, position.Y + 51 + 4)),
+			spriteBatch.Draw(Game1.shadowTexture, Game1.GlobalToLocal(Game1.viewport,
+				new Vector2(position.X + 32, position.Y + 51 + 4)),
 				Game1.shadowTexture.Bounds, Color.White * alpha, 0f,
 				new Vector2(Game1.shadowTexture.Bounds.Center.X, Game1.shadowTexture.Bounds.Center.Y), 4f,
 				SpriteEffects.None, (float)getBoundingBox(new Vector2(x, y)).Bottom / 15000f);
@@ -690,10 +715,13 @@ namespace Farmtronics {
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int xNonTile, int yNonTile, float layerDepth, float alpha = 1) {
-			//ModEntry.instance.print($"draw 2 at {xNonTile},{yNonTile}");
+			//ModEntry.instance.print($"draw 2 at {xNonTile},{yNonTile}, {layerDepth}, {alpha}");
 			base.draw(spriteBatch, xNonTile, yNonTile, layerDepth, alpha);
 		}
 
+		/// <summary>
+		/// Draw the bot as it should appear above the player's head when held.
+		/// </summary>
         public override void drawWhenHeld(SpriteBatch spriteBatch, Vector2 objectPosition, Farmer f) {
 			//Debug.Log($"Bot.drawWhenHeld");
 			if (botSprites == null) {
@@ -728,7 +756,7 @@ namespace Farmtronics {
         }
 
         public override void drawAsProp(SpriteBatch b) {
-  			Debug.Log($"Bot.drawAsProp");
+  			//Debug.Log($"Bot.drawAsProp");
  			if (botSprites == null) {
 				Debug.Log("Bot.drawAsProp: botSprites is null; bailing out");
 				return;

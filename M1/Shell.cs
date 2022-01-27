@@ -216,7 +216,7 @@ namespace Farmtronics {
 		}
 	
 		void BeginRun(string source) {
-			Debug.Log("BeginRun; Program source: " + source);
+			//Debug.Log("BeginRun; Program source: " + source);
 			System.GC.Collect();
 			runningInstance = this;
 
