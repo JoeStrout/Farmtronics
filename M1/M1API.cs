@@ -260,6 +260,7 @@ namespace Farmtronics {
 
 
 		static ValMap botModule;
+		static HashSet<string> botProtectedKeys;
 		public static ValMap BotModule() {
 			if (botModule != null) return botModule;
 
@@ -389,6 +390,10 @@ namespace Farmtronics {
 			};
 			botModule["harvest"] = f.GetFunc();
 
+			botProtectedKeys = new HashSet<string>();
+			foreach (Value key in botModule.Keys) {
+				botProtectedKeys.Add(key.ToString());
+			}
 
 			botModule.assignOverride = (key,value) => {
 				string keyStr = key.ToString();
@@ -400,7 +405,7 @@ namespace Farmtronics {
 				} else if (keyStr == "currentToolIndex") {
 					Shell.runningInstance.bot.currentToolIndex = value.IntValue();
 					return true;
-				} else if (botModule.ContainsKey(keyStr)) return true;
+				} else if (botProtectedKeys.Contains(keyStr)) return true;
 				return false;	// allow the assignment
 			};
 

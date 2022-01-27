@@ -212,7 +212,7 @@ pprintToList = function(outList, obj, prefix="", indent=0, suffix="")
 	s = str(@obj)
 	if @obj == null then s = "null"
 	if @obj isa funcRef then s = "function" + s[8:]
-	if s.len + prefix.len + indent < 65 then
+	if s.len + prefix.len + indent < 38 then
 		outList.push " "*indent + prefix + s + suffix
 		return
 	end if
@@ -423,7 +423,10 @@ if bot then
 		end for
 		print "No tool found matching: " + toolNameOrIndex
 	end function
-	
+
+	// Clear ahead: try to select the right tool for whatever is in front
+	// of the bot, and then use that tool up to 20 times to try to clear
+	// it.  Returns 1 (true) on success, 0 (false) on failure.
 	bot.clearAhead = function
 		obstacle = bot.ahead
 		if not obstacle then return
@@ -440,19 +443,25 @@ if bot then
 			bot.statusColor = "#FF8800"
 			bot.use "Axe"
 		end if
-		while bot.ahead
+		for tries in range(19)
+			if not bot.ahead then return true
 			bot.useTool
-		end while
+			wait 0.2
+		end for
+		return false	// couldn't clear the obstacle
 	end function
-	
+
+	// Attempt to clear any obstacle ahead, and then move forward, for the
+	// given total distance.  Returns 1 (true) on success, 0 (false) on failure.
 	bot.clearAndMove = function(dist=1)
 		for i in range(dist-1)
 			pos = bot.position
 			while bot.position == pos
-				bot.clearAhead
+				if not bot.clearAhead then return false
 				bot.forward
 			end while
 		end for
+		return true
 	end function
 	
 end if
