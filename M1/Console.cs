@@ -69,6 +69,7 @@ namespace Farmtronics {
 			innerSrcR = new Rectangle(20, 18, 160, 120);
 
 			display = new TextDisplay();
+			display.onScrolled += NoteScrolled;
 			display.backColor = new Color(0.31f, 0.11f, 0.86f);
 			display.Clear();
 

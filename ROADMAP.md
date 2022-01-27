@@ -46,7 +46,7 @@ These will be addressed ASAP.
 - If you leave a bot on top of a crop plant overnight, it will squash it (destroy the plant).
 + In the text/code editor, typing on the very last row of the screen causes visual errors until you hit return or scroll the text.
 + Some bot duplication glitch exists -- exact details still unclear, but it might be when accidentally hitting your bot while dismissing the bot dialog.
-- The command line cursor gets misplaced if, at the bottom of the screen, you type a command longer than 40 characters (so that it wraps) and then back up with the left arrow key to the previous line.
++ The command line cursor gets misplaced if, at the bottom of the screen, you type a command longer than 40 characters (so that it wraps) and then back up with the left arrow key to the previous line.
 - If you leave the farm while a bot is chopping down a tree or stump (with an axe), when you return it will be trying to use a scythe instead.
 
 ## Unscheduled Future Version

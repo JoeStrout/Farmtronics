@@ -48,7 +48,9 @@ namespace Farmtronics {
 		public float cursorOnTime = 0.7f;
 		public float cursorOffTime = 0.3f;
 		public string delimiter = "\n";
-		
+
+		public Action onScrolled;
+
 		#endregion
 		//--------------------------------------------------------------------------------
 		#region Private Properties
@@ -163,16 +165,19 @@ namespace Farmtronics {
 		}
 	
 		public void Backup() {
+			int oldX = cursorX, oldY = cursorY;
 			HideCursorVisual();
 			cursorX--;
 			if (cursorX < 0) {
 				if (cursorY >= rows-1) {
 					cursorX = 0;
+					Debug.Log($"Backup1: was {oldX},{oldY} now {cursorX},{cursorY}");
 					return;
 				}
 				cursorY++;
 				cursorX = cols-1;
 			}
+			Debug.Log($"Backup2: was {oldX},{oldY} now {cursorX},{cursorY}");
 		}
 	
 		public void Set(int row, int col, char c) {
@@ -222,7 +227,7 @@ namespace Farmtronics {
 			}
 			if (cursorY < rows-1) cursorY++;
 			ClearRow(0);
-			//if (onScrolled != null) onScrolled.Invoke();
+			if (onScrolled != null) onScrolled.Invoke();
 		}
 	
 		/// <summary>
