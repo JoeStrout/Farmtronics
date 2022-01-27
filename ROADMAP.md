@@ -48,6 +48,7 @@ These will be addressed ASAP.
 - Some bot duplication glitch exists -- exact details still unclear, but it might be when accidentally hitting your bot while dismissing the bot dialog.
 - The command line cursor gets misplaced if, at the bottom of the screen, you type a command longer than 40 characters (so that it wraps) and then back up with the left arrow key to the previous line.
 - If you pick up a bot by repeatedly left-clicking it with empty hands, it leaves a "ghost" image behind until you put it down again.
+- If you leave the farm while a bot is chopping down a tree or stump (with an axe), when you return it will be trying to use a scythe instead.
 
 ## Unscheduled Future Version
 
