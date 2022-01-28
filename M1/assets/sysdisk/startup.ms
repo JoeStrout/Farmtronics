@@ -435,7 +435,7 @@ if bot then
 	// it.  Returns 1 (true) on success, 0 (false) on failure.
 	bot.clearAhead = function
 		obstacle = bot.ahead
-		if not obstacle then return
+		if not obstacle then return true
 		what = obstacle.type
 		if obstacle.hasIndex("name") then what = obstacle.name
 		print "Clearing: " + what
