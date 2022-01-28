@@ -21,7 +21,9 @@ Methods:
  `bot.forward`: move forward 1 tile
  `bot.left`: turn left
  `bot.right`: turn right
- `bot.select toolNameOrIndex`: choose tool
+ `bot.select toolNameOrIndex`: choose item
+ `bot.placeItem`: place item down
+ `bot.harvest`: harvest a crop
  `bot.useTool`: apply current tool
  `bot.clearAhead`: choose/apply tool
  `bot.clearAndMove`: clear ahead and move
