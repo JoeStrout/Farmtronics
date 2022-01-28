@@ -441,13 +441,13 @@ if bot then
 		print "Clearing: " + what
 		if what == "Grass" or what == "Weeds" then
 			bot.statusColor = "#66FF66"
-			bot.use "Scythe"
+			bot.select "Scythe"
 		else if what == "Stone" or what == "HoeDirt" then
 			bot.statusColor = "#8888FF"
-			bot.use "Pickaxe"
+			bot.select "Pickaxe"
 		else
 			bot.statusColor = "#FF8800"
-			bot.use "Axe"
+			bot.select "Axe"
 		end if
 		for tries in range(19)
 			if not bot.ahead then return true

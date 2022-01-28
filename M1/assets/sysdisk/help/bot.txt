@@ -21,7 +21,7 @@ Methods:
  `bot.forward`: move forward 1 tile
  `bot.left`: turn left
  `bot.right`: turn right
- `bot.use toolNameOrIndex`: select tool
+ `bot.select toolNameOrIndex`: choose tool
  `bot.useTool`: apply current tool
  `bot.clearAhead`: choose/apply tool
  `bot.clearAndMove`: clear ahead and move
