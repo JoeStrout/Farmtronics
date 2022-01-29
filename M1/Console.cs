@@ -113,6 +113,11 @@ namespace Farmtronics {
 			this.Selected = true;
 		}
 
+		public void movePosition(int dx, int dy) {
+			xPositionOnScreen += dx;
+			yPositionOnScreen += dy;
+		}
+
 		public void Present() {
 			Game1.player.Halt();
 			Game1.activeClickableMenu = this;

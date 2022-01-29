@@ -26,6 +26,12 @@ namespace Farmtronics {
 		const int consoleHeight = 480;
 		const int consoleWidth = 640;
 
+		bool isDragging = false;
+		Vector2 lastDragPos;
+
+		static Vector2 preferredPosition;
+		static Vector2 lastGameviewSize;
+
 		public BotUIMenu(Bot bot, Shell shell)
 		: base(null, okButton: true, trashCan: true) {
 			print($"Created BotUIMenu. PositionOnScreen:{xPositionOnScreen},{yPositionOnScreen}; viewport:{Game1.uiViewport.Width}, {Game1.uiViewport.Height} ");
@@ -51,6 +57,7 @@ namespace Farmtronics {
 			int playerInvYDelta = consoleTop + totalHeight - playerInvHeight - yPositionForInventory;
 
 			print($"playerInvHeight:{playerInvHeight}, consoleTop:{consoleTop} (={Game1.uiViewport.Height/2}-{totalHeight/2}), new yPositionOnScreen:{totalHeight - playerInvHeight - yPositionForInventory}");
+
 			movePosition(0, playerInvYDelta);	// (adjust position of player UI)
 
 			botInventoryMenu = new InventoryMenu(Game1.uiViewport.Width/2 - widthOfTopStuff/2, consoleTop, playerInventory: false, bot.inventory,
@@ -77,6 +84,12 @@ namespace Farmtronics {
 			}
 
 			bot.shell.console.RemoveFrameAndPositionAt(consoleLeft + 53, consoleTop + 34);	// (empirical fudge values)
+
+			// Apply stored position preference, if any and if game view is the same size as it was then:
+			if (preferredPosition != default(Vector2) && lastGameviewSize.X == Game1.uiViewport.Width && lastGameviewSize.Y == Game1.uiViewport.Height) {
+				shift((int)(preferredPosition.X - xPositionOnScreen), (int)(preferredPosition.Y - yPositionOnScreen));
+			}
+
 		}
 
 		static void print(string s) {
@@ -84,8 +97,31 @@ namespace Farmtronics {
 		}
 
 		public override void update(GameTime time) {
+			if (isDragging) {
+				if (!ModEntry.instance.Helper.Input.IsDown(SButton.MouseLeft)) {
+					isDragging = false;
+				} else {
+					var cursor = ModEntry.instance.Helper.Input.GetCursorPosition();
+					Vector2 pos = cursor.GetScaledScreenPixels();
+					int dx = (int)(pos.X - lastDragPos.X);
+					int dy = (int)(pos.Y - lastDragPos.Y);
+					shift(dx, dy);
+					lastDragPos = pos;
+				}
+			}
+
 			base.update(time);
 			botInventoryMenu.update(time);
+		}
+
+		void shift(int dx, int dy) {
+			if (dx == 0 && dy == 0) return;
+			movePosition(dx, dy);
+			botInventoryMenu.movePosition(dx, dy);
+			bot.shell.console.movePosition(dx, dy);
+			consoleLeft += dx;  consoleTop += dy;
+			preferredPosition = new Vector2(xPositionOnScreen, yPositionOnScreen);
+			lastGameviewSize = new Vector2(Game1.uiViewport.Width, Game1.uiViewport.Height);
 		}
 
 		public override void receiveKeyPress(Keys key) {
@@ -97,13 +133,19 @@ namespace Farmtronics {
 		}
 
 		public override void receiveLeftClick(int x, int y, bool playSound = true) {
-			Debug.Log($"Bot.receiveLeftClick({x}, {y}, {playSound}) while heldItem={heldItem}");
+			Debug.Log($"Bot.receiveLeftClick({x}, {y}, {playSound}) while heldItem={heldItem}; inDragArea={inDragArea(x,y)}");
 			//int slot = botInventoryMenu.getInventoryPositionOfClick(x, y);
 			//Debug.Log($"Bot.receiveLeftClick: slot={slot}");
 			base.receiveLeftClick(x, y, playSound);
 			heldItem = botInventoryMenu.leftClick(x, y, heldItem, false);
 			
 			Debug.Log($"after calling botInventoryMenu.leftClick, heldItem = {heldItem}");
+
+			if (heldItem == null && inDragArea(x,y)) {
+				var cursor = ModEntry.instance.Helper.Input.GetCursorPosition();
+				lastDragPos = cursor.GetScaledScreenPixels();
+				isDragging = true;
+			}
 		}
 
 		public override void receiveRightClick(int x, int y, bool playSound = true) {
@@ -129,6 +171,38 @@ namespace Farmtronics {
 			}
 		}
 
+		/// <summary>
+		/// Return whether the given screen position is in our draggable area.
+		/// </summary>
+		bool inDragArea(int x, int y) {
+			if (botInventoryBounds().Contains(x,y)) return false;
+			if (consoleBounds().Contains(x,y)) return false;
+
+			var playerInv = inventory;
+			Rectangle invRect = new Rectangle(playerInv.xPositionOnScreen, playerInv.yPositionOnScreen, width, height);
+			if (invRect.Contains(x,y)) return false;
+
+			return true;
+		}
+
+		Rectangle botInventoryBounds() {
+			return new Rectangle(
+				botInventoryMenu.xPositionOnScreen - IClickableMenu.borderWidth - IClickableMenu.spaceToClearSideBorder,
+				botInventoryMenu.yPositionOnScreen - IClickableMenu.borderWidth - IClickableMenu.spaceToClearTopBorder,
+				botInventoryMenu.width + IClickableMenu.borderWidth * 2 + IClickableMenu.spaceToClearSideBorder * 2,
+				botInventoryMenu.height + IClickableMenu.spaceToClearTopBorder + IClickableMenu.borderWidth * 2);
+		}
+
+		Rectangle consoleBounds() {
+			int drawWidth = consoleWidth + 60;		// weird fudge values found empircally
+			int drawHeight = consoleHeight + 124;	// (not obviously related to borderWidth, spaceToClearTopBorder, etc.)
+			return new Rectangle(
+				consoleLeft - IClickableMenu.borderWidth - IClickableMenu.spaceToClearSideBorder,
+				consoleTop - IClickableMenu.borderWidth - IClickableMenu.spaceToClearTopBorder,
+				drawWidth,
+				drawHeight);
+		}
+
 		public override void draw(SpriteBatch b) {
 			// darken the background
 			b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.uiViewport.Width, Game1.uiViewport.Height), Color.Black * 0.5f);
@@ -136,24 +210,13 @@ namespace Farmtronics {
 			base.draw(b, drawUpperPortion: false, drawDescriptionArea: false);
 
 			// draw the bot inventory
-			Game1.drawDialogueBox(
-				botInventoryMenu.xPositionOnScreen - IClickableMenu.borderWidth - IClickableMenu.spaceToClearSideBorder,
-				botInventoryMenu.yPositionOnScreen - IClickableMenu.borderWidth - IClickableMenu.spaceToClearTopBorder,
-				botInventoryMenu.width + IClickableMenu.borderWidth * 2 + IClickableMenu.spaceToClearSideBorder * 2,
-				botInventoryMenu.height + IClickableMenu.spaceToClearTopBorder + IClickableMenu.borderWidth * 2,
-				speaker: false, drawOnlyBox: true);
+			Rectangle invR = botInventoryBounds();
+			Game1.drawDialogueBox(invR.X, invR.Y, invR.Width, invR.Height, speaker: false, drawOnlyBox: true);
 			botInventoryMenu.draw(b);
 
 			// draw the console
-			int drawWidth = consoleWidth + 60;		// weird fudge values found empircally
-			int drawHeight = consoleHeight + 124;	// (not obviously related to borderWidth, spaceToClearTopBorder, etc.)
-			Game1.drawDialogueBox(
-				consoleLeft - IClickableMenu.borderWidth - IClickableMenu.spaceToClearSideBorder,
-				consoleTop - IClickableMenu.borderWidth - IClickableMenu.spaceToClearTopBorder,
-				drawWidth,
-				drawHeight,
-				speaker: false, drawOnlyBox: true);
-
+			Rectangle consoleR = consoleBounds();
+			Game1.drawDialogueBox(consoleR.X, consoleR.Y, consoleR.Width, consoleR.Height, speaker: false, drawOnlyBox: true);
 			bot.shell.console.draw(b);
 
 /*

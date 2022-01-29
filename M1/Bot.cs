@@ -441,10 +441,19 @@ namespace Farmtronics {
 
 			// make sure the terrain in that direction isn't blocked
 			Vector2 newTile = farmer.getTileLocation() + new Vector2(dColumn, dRow);
-			var location = Game1.currentLocation;	// ToDo: find correct location!
-			if (!location.isTileLocationTotallyClearAndPlaceableIgnoreFloors(newTile)) {
-				ModEntry.instance.print($"No can do (path blocked)");
-				return;
+			var location = currentLocation;
+			{
+				bool tileOnMap = location.isTileOnMap(newTile);
+				bool occupied = location.isTileOccupiedIgnoreFloors(newTile);
+				bool passable = location.isTilePassable(new xTile.Dimensions.Location((int)newTile.X, (int)newTile.Y), Game1.viewport);
+				bool placeable = location.isTilePlaceable(newTile);
+				// Note: we used to just call location.isTileLocationTotallyClearAndPlaceableIgnoreFloors,
+				// but that includes consideration of 'placeable', which doesn't let us enter the pet
+				// area (to refill the pet's water dish!).  So now we check only the other conditions.
+				if (!tileOnMap || occupied || !passable) {
+					Debug.Log($"No can do (path blocked)");
+					return;
+				}
 			}
 
 			// start moving
