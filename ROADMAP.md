@@ -41,7 +41,7 @@ This is our "minimum viable product".
 
 These will be addressed ASAP.
 
-- If you leave a bot on top of a crop plant overnight, it will squash it (destroy the plant).
+- When you pick up a bot, its inventory is reset, and anything other than the starter tools is lost.
 - If you leave the farm while a bot is chopping down a tree or stump (with an axe), when you return it may be trying to use a scythe instead.
 
 ## Unscheduled Future Version
@@ -57,6 +57,7 @@ The following features are definitely things we want to include, but they have n
 - bots can use weapons to fight monsters
 - bots and Home Computer can communicate via networking
 - bots can pick up and drop items
+- allow a bot to stay on top of a crop plant overnight without squashing (destroying) it
 
 ## Features of Uncertain Fate
 
