@@ -35,7 +35,7 @@ This is our "minimum viable product".
 ### Support & Documentation
 - ☑ mod page at https://www.nexusmods.com/stardewvalley/mods/
 - ☑ basic documentation on how to install and use the mod
-- ☐ API reference for all classes/functions added to MiniScript
+- ☑ API reference for all classes/functions added to MiniScript
 
 ## Known Issues
 
@@ -49,8 +49,9 @@ These will be addressed ASAP.
 The following features are definitely things we want to include, but they have not yet been scheduled for a particular version.
 
 - multiplayer support
+- movable UI, so (if your screen is big enough) you can move it to the side and see your bot at the same time
 - improved copy/paste support in the editor
-- console autocompletion (as in Mini Micro)
+- console autocompletion (as in [https://miniscript.org/MiniMicro](MiniMicro)
 - `mouse` module (allowing for point-and-click UI)
 - bots can be recharged (energy refilled), perhaps via some craftable charging station
 - bots can use weapons to fight monsters
