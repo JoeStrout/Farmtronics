@@ -1,5 +1,6 @@
 // ASCII Invaders
 
+import "listUtil"
 import "textUtil"
 
 //----------------------------------------
@@ -41,6 +42,9 @@ alien3a = ["(☐)", "v^v"]
 alien3b = ["(☐)", "^v^"]
 
 alienColors = [color.lime, color.aqua, color.fuchsia]
+
+playerShotChar = "¡"
+alienShotChar = "!"
 
 //----------------------------------------
 // General utility functions
@@ -157,7 +161,7 @@ aliens.trim = function
 	self.x = self.x + ltrim
 end function
 
-aliens.removeAlienAt = function(col, row)
+aliens.removeAlienAt = function(col, row, explode=true)
 	// figure out which row in our lines is affected
 	i = self.y - row
 	if i < 0 or i >= self.lines[0].len then return
@@ -178,8 +182,12 @@ aliens.removeAlienAt = function(col, row)
 			  "   " + self.lines[mode][i][j1:]
 		end for
 	end for
+	if explode then
+		exp = new Explosion
+		exp.init self.x + j0, self.y - i0
+	end if
 	self.trim
-	self.count = self.count - 1	
+	self.count = self.count - 1
 end function
 
 //----------------------------------------
@@ -187,8 +195,9 @@ end function
 //
 ship = {}
 ship.x = 20
-ship.ascii = ["  ♦  ", 
-char(134)+char(57856) + "   " + char(57857)+char(135)]
+ship.ascii = ["  " + char(134) + "^" + char(135) + "  ", 
+char(134)+char(57856) + "/=\" + char(57857)+char(135)]
+ship.shotWasPressed = true
 
 ship.draw = function()
 	text.color = color.yellow
@@ -200,7 +209,7 @@ ship.draw = function()
 	text.row=20; text.delimiter=EOL
 end function
 
-ship.update = function()
+ship.update = function
 	dx = 0
 	if key.pressed("left") or key.pressed("a") then
 		dx = -1
@@ -214,6 +223,121 @@ ship.update = function()
 		if self.x > 37 then self.x = 37
 		self.draw
 	end if
+	
+	shotPressed = key.pressed("space") or
+	 key.pressed("left shift") or key.pressed("right shift")
+	if shotPressed and not self.shotWasPressed then
+		shot = new PlayerShot
+		shot.init
+	end if
+	self.shotWasPressed = shotPressed
+end function
+
+//----------------------------------------
+// Explosion (when an alien is destroyed)
+//
+Explosion = {}
+Explosion.instances = []
+Explosion.init = function(left, top)
+	self.left = left
+	self.top = top
+	self.stage = 0
+	self.draw
+	Explosion.instances.push self
+end function
+
+Explosion.draw = function
+	if self.stage < 3 then
+		art = ["\*/", "/*\"]
+	else if self.stage < 5 then
+		art = ["***", "***"]
+	else if self.stage < 8 then
+		art = [".:.", ".:."]
+	else if self.stage < 10 then
+		art = ["` '", ", ."]
+	else
+		art = ["   ", "   "]
+	end if
+	text.row = self.top; text.column = self.left
+	text.color = color.lerp(color.yellow, color.red, self.stage/10)
+	text.print art[0]
+	text.column = self.left
+	text.print art[1]
+end function
+	
+Explosion.update = function
+	self.stage = self.stage + 1
+	self.draw
+	if self.stage >= 10 then
+		Explosion.instances.removeVal self
+	end if
+end function
+
+Explosion.updateAll = function
+	for exp in Explosion.instances
+		exp.update
+	end for
+end function
+
+
+//----------------------------------------
+// Player Shot
+//
+PlayerShot = {}
+PlayerShot.hasHit = false
+PlayerShot.hitFrames = 0
+PlayerShot.instances = []
+
+PlayerShot.init = function
+	self.x = ship.x
+	self.y = 2
+	self.draw
+	PlayerShot.instances.push self
+end function
+
+PlayerShot.draw = function
+	text.setCell self.x, self.y, playerShotChar
+	text.setCellColor self.x, self.y, color.yellow
+end function
+
+PlayerShot.handleHit = function
+	c = text.cell(self.x, self.y)
+	text.setCell self.x, self.y, "*"
+	text.setCellColor self.x, self.y, color.orange
+	self.hasHit = true
+	if c == "o" then  // hit shield
+		return
+	else  // hit alien
+		aliens.removeAlienAt self.x, self.y
+	end if
+end function
+
+PlayerShot.update = function
+	if self.hasHit then
+		self.hitFrames = self.hitFrames + 1
+		if self.hitFrames == 4 then
+			text.setCell self.x, self.y, " "
+			PlayerShot.instances.removeVal self
+		end if
+	else
+		text.setCell self.x, self.y, " "
+		self.y = self.y + 1
+		if self.y >= 20 then
+			PlayerShot.instances.removeVal self
+			return
+		end if
+		if text.cell(self.x, self.y) != " " then
+			self.handleHit
+		else
+			self.draw
+		end if
+	end if
+end function
+
+PlayerShot.updateAll = function
+	for shot in PlayerShot.instances
+		shot.update
+	end for
 end function
 
 //----------------------------------------
@@ -238,6 +362,8 @@ while not key.pressed("escape")
 	yield
 	aliens.update
 	ship.update
+	PlayerShot.updateAll
+	Explosion.updateAll
 	debugMouse
 end while
 key.clear
