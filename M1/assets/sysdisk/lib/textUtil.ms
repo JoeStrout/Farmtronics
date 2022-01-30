@@ -90,7 +90,7 @@ end function
 // (by filling the rest of the line with spaces, or whatever character you specify).
 // Also applies default foreground and background colors.
 clearToEOL = function(character=" ")
-	cols = range(text.column, 67)
+	cols = range(text.column, 39)
 	text.setCell cols, text.row, character
 	text.setCellColor cols, text.row, text.color
 	text.setCellBackColor cols, text.row, text.backColor
@@ -102,7 +102,7 @@ end function
 clearRow = function(row=null, character=" ")
 	if row == null then row = text.row
 	if not row isa list then row = [row]
-	allCols = range(0, 67)
+	allCols = range(0, 39)
 	for r in row
 		text.setCell allCols, r, character
 		text.setCellColor allCols, r, text.color
@@ -149,9 +149,9 @@ end function
 // (You can then restore this later with setContent.)
 getContent = function
 	rows = []
-	for row in range(0, 25)
+	for row in range(0, 19)
 		cols = []
-		for col in range(0, 67)
+		for col in range(0, 39)
 			cols.push Cell.get(col, row)
 		end for
 		rows.push cols
@@ -168,10 +168,10 @@ setContent = function(data)
 		for c in dataRow
 			c.apply col, row
 			col = col + 1
-			if col > 67 then break
+			if col > 39 then break
 		end for
 		row = row + 1
-		if row > 25 then break
+		if row > 19 then break
 	end for
 end function
 
