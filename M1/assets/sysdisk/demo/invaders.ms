@@ -71,6 +71,17 @@ max = function(a,b)
 	if a > b then return a else return b
 end function
 
+score = 0
+drawScore = function
+	s = ("00000" + score)[-5:]
+	text.row = 19; text.column = 34; text.color = color.yellow
+	print s
+end function
+
+addToScore = function(points)
+	globals.score = score + points
+	drawScore
+end function
 
 //----------------------------------------
 // Aliens
@@ -98,12 +109,14 @@ alienLinesB.push (alien3b[1] + "  ") * 6
 aliens = {}
 aliens.lines = [alienLinesA[:], alienLinesB[:]]
 aliens.width = alienLinesA[0].len
-aliens.count = 24
+aliens.count = 18
 aliens.x = 20 - floor(aliens.width/2)
 aliens.y = 16
 aliens.modeB = 0
 aliens.nextTickTime = 0
 aliens.timePerTick = 0.5
+aliens.nextFireTime = 1
+aliens.timePerShot = 0.7
 aliens.xdir = -1
 
 aliens.draw = function()
@@ -120,6 +133,11 @@ aliens.draw = function()
 end function
 
 aliens.update = function()
+	if self.count < 1 then return
+	if time > self.nextFireTime then
+		self.fire
+		self.nextFireTime = time + self.timePerShot
+	end if
 	if time < self.nextTickTime then return
 	self.nextTickTime = time + self.timePerTick
 	self.modeB = not self.modeB
@@ -145,36 +163,45 @@ aliens.trim = function
 		ltrim = min(ltrim, leftTrimmable(line))
 		rtrim = min(rtrim, rightTrimmable(line))
 	end for
-	if not ltrim and not rtrim then return
-	text.row=20; text.column=0; print "Trimming " + ltrim + " and " + rtrim
-	for mode in [0,1]
-		lines = self.lines[mode]
-		for i in lines.indexes
-			if rtrim then
-				lines[i] = lines[i][ltrim : -rtrim]
-			else
-				lines[i] = lines[i][ltrim:]
-			end if
+	if ltrim or rtrim then
+		for mode in [0,1]
+			lines = self.lines[mode]
+			for i in lines.indexes
+				if rtrim then
+					lines[i] = lines[i][ltrim : -rtrim]
+				else
+					lines[i] = lines[i][ltrim:]
+				end if
+			end for
 		end for
+		self.width = self.width - ltrim - rtrim
+		self.x = self.x + ltrim
+	end if
+	for i in range(self.lines[0].len - 1)
+		s = self.lines[0][i]
+		if not s or s == " " * s.len then
+			self.lines[0].remove i
+			self.lines[1].remove i
+		else
+			break
+		end if
 	end for
-	self.width = self.width - ltrim - rtrim
-	self.x = self.x + ltrim
 end function
 
 aliens.removeAlienAt = function(col, row, explode=true)
 	// figure out which row in our lines is affected
 	i = self.y - row
-	if i < 0 or i >= self.lines[0].len then return
-	if i % 3 == 2 then return  // between alien rows
+	if i < 0 or i >= self.lines[0].len then return false
+	if i % 3 == 2 then return false // between alien rows
 	i0 = floor(i/3) * 3
 	// and, which alien column is affected
 	j = col - self.x
-	if j < 0 or j >= self.lines[0][0].len then return
-	if j % 5 > 2 then return	// between columns
+	if j < 0 or j >= self.lines[0][0].len then return false
+	if j % 5 > 2 then return false	// between columns
 	j0 = floor(j / 5) * 5
 	j1 = j0 + 3
 	// confirm that we still have something there
-	if self.lines[0][i0][j0:j1] == "   " then return
+	if self.lines[0][i0][j0:j1] == "   " then return false
 	// replace that alien with spaces
 	for mode in [0,1]
 		for i in [i0, i0+1]
@@ -184,10 +211,27 @@ aliens.removeAlienAt = function(col, row, explode=true)
 	end for
 	if explode then
 		exp = new Explosion
-		exp.init self.x + j0, self.y - i0
+		type = alienColors.indexOf(lineColors[i0])
+		points = [500, 250, 100][type]
+		exp.init self.x + j0, self.y - i0, points
+		addToScore points
 	end if
 	self.trim
 	self.count = self.count - 1
+	self.timePerTick = 0.025 * self.count
+	return true
+end function
+
+aliens.fire = function
+	// pick a random row and column in our block...
+	i = floor(self.lines[0].len * rnd / 3) * 3
+	line = self.lines[0][i]
+	j = floor(rnd*line.len/5) * 5
+	// check if we actually have an alien there
+	if not line or line[j] == " " then return // ...nope!
+	// spawn the shot
+	shot = new Shot
+	shot.initFromAlien self.x+j+1, self.y-i-2, lineColors[i]
 end function
 
 //----------------------------------------
@@ -227,8 +271,8 @@ ship.update = function
 	shotPressed = key.pressed("space") or
 	 key.pressed("left shift") or key.pressed("right shift")
 	if shotPressed and not self.shotWasPressed then
-		shot = new PlayerShot
-		shot.init
+		shot = new Shot
+		shot.initFromPlayer
 	end if
 	self.shotWasPressed = shotPressed
 end function
@@ -238,28 +282,33 @@ end function
 //
 Explosion = {}
 Explosion.instances = []
-Explosion.init = function(left, top)
+Explosion.init = function(left, top, score)
 	self.left = left
 	self.top = top
 	self.stage = 0
+	self.score = score
 	self.draw
 	Explosion.instances.push self
 end function
 
 Explosion.draw = function
-	if self.stage < 3 then
+	if self.stage < 6 then
 		art = ["\*/", "/*\"]
-	else if self.stage < 5 then
-		art = ["***", "***"]
-	else if self.stage < 8 then
-		art = [".:.", ".:."]
 	else if self.stage < 10 then
+		art = ["***", "***"]
+	else if self.stage < 16 then
+		art = [".:.", ".:."]
+	else if self.stage < 20 then
 		art = ["` '", ", ."]
 	else
-		art = ["   ", "   "]
+		art = [str(self.score), "   "]
 	end if
 	text.row = self.top; text.column = self.left
-	text.color = color.lerp(color.yellow, color.red, self.stage/10)
+	if self.stage < 20 then
+		text.color = color.lerp(color.yellow, color.red, self.stage/20)
+	else
+		text.color = color.lerp(color.yellow, color.black, self.stage/20-1)
+	end if
 	text.print art[0]
 	text.column = self.left
 	text.print art[1]
@@ -268,7 +317,7 @@ end function
 Explosion.update = function
 	self.stage = self.stage + 1
 	self.draw
-	if self.stage >= 10 then
+	if self.stage >= 40 then
 		Explosion.instances.removeVal self
 	end if
 end function
@@ -281,49 +330,76 @@ end function
 
 
 //----------------------------------------
-// Player Shot
+// Player and Alien Shots
 //
-PlayerShot = {}
-PlayerShot.hasHit = false
-PlayerShot.hitFrames = 0
-PlayerShot.instances = []
+Shot = {}
+Shot.hasHit = false
+Shot.instances = []
+Shot.framesPerMove = 3
+Shot.frames = 0
 
-PlayerShot.init = function
+Shot.initFromPlayer = function
 	self.x = ship.x
 	self.y = 2
+	self.dy = 1
+	self.char = playerShotChar
+	self.color = color.yellow
 	self.draw
-	PlayerShot.instances.push self
+	Shot.instances.push self
 end function
 
-PlayerShot.draw = function
-	text.setCell self.x, self.y, playerShotChar
-	text.setCellColor self.x, self.y, color.yellow
+Shot.initFromAlien = function(x,y, color)
+	self.x = x; self.y = y
+	self.dy = -1
+	self.char = alienShotChar
+	self.color = color
+	self.draw
+	Shot.instances.push self
 end function
 
-PlayerShot.handleHit = function
+Shot.draw = function
+	text.setCell self.x, self.y, self.char
+	text.setCellColor self.x, self.y, self.color
+end function
+
+Shot.handleHit = function
 	c = text.cell(self.x, self.y)
+	if self.dy < 0 then
+		// alien shots collide only with shield or player
+		if self.y > 1 and c != "o" then return
+	end if
 	text.setCell self.x, self.y, "*"
 	text.setCellColor self.x, self.y, color.orange
 	self.hasHit = true
+	self.frames = 0
 	if c == "o" then  // hit shield
 		return
-	else  // hit alien
-		aliens.removeAlienAt self.x, self.y
+	else if self.y < 2 then  // hit player
+		// ToDo
+	else  // hit alien (maybe)
+		if not aliens.removeAlienAt(self.x, self.y) then
+			self.hasHit = false
+			self.draw
+		end if
 	end if
 end function
 
-PlayerShot.update = function
+Shot.update = function
+	self.frames = self.frames + 1
 	if self.hasHit then
-		self.hitFrames = self.hitFrames + 1
-		if self.hitFrames == 4 then
+		if self.frames == 4 then
 			text.setCell self.x, self.y, " "
-			PlayerShot.instances.removeVal self
+			Shot.instances.removeVal self
 		end if
-	else
-		text.setCell self.x, self.y, " "
-		self.y = self.y + 1
-		if self.y >= 20 then
-			PlayerShot.instances.removeVal self
+	else if self.frames >= self.framesPerMove then
+		self.frames = 0
+		c = text.cell(self.x, self.y)
+		if c == self.char or c == "*" then
+			text.setCell self.x, self.y, " "
+		end if
+		self.y = self.y + self.dy
+		if self.y >= 20 or self.y < 0 then
+			Shot.instances.removeVal self
 			return
 		end if
 		if text.cell(self.x, self.y) != " " then
@@ -334,8 +410,8 @@ PlayerShot.update = function
 	end if
 end function
 
-PlayerShot.updateAll = function
-	for shot in PlayerShot.instances
+Shot.updateAll = function
+	for shot in Shot.instances
 		shot.update
 	end for
 end function
@@ -344,6 +420,8 @@ end function
 // Level set-up
 //
 
+score = 0
+drawScore
 aliens.trim
 aliens.draw
 ship.draw
@@ -351,9 +429,9 @@ ship.draw
 // draw shields
 text.color = color.red
 text.row = 5; text.column = 0
-print " "*3 + "  ooo   " * 4
-print " "*3 + " ooooo  " * 4
-print " "*3 + " oo oo  " * 4
+print "  " + "   ooo   " * 4
+print "  " + "  ooooo  " * 4
+print "  " + "  oo oo  " * 4
 
 //----------------------------------------
 // Main Loop
@@ -362,7 +440,7 @@ while not key.pressed("escape")
 	yield
 	aliens.update
 	ship.update
-	PlayerShot.updateAll
+	Shot.updateAll
 	Explosion.updateAll
 	debugMouse
 end while
