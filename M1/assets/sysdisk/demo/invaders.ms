@@ -71,10 +71,15 @@ max = function(a,b)
 	if a > b then return a else return b
 end function
 
-score = 0
 drawScore = function
 	s = ("00000" + score)[-5:]
 	text.row = 19; text.column = 34; text.color = color.yellow
+	print s
+end function
+
+drawLives = function
+	s = char(9829) * (lives - 1) + "   "
+	text.row = 19; text.column = 2; text.color = color.red
 	print s
 end function
 
@@ -107,17 +112,22 @@ alienLinesB.push (alien3b[0] + "  ") * 6
 alienLinesB.push (alien3b[1] + "  ") * 6
 
 aliens = {}
-aliens.lines = [alienLinesA[:], alienLinesB[:]]
-aliens.width = alienLinesA[0].len
-aliens.count = 18
-aliens.x = 20 - floor(aliens.width/2)
-aliens.y = 16
-aliens.modeB = 0
-aliens.nextTickTime = 0
-aliens.timePerTick = 0.5
-aliens.nextFireTime = 1
-aliens.timePerShot = 0.7
-aliens.xdir = -1
+
+aliens.init = function()
+	self.lines = [alienLinesA[:], alienLinesB[:]]
+	self.width = alienLinesA[0].len
+	self.count = 18
+	self.x = 20 - floor(self.width/2)
+	self.y = 16
+	self.modeB = 0
+	self.nextTickTime = 0
+	self.timePerTick = 0.5
+	self.nextFireTime = 1
+	self.timePerShot = 0.7
+	self.xdir = -1
+	self.trim
+end function
+
 
 aliens.draw = function()
 	text.delimiter = ""
@@ -239,6 +249,7 @@ end function
 //
 ship = {}
 ship.x = 20
+ship.dead = false
 ship.ascii = ["  " + char(134) + "^" + char(135) + "  ", 
 char(134)+char(57856) + "/=\" + char(57857)+char(135)]
 ship.shotWasPressed = true
@@ -254,6 +265,7 @@ ship.draw = function()
 end function
 
 ship.update = function
+	if self.dead then return
 	dx = 0
 	if key.pressed("left") or key.pressed("a") then
 		dx = -1
@@ -275,6 +287,15 @@ ship.update = function
 		shot.initFromPlayer
 	end if
 	self.shotWasPressed = shotPressed
+end function
+
+ship.die = function
+	exp = new Explosion
+	exp.init self.x - 2, 1
+	exp = new Explosion
+	exp.init self.x, 1
+	self.dead = true
+	self.resetTime = time + 3
 end function
 
 //----------------------------------------
@@ -300,18 +321,22 @@ Explosion.draw = function
 		art = [".:.", ".:."]
 	else if self.stage < 20 then
 		art = ["` '", ", ."]
-	else
+	else if self.score > 0 then
 		art = [str(self.score), "   "]
+	else
+		art = ["   ", "   "]
 	end if
-	text.row = self.top; text.column = self.left
 	if self.stage < 20 then
 		text.color = color.lerp(color.yellow, color.red, self.stage/20)
 	else
 		text.color = color.lerp(color.yellow, color.black, self.stage/20-1)
 	end if
+	text.delimiter = ""
+	text.row = self.top; text.column = self.left
 	text.print art[0]
-	text.column = self.left
+	text.row = self.top - 1; text.column = self.left
 	text.print art[1]
+	text.delimiter = EOL
 end function
 	
 Explosion.update = function
@@ -375,7 +400,7 @@ Shot.handleHit = function
 	if c == "o" then  // hit shield
 		return
 	else if self.y < 2 then  // hit player
-		// ToDo
+		ship.die
 	else  // hit alien (maybe)
 		if not aliens.removeAlienAt(self.x, self.y) then
 			self.hasHit = false
@@ -417,32 +442,59 @@ Shot.updateAll = function
 end function
 
 //----------------------------------------
-// Level set-up
+// Game/Level set-up methods
 //
 
-score = 0
-drawScore
-aliens.trim
-aliens.draw
-ship.draw
+startLevel = function
+	text.clear
+	drawScore
+	drawLives
+	aliens.init
+	aliens.draw
+	ship.dead = false
+	ship.draw
 
-// draw shields
-text.color = color.red
-text.row = 5; text.column = 0
-print "  " + "   ooo   " * 4
-print "  " + "  ooooo  " * 4
-print "  " + "  oo oo  " * 4
+	// draw shields
+	text.color = color.red
+	text.row = 5; text.column = 0
+	print "  " + "   ooo   " * 4
+	print "  " + "  ooooo  " * 4
+	print "  " + "  oo oo  " * 4
+end function
+
+startGame = function
+	globals.score = 0
+	globals.lives = 3
+	startLevel
+end function
+
+endGame = function
+	text.row = 12; text.column = 15
+	text.color = color.yellow
+	print "GAME OVER"
+	wait 2
+	text.row = 1
+	exit
+end function
 
 //----------------------------------------
 // Main Loop
 //
+startGame
 while not key.pressed("escape")
 	yield
 	aliens.update
 	ship.update
 	Shot.updateAll
 	Explosion.updateAll
-	debugMouse
+	if ship.dead and time > ship.resetTime then
+		globals.lives = globals.lives - 1
+		if globals.lives < 1 then
+			endGame
+		else
+			startLevel
+		end if
+	end if
 end while
 key.clear
 text.row = 0
