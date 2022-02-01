@@ -443,15 +443,13 @@ namespace Farmtronics {
 			Vector2 newTile = farmer.getTileLocation() + new Vector2(dColumn, dRow);
 			var location = currentLocation;
 			{
-				bool tileOnMap = location.isTileOnMap(newTile);
-				bool occupied = location.isTileOccupiedIgnoreFloors(newTile);
-				bool passable = location.isTilePassable(new xTile.Dimensions.Location((int)newTile.X, (int)newTile.Y), Game1.viewport);
-				bool placeable = location.isTilePlaceable(newTile);
-				// Note: we used to just call location.isTileLocationTotallyClearAndPlaceableIgnoreFloors,
-				// but that includes consideration of 'placeable', which doesn't let us enter the pet
-				// area (to refill the pet's water dish!).  So now we check only the other conditions.
-				if (!tileOnMap || occupied || !passable) {
-					Debug.Log($"No can do (path blocked)");
+				// How to detect walkability in pretty much the same way as other characters:
+				var newBounds = farmer.GetBoundingBox();
+				newBounds.X += dColumn * 64;
+				newBounds.Y += dRow * 64;
+				bool coll = location.isCollidingPosition(newBounds, Game1.viewport, isFarmer:false, 0, glider:false, farmer);
+				if (coll) {
+					Debug.Log("Colliding position: " + newBounds);
 					return;
 				}
 			}

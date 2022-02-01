@@ -5,8 +5,11 @@ import "textUtil"
 
 //----------------------------------------
 // Test/debug stuff
-clear
+origTextColor = text.color
+origBackColor = text.backColor
 text.color = color.gray
+text.backColor = color.black
+clear
 if version.hostName == "Mini Micro" then
   for row in range(0,26)
     for col in range(0, 68)
@@ -486,6 +489,7 @@ end function
 startGame = function
   globals.score = 0
   globals.lives = 3
+  globals.gameOver = false
   startLevel
 end function
 
@@ -494,15 +498,14 @@ endGame = function
   text.color = color.yellow
   print "GAME OVER"
   wait 2
-  text.row = 1
-  exit
+  globals.gameOver = true
 end function
 
 //----------------------------------------
 // Main Loop
 //
 startGame
-while not key.pressed("escape")
+while not key.pressed("escape") and not gameOver
   yield
   aliens.update
   ship.update
@@ -516,8 +519,15 @@ while not key.pressed("escape")
       startLevel
     end if
   end if
+  if aliens.count < 1 then
+    text.row = 12; text.column = 14
+    text.color = color.yellow
+    print "LEVEL CLEAR"
+    wait 2
+    startLevel
+  end if
 end while
 key.clear
-text.row = 0
-text.color = color.orange
-
+text.row = 1
+text.color = origTextColor
+text.backColor = origBackColor
