@@ -58,6 +58,18 @@ namespace Farmtronics {
 				return Intrinsic.Result.Null;
 			};
 
+			f = Intrinsic.Create("_lerpColor");
+			f.AddParam("colorA", "#FFFFFF");
+			f.AddParam("colorB", "#FFFFFF");
+			f.AddParam("t", 0.5f);
+			f.code = (context, partialResult) => {
+				var colorA = ColorUtils.ToColor(context.GetLocalString("colorA"));
+				var colorB = ColorUtils.ToColor(context.GetLocalString("colorB"));
+				var t = context.GetLocalFloat("t");
+				var resultColor = ColorUtils.Lerp(colorA, colorB, t);
+				return new Intrinsic.Result(new ValString(resultColor.ToHexString()));
+			};
+
 			f = Intrinsic.Create("bot");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;

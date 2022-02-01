@@ -47,6 +47,7 @@ namespace Farmtronics {
 		// mod data keys, used for saving/loading extra data with the game save:
 		static string isBotKey = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
 		static string facingKey = $"{ModEntry.instance.ModManifest.UniqueID}/facing";
+		static string energyKey = $"{ModEntry.instance.ModManifest.UniqueID}/energy";
 
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
@@ -330,6 +331,14 @@ namespace Farmtronics {
 			Debug.Log($"Bot.performDropDownAction({who.Name})");
 			base.performDropDownAction(who);
 
+			// Check for energy
+			string s = null;
+			if (modData.TryGetValue(energyKey, out s)) {
+				Debug.Log($"performDropDownAction: Got energy from modData: {s}");
+				int energy = 0;
+				if (int.TryParse(s, out energy)) farmer.Stamina = energy;
+			}
+
 			// Keep our farmer positioned wherever this object is
 			farmer.currentLocation = Game1.player.currentLocation;
 			farmer.setTileLocation(TileLocation);
@@ -351,6 +360,15 @@ namespace Farmtronics {
 			// Copy other data from this item to bot.
 			bot.name = name;
 			bot.farmer.FacingDirection = who.facingDirection;
+
+			// Check for energy
+			string s = null;
+			if (modData.TryGetValue(energyKey, out s)) {
+				Debug.Log($"placementAction: Got energy from modData: {s}");
+				int energy = 0;
+				if (int.TryParse(s, out energy)) bot.farmer.Stamina = energy;
+			}
+
 			// ToDo: other data?
 
 			instances.Remove(this);
@@ -630,8 +648,10 @@ namespace Farmtronics {
 				var who = t.getLastFarmerToUse();
                 this.performRemoveAction(this.TileLocation, location);
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
+				deb.item.modData[isBotKey] = "1";
+				deb.item.modData[energyKey] = energy.ToString();
                 Game1.currentLocation.debris.Add(deb);
-				Debug.Log($"{name} Created debris with item {deb.item}");
+				Debug.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
                 Game1.currentLocation.overlayObjects.Remove(this.TileLocation);
 				if (shell != null) shell.interpreter.Stop();
@@ -647,21 +667,6 @@ namespace Farmtronics {
 			// I'm not aware of any use case for doing the default tool action on a bot.
 			// So now we're going to avoid that whole issue by always doing:
 			return false;
-		}
-
-		/// <summary>
-		/// I think this is called when the player tries to drop something into the bot
-		/// (or might be considering it, e.g., is hovering over the bot with an item).
-		/// But it's still not entirely clear; it also seems to get called when I'm holding
-		/// a bot and hovering over various tiles on the ground.
-		/// </summary>
-		/// <param name="dropIn"></param>
-		/// <param name="probe"></param>
-		/// <param name="who"></param>
-		/// <returns></returns>
-		public override bool performObjectDropInAction(Item dropIn, bool probe, Farmer who) {
-			Debug.Log($"{name} Bot.performObjectDropInAction({dropIn}, {probe}, {who.Name}");
-			return base.performObjectDropInAction(dropIn, probe, who);
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1) {
@@ -796,6 +801,10 @@ namespace Farmtronics {
 		public override Item getOne() {
 			var ret = new Bot(TileLocation);
 			ret.name = name;
+
+			ret.modData[energyKey] = energy.ToString();
+			Debug.Log($"getOne: stored energy value {energy}");
+
 			// TODO: All the other fields objects does??
 			ret.Stack = 1;
 			ret.Price = this.Price;
@@ -805,6 +814,7 @@ namespace Farmtronics {
 
 		public override bool canStackWith(ISalable other) {
 			if (other is not Bot obj) return false;
+			// ToDo: make sure these bots have the same inventory, and average their energy etc.
 			return true;
 //			return obj.FullId == this.FullId && base.canStackWith(other);
 		}
