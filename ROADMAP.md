@@ -42,12 +42,8 @@ This is our "minimum viable product".
 These will be addressed ASAP.
 
 - When you pick up a bot, its inventory is reset, and anything other than the starter tools is lost.
-- If you leave the farm while a bot is chopping down a tree or stump (with an axe), when you return it may be trying to use a scythe instead.
 
 ## Coming Soon
-
-- Bots can walk (er, roll) through boulders and stumps.
-- Movable UI, so (if your screen is big enough) you can move it to the side and see your bot at the same time
 
 ## Unscheduled Future Version
 
