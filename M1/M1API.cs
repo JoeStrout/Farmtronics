@@ -687,17 +687,21 @@ namespace Farmtronics {
 			f.AddParam("lines");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				string path = context.GetLocalString("path");
+				string origPath = context.GetLocalString("path");
 				Value linesVal = context.GetLocal("lines");
 				if (linesVal == null) return new Intrinsic.Result("Error: lines parameter is required");
 			
 				string err = null;
-				path = sh.ResolvePath(path, out err);
+				string path = sh.ResolvePath(origPath, out err);
 				if (path == null) return new Intrinsic.Result(err);
 
-				Disk disk = FileUtils.GetDisk(ref path);
-				if (!disk.IsWriteable()) return new Intrinsic.Result("Error: disk is not writeable");
-				disk.WriteLines(path, linesVal.ToStrings());
+				try {
+					Disk disk = FileUtils.GetDisk(ref path);
+					if (!disk.IsWriteable()) return new Intrinsic.Result("Error: disk is not writeable");
+					disk.WriteLines(path, linesVal.ToStrings());
+				} catch (System.Exception) {
+					return new Intrinsic.Result("Error: unable to write " + origPath);
+				}
 				return Intrinsic.Result.Null;
 			};
 			fileModule["writeLines"] = f.GetFunc();
