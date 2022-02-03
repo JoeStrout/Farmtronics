@@ -28,6 +28,7 @@ namespace Farmtronics {
 
 		public GameLocation currentLocation {
 			get { return farmer.currentLocation; }
+			set { farmer.currentLocation = value; }
 		}
 		public int facingDirection {  get {  return farmer == null ? 2 : farmer.FacingDirection; } }
 		public int currentToolIndex {
@@ -83,7 +84,7 @@ namespace Farmtronics {
 		}
 
 		public Bot(Vector2 tileLocation, GameLocation location=null, bool createTools=true) :base(tileLocation, 130) {
-			Debug.Log($"Creating Bot({tileLocation}, {location}, {createTools}):\n{Environment.StackTrace}");
+			Debug.Log($"Creating Bot({tileLocation}, {location?.Name}, {createTools}):\n{Environment.StackTrace}");
 
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
@@ -95,7 +96,10 @@ namespace Farmtronics {
 			canBeSetDown.Value = true;
 
 			this.TileLocation = tileLocation;
-			if (location == null) location = Game1.player.currentLocation;
+			if (location == null) {
+				location = Game1.player.currentLocation;
+				Debug.Log($"Location is null; fallback to {location.Name}");
+			}
 
 			List<Item> initialTools = null;
 			if (createTools) {
@@ -353,7 +357,7 @@ namespace Farmtronics {
 		public override bool placementAction(GameLocation location, int x, int y, Farmer who = null) {
 			Debug.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
 			Vector2 placementTile = new Vector2(x / 64, y / 64);
-			var bot = new Bot(placementTile);
+			var bot = new Bot(placementTile, location, false);
 			Game1.player.currentLocation.overlayObjects[placementTile] = bot;
 			bot.shakeTimer = 50;
 

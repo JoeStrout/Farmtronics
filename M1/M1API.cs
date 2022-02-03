@@ -97,8 +97,7 @@ namespace Farmtronics {
 				var loc = (Farm)Game1.getLocationFromName("Farm");
 				var layer = loc.map.Layers[0];
 				var result = new ValMap();
-				result.map[ValString.magicIsA] = LocationClass();
-				result.map[_name] = new ValString("Farm");
+				result.map[ValString.magicIsA] = LocationClass(loc);
 				
 				result.map[_size] = ToList(layer.LayerWidth, layer.LayerHeight);
 				return new Intrinsic.Result(result);
@@ -210,8 +209,26 @@ namespace Farmtronics {
 			};
 
 			f = Intrinsic.Create("Location");
+			f.AddParam("name");
 			f.code = (context, partialResult) => {
-				return new Intrinsic.Result(LocationClass());
+				Value name = context.GetVar("name");
+
+				GameLocation loc;
+				if (name != null) {
+					loc = Game1.getLocationFromName(name.ToString());
+				} else {
+					Shell sh = context.interpreter.hostData as Shell;
+					var bot = sh.bot;
+					if (bot == null) {
+						loc = Game1.currentLocation;
+					} else {
+						loc = sh.bot.currentLocation;
+					}
+				}
+				if (loc == null) {
+					return Intrinsic.Result.Null;
+				}
+				return new Intrinsic.Result(LocationClass(loc));
 			};
 
 			f = Intrinsic.Create("run");
@@ -264,6 +281,7 @@ namespace Farmtronics {
 			botModule = new ValMap();
 
 			Intrinsic f;
+
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
@@ -339,7 +357,7 @@ namespace Farmtronics {
 				result["x"] = new ValNumber(pos.X);
 				result["y"] = new ValNumber(pos.Y);
 				var area = new ValMap();
-				area.map[ValString.magicIsA] = LocationClass();
+				area.map[ValString.magicIsA] = LocationClass(loc);
 				area.map[_name] = new ValString(loc.NameOrUniqueName);
 				result["area"] = area;
 				return new Intrinsic.Result(result);
@@ -1139,27 +1157,19 @@ namespace Farmtronics {
 
 			return keyModule;
 		}
-	
 
-		static ValMap locationClass;
-		public static ValMap LocationClass() {
-			if (locationClass != null) return locationClass;
-
-			locationClass = new ValMap();
-			locationClass.map[_name] = null;
+		public static Dictionary<string, ValMap> locationClassCache = new Dictionary<string, ValMap>();
+		public static ValMap LocationClass(GameLocation loc) {
+			if (locationClassCache.ContainsKey(loc.Name)) {
+				return locationClassCache.GetValueOrDefault(loc.Name, null);
+			}
+			var locationClass = new ValMap();
+			locationClass.map[_name] = new ValString(loc.Name);
+			locationClass.map[new ValString("width")] = new ValNumber(loc.map.Layers[0].LayerWidth);
+			locationClass.map[new ValString("height")] = new ValNumber(loc.map.Layers[0].LayerHeight);
+			locationClassCache.Add(loc.Name, locationClass);
 		
 			Intrinsic f;
-
-			// Location.height
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				ValMap self = context.GetVar("self") as ValMap;
-				string name = self.Lookup(_name).ToString();
-				var loc = Game1.getLocationFromName(name);
-				if (loc == null) return Intrinsic.Result.Null;
-				return new Intrinsic.Result(new ValNumber(loc.map.Layers[0].LayerHeight));
-			};
-			locationClass["height"] = f.GetFunc();
 
 			// Location.tile
 			f = Intrinsic.Create("");
@@ -1168,12 +1178,9 @@ namespace Farmtronics {
 			f.AddParam("y", ValNumber.zero);
 			f.code = (context, partialResult) => {
 				ValMap self = context.GetVar("self") as ValMap;
-				if (self == null) throw new RuntimeException("Map required for Location.tile parameter");
 				int x = context.GetLocalInt("x", 0);
 				int y = context.GetLocalInt("y", 0);
 				Vector2 xy = new Vector2(x,y);
-				string name = self.Lookup(_name).ToString();
-				var loc = Game1.getLocationFromName(name);
 				if (loc == null) return Intrinsic.Result.Null;
 
 				ValMap result = TileInfo.GetInfo(loc, xy);
@@ -1181,18 +1188,6 @@ namespace Farmtronics {
 				return new Intrinsic.Result(result);
 			};
 			locationClass["tile"] = f.GetFunc();
-
-			// Location.width
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				ValMap self = context.GetVar("self") as ValMap;
-				string name = self.Lookup(_name).ToString();
-				var loc = Game1.getLocationFromName(name);
-				if (loc == null) return Intrinsic.Result.Null;
-				return new Intrinsic.Result(new ValNumber(loc.map.Layers[0].LayerWidth));
-			};
-			locationClass["width"] = f.GetFunc();
-
 
 			return locationClass;
 		}
