@@ -904,11 +904,15 @@ namespace Farmtronics {
 			// .read
 			f = Intrinsic.Create("");
 			f.AddParam("self");
+			f.AddParam("codePointCount");
 			f.code = (context, partialResult) => {
 				string err;
 				OpenFile file = GetOpenFile(context, out err);
 				if (err != null) return Intrinsic.Result.Null;
-				string s = file.ReadToEnd();
+				string s;
+				Value count = context.GetLocal("codePointCount");
+				if (count == null) s = file.ReadToEnd();
+				else s = file.ReadChars(count.IntValue());
 				return new Intrinsic.Result(s);
 			};		
 			fileHandleClass["read"] = f.GetFunc();
