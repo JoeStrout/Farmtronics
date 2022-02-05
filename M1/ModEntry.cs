@@ -61,10 +61,11 @@ namespace Farmtronics
 			if (e.Button == SButton.PageUp) {
 				print($"CurrentSavePath: {Constants.CurrentSavePath}");
 				// Create a bot.
-				Vector2 pos = Game1.player.position;
-				pos.X -= 64;
-				Vector2 tilePos = new Vector2((int)(pos.X / 64), (int)(pos.Y / 64));
-				var bot = new Bot(tilePos);
+				var player = Game1.player;
+				var loc = player.currentLocation;
+				var pos = player.position;
+				Vector2 tilePos = new Vector2((int)(pos.X / 64) - 1, (int)(pos.Y / 64));
+				var bot = new Bot(tileLocation: tilePos, location: loc, inventory: Bot.defaultInventories());
 
 				//Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
 				Game1.player.currentLocation.overlayObjects[tilePos] = bot;

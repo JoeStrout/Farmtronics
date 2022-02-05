@@ -19,17 +19,24 @@ using StardewValley.Objects;
 
 namespace Farmtronics {
 	public class Bot : StardewValley.Object {
-		public IList<Item> inventory {  get {  return farmer == null ? null : farmer.Items; } }
+		public IList<Item> inventory { get { return farmer == null ? null : farmer.Items; } }
 		public Color screenColor = Color.Transparent;
 		public Color statusColor = Color.Yellow;
 		public Shell shell { get; private set; }
-		public bool isUsingTool {  get {  return toolUseFrame > 0; } }
-		public int energy {  get {  return farmer == null ? 0 : (int)farmer.Stamina; } }
+		public bool isUsingTool { get { return toolUseFrame > 0; } }
 
 		public GameLocation currentLocation {
 			get { return farmer.currentLocation; }
+			set { farmer.currentLocation = value; }
 		}
-		public int facingDirection {  get {  return farmer == null ? 2 : farmer.FacingDirection; } }
+		public float energy {
+			get { return farmer == null ? 0 : farmer.Stamina; }
+			set { farmer.Stamina = value; }
+		}
+		public int facingDirection {
+			get { return farmer == null ? 2 : farmer.FacingDirection; }
+			set { farmer.FacingDirection = (value % 4 + 4) % 4; }
+		}
 		public int currentToolIndex {
 			get { return farmer.CurrentToolIndex; }
 			set {
@@ -42,83 +49,93 @@ namespace Farmtronics {
 		[XmlIgnore]
 		public readonly NetMutex mutex = new NetMutex();
 
-		const int vanillaObjectTypeId = 130;	// "Chest"
+		const int vanillaObjectTypeId = 130; // "Chest"
 
 		// mod data keys, used for saving/loading extra data with the game save:
-		static string isBotKey = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
-		static string facingKey = $"{ModEntry.instance.ModManifest.UniqueID}/facing";
+		static string KEY_PREFIX = $"{ModEntry.instance.ModManifest.UniqueID}/";
+		static string KEY_IS_BOT = KEY_PREFIX + "isBot";
+		static string KEY_FACING = KEY_PREFIX + "facing";
+		static string KEY_NAME = KEY_PREFIX + "name";
+		static string KEY_ENERGY = KEY_PREFIX + "energy";
 
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
 		Farmer farmer;
 
-		Vector2 position;	// our current position, in pixels
-		Vector2 targetPos;	// position we're moving to, in pixels
+		Vector2 position; // our current position, in pixels
+		Vector2 targetPos;  // position we're moving to, in pixels
 
 		static List<Bot> instances = new List<Bot>();
 
-		static int uniqueFarmerID = 1;
-		const float speed = 64;		// pixels/sec
+		const string NAME_PREFIX = "Bot ";
+		public int maxEnergy {
+			get { return 1000; }
+		}
+		public int Speed { // pixels/sec
+			get { return farmer.Speed; }
+			set { farmer.Speed = value; }
+		}
 
 		int toolUseFrame = 0;		// > 0 when using a tool
 
 		static Texture2D botSprites;
-
-		public Bot() {
-			Debug.Log($"Creating Bot():\n{Environment.StackTrace}");
-			if (botSprites == null) {
-				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
-			}
-
-			// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
-			// We don't need or want a farmer at this time.
-			Name = "Farmtronics Bot";
-			type.Value = "Crafting";
-			bigCraftable.Value = true;
-			canBeSetDown.Value = true;
-
-			// Note that we don't add these to instances, as such items aren't in the world
-			// and can't carry out any processing.
+		
+		public static List<Item> defaultInventories() {
+			return new List<Item> {
+				new Hoe(),
+				new Axe(),
+				new Pickaxe(),
+				new MeleeWeapon(47),  // (scythe)
+				new WateringCan()
+			};
 		}
 
-		public Bot(Vector2 tileLocation, GameLocation location=null, bool createTools=true) :base(tileLocation, 130) {
-			Debug.Log($"Creating Bot({tileLocation}, {location}, {createTools}):\n{Environment.StackTrace}");
+		public static string defaultName() {
+			return "Farmtronics Bot";
+		}
+
+		public static string getUniqueName() {
+			HashSet<string> names = new HashSet<string>();
+			foreach (var bot in instances) {
+				names.Add(bot.Name);
+			}
+			for (int botIndex = 1; ; botIndex++) {
+				string name = NAME_PREFIX + botIndex;
+				if (!names.Contains(name)) return name;
+			}
+		}
+
+		public Bot(
+				GameLocation location = null,
+				Vector2? tileLocation = null,
+				int facing = 2,
+				string name = null,
+				float energy = float.PositiveInfinity,
+				IList<Item> inventory = null
+		): base(tileLocation ?? Vector2.Zero, vanillaObjectTypeId) {
+			Debug.Log($"Creating Bot: {Environment.StackTrace}");
 
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
 			}
 
-			Name = "Bot";
+			Name = name ?? defaultName();
+			TileLocation = tileLocation ?? Vector2.Zero;
+			position = targetPos = TileLocation * 64f;
+			if (inventory == null) inventory = defaultInventories();
+			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
+				position, 64,
+				Name, new List<Item>(inventory), isMale: true);
+			currentLocation = location;
+
 			type.Value = "Crafting";
 			bigCraftable.Value = true;
 			canBeSetDown.Value = true;
 
-			this.TileLocation = tileLocation;
-			if (location == null) location = Game1.player.currentLocation;
+			farmer.MaxStamina = maxEnergy;
+			farmer.stamina = MathF.Min(energy, maxEnergy);
 
-			List<Item> initialTools = null;
-			if (createTools) {
-	            initialTools = new List<Item>
-	            {
-					new Hoe(),
-	                new Axe(),
-	                new Pickaxe(),
-	                new MeleeWeapon(47),  // (scythe)
-	                new WateringCan()
-	            };
-
-			} else initialTools = new List<Item>();
-
-			Name = "Bot " + uniqueFarmerID;
-			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
-				tileLocation * 64, 2,
-				Name, initialTools, isMale: true);
-			farmer.currentLocation = location;
-			uniqueFarmerID++;
-			//this.Type = "Crafting";	// (necessary for performDropDownAction to be called)
-			ModEntry.instance.print($"Type: {this.Type}  bigCraftable:{bigCraftable}");
-
-			NotePosition();
+			facingDirection = facing;
 
 			instances.Add(this);
 		}
@@ -126,6 +143,12 @@ namespace Farmtronics {
 		//----------------------------------------------------------------------
 		// Conversion of bots to chests (before saving)
 		//----------------------------------------------------------------------
+
+		public static bool IsBotChest(Chest chest) {
+			string s = null;
+			chest.modData.TryGetValue(KEY_IS_BOT, out s);
+			return !string.IsNullOrEmpty(s);
+		}
 
 		// Convert all bots everywhere into vanilla chests, with appropriate metadata.
 		public static void ConvertBotsToChests() {
@@ -148,11 +171,13 @@ namespace Farmtronics {
 			Debug.Log($"Total bots converted to chests: {count}");
 		}
 
-		static Chest ConvertBotToChest(Bot bot) {
-			var chest = new Chest();
+		static int ConvertBotToChest(Bot bot, out Chest chest) {
+			chest = new Chest();
 			chest.Stack = bot.Stack;
-			chest.modData[isBotKey] = "1";
-			chest.modData[facingKey] = bot.facingDirection.ToString();
+			chest.modData[KEY_IS_BOT] = "1";
+			chest.modData[KEY_FACING] = bot.facingDirection.ToString();
+			chest.modData[KEY_NAME] = bot.Name;
+			chest.modData[KEY_ENERGY] = bot.energy.ToString();
 			var inventory = bot.inventory;
 			if (inventory != null) {
 				if (chest.items.Count < inventory.Count) chest.items.Set(inventory);
@@ -164,7 +189,42 @@ namespace Farmtronics {
 				if (convertedItems > 0) Debug.Log($"Converted {convertedItems} bots inside a bot");
 				inventory.Clear();
 			}
-			return chest;
+			return ConvertBotsInListToChests(chest.items) + 1;
+		}
+
+		static int ConvertChestToBot(Chest chest, GameLocation loc, Vector2 tileLoc, out Bot bot) {
+			int facing = 2;
+			if (chest.modData.TryGetValue(KEY_FACING, out string facingStr)) {
+				int.TryParse(facingStr, out facing);
+			}
+
+			List<Item> inventory = new List<Item> ();
+			foreach (var item in chest.items) {
+				inventory.Add(item);
+			}
+			chest.items.Clear();
+
+			if (!chest.modData.TryGetValue(KEY_NAME, out string name)) {
+				name = getUniqueName();
+			}
+
+			float energy = float.PositiveInfinity;
+			if (chest.modData.TryGetValue(KEY_ENERGY, out string energyStr)) {
+				float.TryParse(energyStr, out energy);
+			}
+
+			bot = new Bot(
+				name: name,
+				tileLocation: tileLoc,
+				facing: facing,
+				location: loc,
+				energy: energy,
+				inventory: inventory
+			);
+			bot.Stack = chest.Stack;
+
+			Debug.Log($"Converted {chest} to {bot} at {bot.TileLocation} of {loc?.Name}");
+			return 1;
 		}
 
 
@@ -177,9 +237,10 @@ namespace Farmtronics {
 			for (int i=0; i<items.Count; i++) {
 				Bot bot = items[i] as Bot;
 				if (bot == null) continue;
-				items[i] = ConvertBotToChest(bot);
+				Chest chest;
+				count += ConvertBotToChest(bot, out chest);
+				items[i] = chest;
 				Debug.Log($"Converted list item {i} to {items[i]} of stack {items[i].Stack}");
-				count++;
 			}
 			return count;
 		}
@@ -200,15 +261,18 @@ namespace Farmtronics {
 			int countInLoc = 0;
 			var targetTileLocs = new List<Vector2>();
 			foreach (var kv in inLocation.objects.Pairs) {
-				if (kv.Value is Bot) targetTileLocs.Add(kv.Key);
-				if (kv.Value is Chest chest) {
+				if (kv.Value is Bot bot) {
+					targetTileLocs.Add(kv.Key);
+					ConvertBotsInListToChests(bot.inventory);
+				} else if (kv.Value is Chest chest) {
 					Debug.Log($"Found a chest in {inLocation.Name} at {kv.Key}");
 					countInLoc += ConvertBotsInListToChests(chest.items);
 				}
 			}
 			foreach (var tileLoc in targetTileLocs) {
 				Debug.Log($"Found bot in {inLocation.Name} at {tileLoc}; converting");
-				var chest = ConvertBotToChest(inLocation.objects[tileLoc] as Bot);
+				Chest chest;
+				ConvertBotToChest(inLocation.objects[tileLoc] as Bot, out chest);
 				inLocation.objects.Remove(tileLoc);
 				inLocation.objects.Add(tileLoc, chest);
 				countInLoc++;
@@ -238,52 +302,34 @@ namespace Farmtronics {
 		/// Convert all the chests with appropriate metadata into bots.
 		/// </summary>
 		/// <param name="inLocation">Location to search in, or if null, search all locations</param>
-		static void ConvertChestsInMapToBots(GameLocation inLocation=null) {
+		static int ConvertChestsInMapToBots(GameLocation inLocation=null) {
+			int count = 0;
 			if (inLocation == null) {
 				foreach (var loc in Game1.locations) {
 					//Debug.Log($"Converting in location: {loc}");
-					ConvertChestsInMapToBots(loc);
+					count += ConvertChestsInMapToBots(loc);
 				}
-				return;
+				return count;
 			}
-			int count = 0;
 			var targetTileLocs = new List<Vector2>();
 			foreach (var kv in inLocation.objects.Pairs) {
 				var tileLoc = kv.Key;
 				var chest = kv.Value as Chest;
 				if (chest == null) continue;
-				int inChestCount = ConvertChestsInListToBots(chest.items);
-				if (inChestCount > 0) Debug.Log($"Converted {inChestCount} chests stored in a chest into bots");
-
-				string s = null;
-				chest.modData.TryGetValue(isBotKey, out s);
-				Debug.Log($"Found chest in {inLocation} at {tileLoc} with isBot={s}");
-				if (s != "1") continue;
-				targetTileLocs.Add(tileLoc);
+				count += ConvertChestsInListToBots(chest.items);
+				if (IsBotChest(chest)) {
+					targetTileLocs.Add(tileLoc);
+				}
 			}
 			foreach (Vector2 tileLoc in targetTileLocs) {
 				var chest = inLocation.objects[tileLoc] as Chest;
-
-				int facing = 0;
-				string facingStr = null;
-				if (chest.modData.TryGetValue(facingKey, out facingStr)) {
-					int.TryParse(facingStr, out facing);
-				}
-
-				Bot bot = new Bot(tileLoc, inLocation, false);
-				inLocation.objects.Remove(tileLoc);				// remove chest from "objects"
-				inLocation.overlayObjects.Add(tileLoc, bot);	// add bot to "overlayObjects"
-				bot.farmer.faceDirection(facing);
-				for (int i=0; i<chest.items.Count && i<bot.inventory.Count; i++) { 
-					//Debug.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
-					bot.inventory[i] = chest.items[i];
-				}
-				chest.items.Clear();
-
-				count++;
-				Debug.Log($"Converted {chest} to {bot} at {tileLoc} of {inLocation}");
+				Bot bot;
+				count += ConvertChestToBot(chest, inLocation, tileLoc, out bot);
+				inLocation.objects.Remove(tileLoc); // remove chest from "objects"
+				inLocation.overlayObjects.Add(bot.TileLocation, bot); // add bot to "overlayObjects"
 			}
 			if (count > 0) Debug.Log($"Converted {count} chests to bots in {inLocation}");
+			return count;
 		}
 
 		/// <summary>
@@ -292,18 +338,14 @@ namespace Farmtronics {
 		/// <param name="items">Item list to search in</param>
 		static int ConvertChestsInListToBots(IList<Item> items) {
 			int count = 0;
-			for (int i=0; i<items.Count; i++) {
+			for (int i = 0; i < items.Count; i++) {
 				var chest = items[i] as Chest;
 				if (chest == null) continue;
-				string s = null;
-				chest.modData.TryGetValue(isBotKey, out s);
-				if (s != "1") continue;
-				Bot bot = new Bot();
-				bot.Stack = chest.Stack;
-				items[i] = bot;
-				// Note: we assume that chests in an item list are just items,
-				// and can't themselves contain other stuff.
-				count++;
+				if (IsBotChest(chest)) {
+					Bot bot;
+					count += ConvertChestToBot(chest, null, Vector2.Zero, out bot);
+					items[i] = bot;
+				}
 			}
 			return count;
 		}
@@ -342,27 +384,21 @@ namespace Farmtronics {
 		/// to create a new Bot instance that matches its data.
 		/// </summary>
 		public override bool placementAction(GameLocation location, int x, int y, Farmer who = null) {
-			Debug.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
-			Vector2 placementTile = new Vector2(x / 64, y / 64);
-			var bot = new Bot(placementTile);
-			Game1.player.currentLocation.overlayObjects[placementTile] = bot;
+			Debug.Log($"Bot.placementAction({location}, {x}, {y}, {who?.Name})");
+			var bot = new Bot(
+				name: name == defaultName() ? getUniqueName() : name,
+				tileLocation: new Vector2((int)(x / 64), (int)(y / 64)),
+				facing: who.facingDirection,
+				location: location,
+				energy: energy,
+				inventory: inventory
+			);
+			bot.currentLocation.overlayObjects.Add(bot.TileLocation, bot);
 			bot.shakeTimer = 50;
 
-			// Copy other data from this item to bot.
-			bot.name = name;
-			bot.farmer.FacingDirection = who.facingDirection;
-			// ToDo: other data?
-
 			instances.Remove(this);
-
 			location.playSound("hammer");
 			return true;
-		}
-
-
-		public void NotePosition() {
-			position = targetPos = TileLocation * 64f;
-			farmer.setTileLocation(TileLocation);
 		}
 
 		// Apply the currently-selected item as a tool (or weapon) on
@@ -774,7 +810,7 @@ namespace Farmtronics {
 
             Vector2 scaleFactor = Vector2.One; // this.PulseIfWorking ? this.getScale() : Vector2.One;
             scaleFactor *= 4f;
-            Vector2 position = Game1.GlobalToLocal(Game1.viewport, new Vector2(x * 64, y * 64 - 64));
+            Vector2 position = Game1.GlobalToLocal(Game1.viewport, new Vector2(x * 64, y * 64 - 48));
 			Rectangle srcRect = new Rectangle(16 * 2, 0, 16, 24);
             b.Draw(destinationRectangle: new Rectangle((int)(position.X - scaleFactor.X / 2f), (int)(position.Y - scaleFactor.Y / 2f),
 				(int)(64f + scaleFactor.X), (int)(128f + scaleFactor.Y / 2f)),
@@ -794,22 +830,22 @@ namespace Farmtronics {
 		/// </summary>
 		/// <returns></returns>
 		public override Item getOne() {
-			var ret = new Bot(TileLocation);
-			ret.name = name;
-			// TODO: All the other fields objects does??
-			ret.Stack = 1;
-			ret.Price = this.Price;
-			ret._GetOneFrom(this);
-			return ret;
+			Bot bot = new Bot(
+				name: name,
+				tileLocation: tileLocation,
+				location: null,
+				energy: energy,
+				inventory: inventory
+			);
+			bot._GetOneFrom(this);
+			return bot;
 		}
 
-		public override bool canStackWith(ISalable other) {
-			if (other is not Bot obj) return false;
-			return true;
-//			return obj.FullId == this.FullId && base.canStackWith(other);
+		// we should not stack bots, as otherwise inventories will not be kept
+		public override int maximumStackSize() {
+			return 1;
 		}
 
-	
 		public int GetActualCapacity() {
 			return 12;
 		}
