@@ -46,9 +46,12 @@ namespace Farmtronics {
 		const int vanillaObjectTypeId = 130;	// "Chest"
 
 		// mod data keys, used for saving/loading extra data with the game save:
-		static string isBotKey = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
-		static string facingKey = $"{ModEntry.instance.ModManifest.UniqueID}/facing";
-		static string energyKey = $"{ModEntry.instance.ModManifest.UniqueID}/energy";
+		static class dataKey {
+			public static string isBot = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
+			public static string facing = $"{ModEntry.instance.ModManifest.UniqueID}/facing";
+			public static string energy = $"{ModEntry.instance.ModManifest.UniqueID}/energy";
+			public static string name = $"{ModEntry.instance.ModManifest.UniqueID}/name";
+		}
 
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
@@ -129,6 +132,36 @@ namespace Farmtronics {
 		}
 
 		//----------------------------------------------------------------------
+		// Storage/retrieval of bot data in a modData dictionary
+		//----------------------------------------------------------------------
+
+		/// <summary>
+		/// Fill in the given ModDataDictionary with values from this bot,
+		/// so they can be saved and restored later.
+		/// </summary>
+		void SetModData(ModDataDictionary d) {
+			d[dataKey.isBot] = "1";
+			d[dataKey.name] = name;
+			d[dataKey.energy] = energy.ToString();
+			d[dataKey.facing] = facingDirection.ToString();
+		}
+
+		/// <summary>
+		/// Apply the values in the given ModDataDictionary to this bot,
+		/// configuring name, energy, etc.
+		/// </summary>
+		void ApplyModData(ModDataDictionary d) {
+			if (!d.GetBool(dataKey.isBot)) {
+				Debug.Log("ERROR: ApplyModData called with modData where isBot is not true!");
+			}
+			Name = d.GetString(dataKey.name, name);
+			farmer.Stamina = d.GetInt(dataKey.energy, energy);
+			farmer.faceDirection(d.GetInt(dataKey.facing, facingDirection));
+			if (string.IsNullOrEmpty(name)) Name = "Bot " + (uniqueFarmerID++);
+			Debug.Log($"after ApplyModData, name=[{name}]");
+		}
+
+		//----------------------------------------------------------------------
 		// Conversion of bots to chests (before saving)
 		//----------------------------------------------------------------------
 
@@ -156,8 +189,7 @@ namespace Farmtronics {
 		static Chest ConvertBotToChest(Bot bot) {
 			var chest = new Chest();
 			chest.Stack = bot.Stack;
-			chest.modData[isBotKey] = "1";
-			chest.modData[facingKey] = bot.facingDirection.ToString();
+			bot.SetModData(chest.modData);
 			var inventory = bot.inventory;
 			if (inventory != null) {
 				if (chest.items.Count < inventory.Count) chest.items.Set(inventory);
@@ -260,25 +292,16 @@ namespace Farmtronics {
 				int inChestCount = ConvertChestsInListToBots(chest.items);
 				if (inChestCount > 0) Debug.Log($"Converted {inChestCount} chests stored in a chest into bots");
 
-				string s = null;
-				chest.modData.TryGetValue(isBotKey, out s);
-				Debug.Log($"Found chest in {inLocation} at {tileLoc} with isBot={s}");
-				if (s != "1") continue;
+				if (!chest.modData.GetBool(dataKey.isBot)) continue;
 				targetTileLocs.Add(tileLoc);
 			}
 			foreach (Vector2 tileLoc in targetTileLocs) {
 				var chest = inLocation.objects[tileLoc] as Chest;
 
-				int facing = 0;
-				string facingStr = null;
-				if (chest.modData.TryGetValue(facingKey, out facingStr)) {
-					int.TryParse(facingStr, out facing);
-				}
-
 				Bot bot = new Bot(tileLoc, inLocation, false);
 				inLocation.objects.Remove(tileLoc);				// remove chest from "objects"
 				inLocation.overlayObjects.Add(tileLoc, bot);	// add bot to "overlayObjects"
-				bot.farmer.faceDirection(facing);
+				bot.ApplyModData(chest.modData);
 				for (int i=0; i<chest.items.Count && i<bot.inventory.Count; i++) { 
 					//Debug.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
 					bot.inventory[i] = chest.items[i];
@@ -300,9 +323,7 @@ namespace Farmtronics {
 			for (int i=0; i<items.Count; i++) {
 				var chest = items[i] as Chest;
 				if (chest == null) continue;
-				string s = null;
-				chest.modData.TryGetValue(isBotKey, out s);
-				if (s != "1") continue;
+				if (!chest.modData.GetBool(dataKey.isBot)) continue;
 				Bot bot = new Bot();
 				bot.Stack = chest.Stack;
 				items[i] = bot;
@@ -335,14 +356,6 @@ namespace Farmtronics {
 			Debug.Log($"Bot.performDropDownAction({who.Name})");
 			base.performDropDownAction(who);
 
-			// Check for energy
-			string s = null;
-			if (modData.TryGetValue(energyKey, out s)) {
-				Debug.Log($"performDropDownAction: Got energy from modData: {s}");
-				int energy = 0;
-				if (int.TryParse(s, out energy)) farmer.Stamina = energy;
-			}
-
 			// Keep our farmer positioned wherever this object is
 			farmer.currentLocation = Game1.player.currentLocation;
 			farmer.setTileLocation(TileLocation);
@@ -362,18 +375,11 @@ namespace Farmtronics {
 			bot.shakeTimer = 50;
 
 			// Copy other data from this item to bot.
-			bot.name = name;
+			SetModData(modData);
+			bot.ApplyModData(modData);
+
+			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
-
-			// Check for energy
-			string s = null;
-			if (modData.TryGetValue(energyKey, out s)) {
-				Debug.Log($"placementAction: Got energy from modData: {s}");
-				int energy = 0;
-				if (int.TryParse(s, out energy)) bot.farmer.Stamina = energy;
-			}
-
-			// ToDo: other data?
 
 			instances.Remove(this);
 
@@ -652,8 +658,7 @@ namespace Farmtronics {
 				var who = t.getLastFarmerToUse();
                 this.performRemoveAction(this.TileLocation, location);
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
-				deb.item.modData[isBotKey] = "1";
-				deb.item.modData[energyKey] = energy.ToString();
+				SetModData(deb.item.modData);
                 Game1.currentLocation.debris.Add(deb);
 				Debug.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
@@ -806,10 +811,8 @@ namespace Farmtronics {
 			var ret = new Bot(TileLocation);
 			ret.name = name;
 
-			ret.modData[energyKey] = energy.ToString();
-			Debug.Log($"getOne: stored energy value {energy}");
+			SetModData(ret.modData);
 
-			// TODO: All the other fields objects does??
 			ret.Stack = 1;
 			ret.Price = this.Price;
 			ret._GetOneFrom(this);

@@ -282,6 +282,12 @@ namespace Farmtronics {
 
 			Intrinsic f;
 
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(new ValString(sh.bot.Name));
+			};
+			botModule["name"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
@@ -414,7 +420,11 @@ namespace Farmtronics {
 				string keyStr = key.ToString();
 				if (keyStr == "_") return false;
 				//Debug.Log($"botModule {key} = {value}");
-				if (keyStr == "statusColor") {
+				if (keyStr == "name") {
+					string name = value.ToString();
+					if (!string.IsNullOrEmpty(name)) Shell.runningInstance.bot.Name = name;
+					return true;
+				} else if (keyStr == "statusColor") {
 					Shell.runningInstance.bot.statusColor = value.ToString().ToColor();
 					return true;
 				} else if (keyStr == "currentToolIndex") {
