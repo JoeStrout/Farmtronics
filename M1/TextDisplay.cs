@@ -171,13 +171,11 @@ namespace Farmtronics {
 			if (cursorX < 0) {
 				if (cursorY >= rows-1) {
 					cursorX = 0;
-					Debug.Log($"Backup1: was {oldX},{oldY} now {cursorX},{cursorY}");
 					return;
 				}
 				cursorY++;
 				cursorX = cols-1;
 			}
-			Debug.Log($"Backup2: was {oldX},{oldY} now {cursorX},{cursorY}");
 		}
 	
 		public void Set(int row, int col, char c) {

@@ -31,6 +31,8 @@ namespace Farmtronics {
 		static ValString _name = new ValString("name");
 		static ValString _handle = new ValString("_handle");
 
+		public static ValMap locationsMap;	// key: name; value: Location subclass
+
 		public static void Init(Shell shell) {
 			M1API.shell = shell;
 			console = shell.console;
@@ -95,12 +97,7 @@ namespace Farmtronics {
 			f = Intrinsic.Create("farm");
 			f.code = (context, partialResult) => {
 				var loc = (Farm)Game1.getLocationFromName("Farm");
-				var layer = loc.map.Layers[0];
-				var result = new ValMap();
-				result.map[ValString.magicIsA] = LocationClass(loc);
-				
-				result.map[_size] = ToList(layer.LayerWidth, layer.LayerHeight);
-				return new Intrinsic.Result(result);
+				return new Intrinsic.Result(LocationSubclass(loc));
 			};
 			
 			f = Intrinsic.Create("file");
@@ -115,7 +112,27 @@ namespace Farmtronics {
 			f.code = (context, partialResult) => {
 				return new Intrinsic.Result(FileHandleClass());
 			};
-			
+
+			f = Intrinsic.Create("getLocation");
+			f.AddParam("name");
+			f.code = (context, partialResult) => {
+				string name = context.GetLocalString("name");
+				if (string.IsNullOrEmpty(name)) return Intrinsic.Result.Null;
+				var loc = Game1.getLocationFromName(name);
+				if (loc == null) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(LocationSubclass(loc));
+			};
+
+			f = Intrinsic.Create("locations");
+			f.code = (context, partialResult) => {
+				if (locationsMap == null) {
+					locationsMap = new ValMap();
+					foreach (var loc in Game1.locations) {
+						locationsMap[loc.Name] = LocationSubclass(loc);
+					}
+				}
+				return new Intrinsic.Result(locationsMap);
+			};
 
 			f = Intrinsic.Create("import");
 			f.AddParam("libname");
@@ -228,7 +245,7 @@ namespace Farmtronics {
 				if (loc == null) {
 					return Intrinsic.Result.Null;
 				}
-				return new Intrinsic.Result(LocationClass(loc));
+				return new Intrinsic.Result(LocationClass());
 			};
 
 			f = Intrinsic.Create("run");
@@ -362,10 +379,7 @@ namespace Farmtronics {
 				var result = new ValMap();
 				result["x"] = new ValNumber(pos.X);
 				result["y"] = new ValNumber(pos.Y);
-				var area = new ValMap();
-				area.map[ValString.magicIsA] = LocationClass(loc);
-				area.map[_name] = new ValString(loc.NameOrUniqueName);
-				result["area"] = area;
+				result["area"] = LocationSubclass(loc);
 				return new Intrinsic.Result(result);
 			};
 			botModule["position"] = f.GetFunc();
@@ -1176,20 +1190,17 @@ namespace Farmtronics {
 			return keyModule;
 		}
 
-		public static Dictionary<string, ValMap> locationClassCache = new Dictionary<string, ValMap>();
-		public static ValMap LocationClass(GameLocation loc) {
-			if (locationClassCache.ContainsKey(loc.Name)) {
-				return locationClassCache.GetValueOrDefault(loc.Name, null);
-			}
-			var locationClass = new ValMap();
-			locationClass.map[_name] = new ValString(loc.Name);
-			locationClass.map[new ValString("width")] = new ValNumber(loc.map.Layers[0].LayerWidth);
-			locationClass.map[new ValString("height")] = new ValNumber(loc.map.Layers[0].LayerHeight);
-			locationClassCache.Add(loc.Name, locationClass);
-		
+		static ValMap locationClass = null;
+		public static ValMap LocationClass() {
+			if (locationClass != null) return locationClass;
+			locationClass = new ValMap();
+			locationClass.map[_name] = new ValString("Location");
+			locationClass.map[new ValString("width")] = ValNumber.zero;
+			locationClass.map[new ValString("height")] = ValNumber.zero;
+
 			Intrinsic f;
 
-			// Location.tile
+			// Location.tile (gets info on a particular tile in this location)
 			f = Intrinsic.Create("");
 			f.AddParam("self");
 			f.AddParam("x", ValNumber.zero);
@@ -1199,6 +1210,8 @@ namespace Farmtronics {
 				int x = context.GetLocalInt("x", 0);
 				int y = context.GetLocalInt("y", 0);
 				Vector2 xy = new Vector2(x,y);
+				string name = self.Lookup(_name).ToString();
+				var loc = Game1.getLocationFromName(name);
 				if (loc == null) return Intrinsic.Result.Null;
 
 				ValMap result = TileInfo.GetInfo(loc, xy);
@@ -1208,6 +1221,21 @@ namespace Farmtronics {
 			locationClass["tile"] = f.GetFunc();
 
 			return locationClass;
+		}
+
+		public static Dictionary<string, ValMap> locationCache = new Dictionary<string, ValMap>();
+		public static ValMap LocationSubclass(GameLocation loc) {
+			if (locationCache.ContainsKey(loc.NameOrUniqueName)) {
+				return locationCache[loc.NameOrUniqueName];
+			}
+			var subclass = new ValMap();
+			subclass.map[ValString.magicIsA] = LocationClass();
+			subclass.map[_name] = new ValString(loc.NameOrUniqueName);
+			subclass.map[new ValString("width")] = new ValNumber(loc.map.Layers[0].LayerWidth);
+			subclass.map[new ValString("height")] = new ValNumber(loc.map.Layers[0].LayerHeight);
+			locationCache.Add(loc.NameOrUniqueName, subclass);
+
+			return subclass;
 		}
 
 
