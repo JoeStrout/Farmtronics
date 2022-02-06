@@ -111,9 +111,9 @@ namespace Farmtronics {
 			// Avoid duplicate names so we can reference a bot with its name
 			foreach (Bot bot in instances) {
 				if (bot.Name == name) return false;
-            }
+			}
 			return true;
-        }
+		}
 
 		public Bot(
 				Chest chest = null,
@@ -837,7 +837,8 @@ namespace Farmtronics {
 		/// <summary>
 		/// This method is called to get an "Item" (something that can be carried) from this Bot.
 		/// Since Bot is an Object and Objects are Items, we can just return another Bot, but
-		/// for some reason we can't just return *this* bot.
+		/// for some reason we can't just return *this* bot.  Probably because this one is
+		/// about to be destroyed.
 		/// </summary>
 		/// <returns></returns>
 		public override Item getOne() {

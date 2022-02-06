@@ -132,7 +132,34 @@ namespace Farmtronics {
 			return result;
 		}
 
+		static ValMap ToMap(Character character) {
+			if (character == null) return null;
+			var result = new ValMap();
+			result.map[_type] = new ValString("Character");
+			result.map[_name] = new ValString(character.Name);
+			result["displayName"] = new ValString(character.displayName);
+			result["facing"] = new ValNumber(character.FacingDirection);
+			result["isEmoting"] = ValNumber.Truth(character.isEmoting);
+			result["emote"] = new ValNumber(character.CurrentEmote);
+			result["isMonster"] = ValNumber.Truth(character.IsMonster);
+
+			return result;
+		}
+
 		public static ValMap GetInfo(GameLocation loc, Vector2 xy) {
+			// check farmers
+			if (Game1.player.currentLocation == loc && Game1.player.getTileLocation() == xy) return ToMap(Game1.player);
+			foreach (var farmer in Game1.otherFarmers.Values) {
+				if (farmer.currentLocation == loc && farmer.getTileLocation() == xy) return ToMap(farmer);
+			}
+
+			// check NPCs
+			foreach (var character in loc.characters) {
+				if (character.getTileLocation() == xy) {
+					return ToMap(character);
+				}
+			}
+
 			// check objects
 			StardewValley.Object obj = null;
 			loc.objects.TryGetValue(xy, out obj);

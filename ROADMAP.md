@@ -41,9 +41,13 @@ This is our "minimum viable product".
 
 These will be addressed ASAP.
 
-- When you pick up a bot, its inventory is reset, and anything other than the starter tools is lost.
+- When a bot tries to break something its tools aren't strong enough for (e.g. a large stump with the default axe), it causes a dialog to briefly appear and the player farmer to jitter in place, even if they are nowhere near the bot.
 
 ## Coming Soon
+
+- Bots no longer lose their inventory when picked up.
+- You can get or set the name of a bot as `bot.name`, and these names persist across saves and pick-up/set-down.
+- Tile information (e.g. from `bot.ahead` or `Location.tile` now includes characters (players and NPCs).
 
 ## Unscheduled Future Version
 
