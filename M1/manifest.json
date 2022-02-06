@@ -1,8 +1,8 @@
 ﻿{
   "Name": "Farmtronics",
   "Author": "Joe Strout",
-  "Version": "1.0.5",
-  "Description": "Adds a high-tech \"home computer\" to your TV!",
+  "Version": "1.0.6",
+  "Description": "Adds a \"home computer\" and programmable bots!",
   "UniqueID": "strout.farmtronics",
   "EntryDll": "Farmtronics.dll",
   "MinimumApiVersion": "3.0.0",

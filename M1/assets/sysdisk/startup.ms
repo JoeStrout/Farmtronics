@@ -103,11 +103,10 @@ end function
 color.rgba = function(r, g, b, a)
 	return "#" + hex2(r) + hex2(g) + hex2(b) + hex2(a)
 end function
-
+color.lerp = function(colorA, colorB, t=0.5)
+	return _lerpColor(colorA, colorB, t)
+end function
 // ToDo: functions below, once supporting APIs are in place
-//color.lerp = function(colorA, colorB, t=0.5)
-//	return _lerpColor(colorA, colorB, t)
-//end function
 //color.toList = function(colorString)
 //	return _colorToRGBA(colorString)
 //end function

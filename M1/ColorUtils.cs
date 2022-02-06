@@ -63,4 +63,14 @@ public static class ColorUtils {
 		a.B = (byte)((int)a.B * b.B / 255);
 		a.A = (byte)((int)a.A * b.A / 255);
 	}
+
+	public static Color Lerp(Color a, Color b, float t) {
+		float ta = 1f - t;
+		float tb = t;
+		return new Color(
+			(byte)((int)a.R * ta + b.R * tb), 
+			(byte)((int)a.G * ta + b.G * tb),
+			(byte)((int)a.B * ta + b.B * tb), 
+			(byte)((int)a.A * ta + b.A * tb));
+	}
 }

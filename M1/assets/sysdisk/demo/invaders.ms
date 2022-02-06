@@ -125,7 +125,7 @@ aliens.init = function()
   self.modeB = 0
   self.nextTickTime = 0
   self.timePerTick = 0.5
-  self.nextFireTime = 1
+  self.nextFireTime = time + 2.5
   self.timePerShot = 0.7
   self.xdir = -1
   self.trim
@@ -345,9 +345,9 @@ Explosion.draw = function
     art = ["   ", "   "]
   end if
   if self.stage < 20 then
-    text.color = color.yellow //color.lerp(color.yellow, color.red, self.stage/20)
+    text.color = color.lerp(color.yellow, color.red, self.stage/20)
   else
-    text.color = color.orange //color.lerp(color.yellow, color.black, self.stage/20-1)
+    text.color = color.lerp(color.yellow, color.black, self.stage/20-1)
   end if
   text.delimiter = ""
   text.row = self.top; text.column = self.left
@@ -366,8 +366,9 @@ Explosion.update = function
 end function
 
 Explosion.updateAll = function
-  for exp in Explosion.instances
-    exp.update
+  if not Explosion.instances then return
+  for i in range(Explosion.instances.len-1)
+    Explosion.instances[i].update
   end for
 end function
 
@@ -519,7 +520,7 @@ while not key.pressed("escape") and not gameOver
       startLevel
     end if
   end if
-  if aliens.count < 1 then
+  if aliens.count < 1 and not Explosion.instances then
     text.row = 12; text.column = 14
     text.color = color.yellow
     print "LEVEL CLEAR"

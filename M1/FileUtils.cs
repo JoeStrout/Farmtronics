@@ -325,6 +325,36 @@ public class OpenFile {
 		return s;
 	}
 	
+	public string ReadChars(int charCount=1) {
+		if (!readable) {
+			error = "Error: stream is not readable";
+			return null;
+		}
+		if (memStream == null) {
+			error = "Error: file is not open";
+			return null;
+		}
+		// Advance, counting characters (technically, code points) until we have enough.
+		// In UTF-8, a character always starts with either high bit clear, or first two bits set.
+		// Additional bytes in a character always start with high 2 bits equal to 0b10.
+		byte[] memBuf = memStream.GetBuffer();
+		int start = (int)memStream.Position;
+		if (start >= memStream.Length) return null;
+		int endPos = start;
+		int count = 0;
+		while (endPos < memStream.Length && count < charCount) {
+			// Advance past the start of the current character, and count it.
+			endPos++;
+			count++;
+			// Continue advancing while we are in subsequent bytes of that same character.
+			while (endPos < memStream.Length && (memBuf[endPos] & 0xC0) == 0x80) endPos++;
+		}
+		// Grab the string up to that point.
+		string s = Encoding.UTF8.GetString(memBuf, start, endPos - start);
+		memStream.Position = endPos;
+		return s;
+	}
+
 	public void Close() {
 		if (memStream == null) return;
 		if (writeable && needSave) {

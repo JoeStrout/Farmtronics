@@ -31,6 +31,8 @@ namespace Farmtronics {
 		static ValString _name = new ValString("name");
 		static ValString _handle = new ValString("_handle");
 
+		public static ValMap locationsMap;	// key: name; value: Location subclass
+
 		public static void Init(Shell shell) {
 			M1API.shell = shell;
 			console = shell.console;
@@ -42,7 +44,7 @@ namespace Farmtronics {
 
 			if (shell.bot == null) HostInfo.name = "Farmtronics Home Computer";
 			else HostInfo.name = "Farmtronics Bot";
-			HostInfo.version = 1.05;
+			HostInfo.version = 1.06;
 			HostInfo.info = "https://github.com/JoeStrout/Farmtronics/";
 		
 			Intrinsic f;
@@ -56,6 +58,18 @@ namespace Farmtronics {
 				string s = context.variables.GetString("s");
 				Debug.Log(s);
 				return Intrinsic.Result.Null;
+			};
+
+			f = Intrinsic.Create("_lerpColor");
+			f.AddParam("colorA", "#FFFFFF");
+			f.AddParam("colorB", "#FFFFFF");
+			f.AddParam("t", 0.5f);
+			f.code = (context, partialResult) => {
+				var colorA = ColorUtils.ToColor(context.GetLocalString("colorA"));
+				var colorB = ColorUtils.ToColor(context.GetLocalString("colorB"));
+				var t = context.GetLocalFloat("t");
+				var resultColor = ColorUtils.Lerp(colorA, colorB, t);
+				return new Intrinsic.Result(new ValString(resultColor.ToHexString()));
 			};
 
 			f = Intrinsic.Create("bot");
@@ -83,13 +97,7 @@ namespace Farmtronics {
 			f = Intrinsic.Create("farm");
 			f.code = (context, partialResult) => {
 				var loc = (Farm)Game1.getLocationFromName("Farm");
-				var layer = loc.map.Layers[0];
-				var result = new ValMap();
-				result.map[ValString.magicIsA] = LocationClass();
-				result.map[_name] = new ValString("Farm");
-				
-				result.map[_size] = ToList(layer.LayerWidth, layer.LayerHeight);
-				return new Intrinsic.Result(result);
+				return new Intrinsic.Result(LocationSubclass(loc));
 			};
 			
 			f = Intrinsic.Create("file");
@@ -104,7 +112,27 @@ namespace Farmtronics {
 			f.code = (context, partialResult) => {
 				return new Intrinsic.Result(FileHandleClass());
 			};
-			
+
+			f = Intrinsic.Create("getLocation");
+			f.AddParam("name");
+			f.code = (context, partialResult) => {
+				string name = context.GetLocalString("name");
+				if (string.IsNullOrEmpty(name)) return Intrinsic.Result.Null;
+				var loc = Game1.getLocationFromName(name);
+				if (loc == null) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(LocationSubclass(loc));
+			};
+
+			f = Intrinsic.Create("locations");
+			f.code = (context, partialResult) => {
+				if (locationsMap == null) {
+					locationsMap = new ValMap();
+					foreach (var loc in Game1.locations) {
+						locationsMap[loc.Name] = LocationSubclass(loc);
+					}
+				}
+				return new Intrinsic.Result(locationsMap);
+			};
 
 			f = Intrinsic.Create("import");
 			f.AddParam("libname");
@@ -198,7 +226,25 @@ namespace Farmtronics {
 			};
 
 			f = Intrinsic.Create("Location");
+			f.AddParam("name");
 			f.code = (context, partialResult) => {
+				Value name = context.GetVar("name");
+
+				GameLocation loc;
+				if (name != null) {
+					loc = Game1.getLocationFromName(name.ToString());
+				} else {
+					Shell sh = context.interpreter.hostData as Shell;
+					var bot = sh.bot;
+					if (bot == null) {
+						loc = Game1.currentLocation;
+					} else {
+						loc = sh.bot.currentLocation;
+					}
+				}
+				if (loc == null) {
+					return Intrinsic.Result.Null;
+				}
 				return new Intrinsic.Result(LocationClass());
 			};
 
@@ -252,6 +298,13 @@ namespace Farmtronics {
 			botModule = new ValMap();
 
 			Intrinsic f;
+
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(new ValString(sh.bot.Name));
+			};
+			botModule["name"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
@@ -326,10 +379,7 @@ namespace Farmtronics {
 				var result = new ValMap();
 				result["x"] = new ValNumber(pos.X);
 				result["y"] = new ValNumber(pos.Y);
-				var area = new ValMap();
-				area.map[ValString.magicIsA] = LocationClass();
-				area.map[_name] = new ValString(loc.NameOrUniqueName);
-				result["area"] = area;
+				result["area"] = LocationSubclass(loc);
 				return new Intrinsic.Result(result);
 			};
 			botModule["position"] = f.GetFunc();
@@ -384,7 +434,13 @@ namespace Farmtronics {
 				string keyStr = key.ToString();
 				if (keyStr == "_") return false;
 				//Debug.Log($"botModule {key} = {value}");
-				if (keyStr == "statusColor") {
+				if (keyStr == "name") {
+					string name = value.ToString();
+					if (Bot.isNameValid(name)) {
+						Shell.runningInstance.bot.Name = name;
+						return true;
+					} else return false;
+				} else if (keyStr == "statusColor") {
 					Shell.runningInstance.bot.statusColor = value.ToString().ToColor();
 					return true;
 				} else if (keyStr == "currentToolIndex") {
@@ -657,17 +713,21 @@ namespace Farmtronics {
 			f.AddParam("lines");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				string path = context.GetLocalString("path");
+				string origPath = context.GetLocalString("path");
 				Value linesVal = context.GetLocal("lines");
 				if (linesVal == null) return new Intrinsic.Result("Error: lines parameter is required");
 			
 				string err = null;
-				path = sh.ResolvePath(path, out err);
+				string path = sh.ResolvePath(origPath, out err);
 				if (path == null) return new Intrinsic.Result(err);
 
-				Disk disk = FileUtils.GetDisk(ref path);
-				if (!disk.IsWriteable()) return new Intrinsic.Result("Error: disk is not writeable");
-				disk.WriteLines(path, linesVal.ToStrings());
+				try {
+					Disk disk = FileUtils.GetDisk(ref path);
+					if (!disk.IsWriteable()) return new Intrinsic.Result("Error: disk is not writeable");
+					disk.WriteLines(path, linesVal.ToStrings());
+				} catch (System.Exception) {
+					return new Intrinsic.Result("Error: unable to write " + origPath);
+				}
 				return Intrinsic.Result.Null;
 			};
 			fileModule["writeLines"] = f.GetFunc();
@@ -874,11 +934,15 @@ namespace Farmtronics {
 			// .read
 			f = Intrinsic.Create("");
 			f.AddParam("self");
+			f.AddParam("codePointCount");
 			f.code = (context, partialResult) => {
 				string err;
 				OpenFile file = GetOpenFile(context, out err);
 				if (err != null) return Intrinsic.Result.Null;
-				string s = file.ReadToEnd();
+				string s;
+				Value count = context.GetLocal("codePointCount");
+				if (count == null) s = file.ReadToEnd();
+				else s = file.ReadChars(count.IntValue());
 				return new Intrinsic.Result(s);
 			};		
 			fileHandleClass["read"] = f.GetFunc();
@@ -1127,36 +1191,24 @@ namespace Farmtronics {
 
 			return keyModule;
 		}
-	
 
-		static ValMap locationClass;
+		static ValMap locationClass = null;
 		public static ValMap LocationClass() {
 			if (locationClass != null) return locationClass;
-
 			locationClass = new ValMap();
-			locationClass.map[_name] = null;
-		
+			locationClass.map[_name] = new ValString("Location");
+			locationClass.map[new ValString("width")] = ValNumber.zero;
+			locationClass.map[new ValString("height")] = ValNumber.zero;
+
 			Intrinsic f;
 
-			// Location.height
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				ValMap self = context.GetVar("self") as ValMap;
-				string name = self.Lookup(_name).ToString();
-				var loc = Game1.getLocationFromName(name);
-				if (loc == null) return Intrinsic.Result.Null;
-				return new Intrinsic.Result(new ValNumber(loc.map.Layers[0].LayerHeight));
-			};
-			locationClass["height"] = f.GetFunc();
-
-			// Location.tile
+			// Location.tile (gets info on a particular tile in this location)
 			f = Intrinsic.Create("");
 			f.AddParam("self");
 			f.AddParam("x", ValNumber.zero);
 			f.AddParam("y", ValNumber.zero);
 			f.code = (context, partialResult) => {
 				ValMap self = context.GetVar("self") as ValMap;
-				if (self == null) throw new RuntimeException("Map required for Location.tile parameter");
 				int x = context.GetLocalInt("x", 0);
 				int y = context.GetLocalInt("y", 0);
 				Vector2 xy = new Vector2(x,y);
@@ -1170,19 +1222,22 @@ namespace Farmtronics {
 			};
 			locationClass["tile"] = f.GetFunc();
 
-			// Location.width
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				ValMap self = context.GetVar("self") as ValMap;
-				string name = self.Lookup(_name).ToString();
-				var loc = Game1.getLocationFromName(name);
-				if (loc == null) return Intrinsic.Result.Null;
-				return new Intrinsic.Result(new ValNumber(loc.map.Layers[0].LayerWidth));
-			};
-			locationClass["width"] = f.GetFunc();
-
-
 			return locationClass;
+		}
+
+		public static Dictionary<string, ValMap> locationCache = new Dictionary<string, ValMap>();
+		public static ValMap LocationSubclass(GameLocation loc) {
+			if (locationCache.ContainsKey(loc.NameOrUniqueName)) {
+				return locationCache[loc.NameOrUniqueName];
+			}
+			var subclass = new ValMap();
+			subclass.map[ValString.magicIsA] = LocationClass();
+			subclass.map[_name] = new ValString(loc.NameOrUniqueName);
+			subclass.map[new ValString("width")] = new ValNumber(loc.map.Layers[0].LayerWidth);
+			subclass.map[new ValString("height")] = new ValNumber(loc.map.Layers[0].LayerHeight);
+			locationCache.Add(loc.NameOrUniqueName, subclass);
+
+			return subclass;
 		}
 
 
