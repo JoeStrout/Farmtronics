@@ -46,7 +46,9 @@ These will be addressed ASAP.
 
 ## Coming Soon
 
+- Bots no longer lose their inventory when picked up.
 - You can get or set the name of a bot as `bot.name`, and these names persist across saves and pick-up/set-down.
+- Tile information (e.g. from `bot.ahead` or `Location.tile` now includes characters (players and NPCs).
 
 ## Unscheduled Future Version
 
