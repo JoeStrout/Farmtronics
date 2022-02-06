@@ -375,7 +375,6 @@ namespace Farmtronics {
 				Shell sh = context.interpreter.hostData as Shell;
 				var pos = sh.bot.TileLocation;
 				var loc = sh.bot.currentLocation;
-				Debug.Log($"Got location {loc} ({loc.Name}, {loc.uniqueName}), pos {pos}");
 				var result = new ValMap();
 				result["x"] = new ValNumber(pos.X);
 				result["y"] = new ValNumber(pos.Y);

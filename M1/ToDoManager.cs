@@ -100,7 +100,7 @@ namespace Farmtronics {
 
 			// Adds mail for the next day, and saves -- what we want for deployment:
 			Game1.addMailForTomorrow("FarmtronicsFirstBotMail");
-			Game1.player.recoveredItem = new Bot();
+			Game1.player.recoveredItem = new Bot(null);
 			Debug.Log("first-bot mail sent; will be delivered in the morning");
 		}
 	}
