@@ -41,7 +41,6 @@ This is our "minimum viable product".
 
 These will be addressed ASAP.
 
-- When you pick up a bot, its inventory is reset, and anything other than the starter tools is lost.
 - When a bot tries to break something its tools aren't strong enough for (e.g. a large stump with the default axe), it causes a dialog to briefly appear and the player farmer to jitter in place, even if they are nowhere near the bot.
 
 ## Coming Soon
