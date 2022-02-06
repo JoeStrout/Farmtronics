@@ -32,9 +32,9 @@ namespace Farmtronics {
 		static Vector2 preferredPosition;
 		static Vector2 lastGameviewSize;
 
-		public BotUIMenu(Bot bot, Shell shell)
+		public BotUIMenu(Bot bot)
 		: base(null, okButton: true, trashCan: true) {
-			print($"Created BotUIMenu. PositionOnScreen:{xPositionOnScreen},{yPositionOnScreen}; viewport:{Game1.uiViewport.Width}, {Game1.uiViewport.Height} ");
+			print($"Created BotUIMenu for {bot.Name}. PositionOnScreen:{xPositionOnScreen},{yPositionOnScreen}; viewport:{Game1.uiViewport.Width}, {Game1.uiViewport.Height}, shell {bot.shell}");
 
 			this.bot = bot;
 

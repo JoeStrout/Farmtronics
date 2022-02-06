@@ -61,6 +61,7 @@ namespace Farmtronics {
 		Vector2 position;	// our current position, in pixels
 		Vector2 targetPos;	// position we're moving to, in pixels
 
+		// Instances of bots which need updating, i.e., ones that actually exist in the world.
 		static List<Bot> instances = new List<Bot>();
 
 		static int uniqueFarmerID = 1;
@@ -90,6 +91,10 @@ namespace Farmtronics {
 			} else {
 				Name = farmer.Name;
 			}
+
+			// NOTE: this constructor is used for bots that are not in the world
+			// (but are in inventory, mail attachment, etc.).  So we do not add
+			// to the instances list.
 		}
 
 		public Bot(Vector2 tileLocation, GameLocation location=null, Farmer farmer=null) :base(tileLocation, 130) {
@@ -347,7 +352,9 @@ namespace Farmtronics {
 		//----------------------------------------------------------------------
 
 		public static void UpdateAll(GameTime gameTime) {
+			bool debug = ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
 			for (int i=instances.Count - 1; i >= 0; i--) {
+				if (debug) Debug.Log($"Updating {i}/{instances.Count}: {instances[i].Name}");
 				instances[i].Update(gameTime);
 			}
 		}
@@ -387,11 +394,17 @@ namespace Farmtronics {
 			// Copy other data from this item to bot.
 			SetModData(modData);
 			bot.ApplyModData(modData);
+			bot.farmer.currentLocation = location;
+			bot.NotePosition();
 
 			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
 
+			// Add the new bot (which is in the world) to our instances list.
+			// Remove the old item, if it happens to be in there (though it probably isn't).
 			instances.Remove(this);
+			if (!instances.Contains(bot)) instances.Add(bot);
+			Debug.Log($"Added {bot.Name} to instances; now have {instances.Count}");
 
 			location.playSound("hammer");
 			return true;
@@ -587,6 +600,10 @@ namespace Farmtronics {
 		}
 
 		public void Update(GameTime gameTime) {
+			bool debug = ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
+			if (debug) Debug.Log($"{Name} updating with farmer in {farmer.currentLocation?.Name}, here is {Game1.currentLocation.Name}, shell is {shell}");
+
+
 			// Weird things happen if we try to update bots in locations other than
 			// the current location.  We should try harder to get that to work sometime,
 			// but for now, let's just detect that case and bail out.
@@ -594,6 +611,7 @@ namespace Farmtronics {
 
 			if (shell != null) {
 				shell.console.update(gameTime);
+				if (farmer.Name != Name) farmer.Name = Name;
 			}
 			if (toolUseFrame > 0) {
 				toolUseFrame++;
@@ -818,7 +836,8 @@ namespace Farmtronics {
 		/// <returns></returns>
 		public override Item getOne() {
 			// Create a new Bot from this one, copying the farmer (with inventory etc.)
-			var ret = new Bot(TileLocation, currentLocation, farmer);
+			farmer.Name = name;		// (ensures that name copies from old bot to new bot)
+			var ret = new Bot(farmer);
 			ret.name = name;
 
 			SetModData(ret.modData);
@@ -847,7 +866,7 @@ namespace Farmtronics {
 				shell = new Shell();
 				shell.Init(this);
 			}
-			Game1.activeClickableMenu = new BotUIMenu(this, shell);
+			Game1.activeClickableMenu = new BotUIMenu(this);
 		}
 	}
 }
