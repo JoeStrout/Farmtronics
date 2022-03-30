@@ -41,7 +41,9 @@ This is our "minimum viable product".
 
 These will be addressed ASAP.
 
+- If you buy more than one bot at a time from Pierre's store, the resulting bots are conjoined under the hood in a way that makes them malfunction.  Workaround: close the shop menu after each purchase.  (Sleeping will probably fix them, too.)
 - When a bot tries to break something its tools aren't strong enough for (e.g. a large stump with the default axe), it causes a dialog to briefly appear and the player farmer to jitter in place, even if they are nowhere near the bot.
+- Under certain circumstances, when two bots are moving at the same time (perhaps onto the same space?), one of them may disappear.
 
 ## Coming Soon
 
