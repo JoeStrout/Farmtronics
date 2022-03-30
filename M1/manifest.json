@@ -1,7 +1,7 @@
 ﻿{
   "Name": "Farmtronics",
   "Author": "Joe Strout",
-  "Version": "1.0.6",
+  "Version": "1.0.8",
   "Description": "Adds a \"home computer\" and programmable bots!",
   "UniqueID": "strout.farmtronics",
   "EntryDll": "Farmtronics.dll",

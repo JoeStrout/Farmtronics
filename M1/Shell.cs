@@ -143,32 +143,25 @@ namespace Farmtronics {
 
 		public void Update(GameTime gameTime) {
 			var inp = ModEntry.instance.Helper.Input;
-			bool debug = inp.IsDown(SButton.LeftShift);
 
-			if (debug) Debug.Log($"{bot.name} Update 0; console.InputInProgress() = {console.InputInProgress()}");
 			if (interpreter == null) return;		// still loading
-			if (debug) Debug.Log($"{bot.name} Update 1");
 			runningInstance = this;
 			if (interpreter.NeedMoreInput()) {
-				if (debug) Debug.Log($"{bot.name} Update 2a");
 				GetCommand();		// (though in this case, this really means: get ANOTHER command!)
 			} else if (interpreter.Running()) {
 				// continue the running code
-				if (debug) Debug.Log($"{bot.name} Update 2b");
 				interpreter.RunUntilDone(0.03f);
 			} else if (runProgram) {
-				Debug.Log($"{bot.name} runProgram flag detected; starting new program");
+				//Debug.Log($"{bot.name} runProgram flag detected; starting new program");
 				runProgram = false;
 				interpreter.Stop();
 				Value sourceVal = interpreter.GetGlobalValue("_source");
 				string source = (sourceVal == null ? null : sourceVal.JoinToString());
 				BeginRun(source);
 			} else {
-				if (debug) Debug.Log($"{bot.name} Update 2c");
 				// nothing running; get another command!
 				GetCommand();
 			}
-			if (debug) Debug.Log($"{bot.name} Update done");
 		}
 
 		void GetCommand() {
