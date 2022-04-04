@@ -371,6 +371,17 @@ namespace Farmtronics {
 			instances.Clear();
 		}
 
+		/// <summary>
+		/// Initializes each bot instance.
+		/// Does nothing if the bot instance has already been initialized.
+		/// Effectively starts up the bots.
+		/// </summary>
+		public static void InitShellAll() {
+			foreach(var instance in instances) {
+				instance.InitShell();
+			}
+		}
+
 		public override void dropItem(GameLocation location, Vector2 origin, Vector2 destination) {
 			//Debug.Log($"Bot.dropItem({location}, {origin}, {destination}");
 			base.dropItem(location, origin, destination);
@@ -867,13 +878,23 @@ namespace Farmtronics {
 			return 12;
 		}
 
-		public void ShowMenu() {
-			ModEntry.instance.print($"{Name} ShowMenu()");
-
-			if (shell == null) {
+		/// <summary>
+		/// Initializes this bot instance.
+		/// Does nothing if the bot instance has already been initialized.
+		/// Effectively starts up the bot.
+		/// </summary>
+		public void InitShell() {
+			if(shell == null) {
 				shell = new Shell();
 				shell.Init(this);
 			}
+		}
+
+		public void ShowMenu() {
+			ModEntry.instance.print($"{Name} ShowMenu()");
+
+			// Make sure the bot is booted up when showing the menu.
+			InitShell();
 			Game1.activeClickableMenu = new BotUIMenu(this);
 		}
 	}

@@ -146,9 +146,14 @@ namespace Farmtronics
 					break;
 				}
 			}
+
+			// Initialize the home computer and all bots for autostart.
+			// This initialization will also cause all startup scripts to run.
+			InitComputerShell();
+			Bot.InitShellAll();
 		}
 
-		// The day always starts at 0600.
+    // The day always starts at 0600.
 		private int currentGameTime = 600;
 
 		/// <summary>
@@ -161,11 +166,20 @@ namespace Farmtronics
 			currentGameTime = e.NewTime;
 		}
 
-		private void PresentComputer() {
+		/// <summary>
+		/// Initializes the home computer shell.
+		/// Effectively boots up the home computer if it is not already running.
+		/// </summary>
+		private void InitComputerShell() {
 			if (shell == null) {
 				shell = new Shell();
 				shell.Init();
 			}
+		}
+
+		private void PresentComputer() {
+			// Initialize the home computer if it is not already running.
+			InitComputerShell();
 			shell.console.Present();
 
 			/*
