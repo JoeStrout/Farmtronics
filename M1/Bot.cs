@@ -72,7 +72,7 @@ namespace Farmtronics {
 		static Texture2D botSprites;
 
 		public Bot(Farmer farmer) {
-			Debug.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
+			//Debug.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
 			}
@@ -98,7 +98,7 @@ namespace Farmtronics {
 		}
 
 		public Bot(Vector2 tileLocation, GameLocation location=null, Farmer farmer=null) :base(tileLocation, 130) {
-			Debug.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
+			//Debug.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 
 			if (botSprites == null) {
 				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
@@ -113,7 +113,7 @@ namespace Farmtronics {
 			this.TileLocation = tileLocation;
 			if (location == null) {
 				location = Game1.player.currentLocation;
-				Debug.Log($"Location is null; fallback to {location.Name}");
+				//Debug.Log($"Location is null; fallback to {location.Name}");
 			}
 
 			if (farmer == null) {
@@ -164,12 +164,12 @@ namespace Farmtronics {
 		/// Apply the values in the given ModDataDictionary to this bot,
 		/// configuring name, energy, etc.
 		/// </summary>
-		void ApplyModData(ModDataDictionary d) {
+		void ApplyModData(ModDataDictionary d, bool includingEnergy=true) {
 			if (!d.GetBool(dataKey.isBot)) {
 				Debug.Log("ERROR: ApplyModData called with modData where isBot is not true!");
 			}
 			Name = d.GetString(dataKey.name, name);
-			farmer.Stamina = d.GetInt(dataKey.energy, energy);
+			if (includingEnergy) farmer.Stamina = d.GetInt(dataKey.energy, energy);
 			farmer.faceDirection(d.GetInt(dataKey.facing, facingDirection));
 			if (string.IsNullOrEmpty(name)) Name = "Bot " + (uniqueFarmerID++);
 			Debug.Log($"after ApplyModData, name=[{name}]");
@@ -203,7 +203,12 @@ namespace Farmtronics {
 		static Chest ConvertBotToChest(Bot bot) {
 			var chest = new Chest();
 			chest.Stack = bot.Stack;
+
 			bot.SetModData(chest.modData);
+			// Remove "energy" from the data, since this method happens at night, and
+			// we actually want our bots to wake up refreshed.
+			chest.modData.Remove(dataKey.energy);
+
 			var inventory = bot.inventory;
 			if (inventory != null) {
 				if (chest.items.Count < inventory.Count) chest.items.Set(inventory);
@@ -315,7 +320,10 @@ namespace Farmtronics {
 				Bot bot = new Bot(tileLoc, inLocation);
 				inLocation.objects.Remove(tileLoc);				// remove chest from "objects"
 				inLocation.overlayObjects.Add(tileLoc, bot);	// add bot to "overlayObjects"
-				bot.ApplyModData(chest.modData);
+
+				// Apply mod data EXCEPT for energy; we want energy restored after a night
+				bot.ApplyModData(chest.modData, includingEnergy:false);
+				
 				for (int i=0; i<chest.items.Count && i<bot.inventory.Count; i++) { 
 					//Debug.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
 					bot.inventory[i] = chest.items[i];
@@ -352,7 +360,7 @@ namespace Farmtronics {
 		//----------------------------------------------------------------------
 
 		public static void UpdateAll(GameTime gameTime) {
-			bool debug = ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
+			bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
 			for (int i=instances.Count - 1; i >= 0; i--) {
 				if (debug) Debug.Log($"Updating {i}/{instances.Count}: {instances[i].Name}");
 				instances[i].Update(gameTime);
@@ -375,12 +383,12 @@ namespace Farmtronics {
 		}
 
 		public override void dropItem(GameLocation location, Vector2 origin, Vector2 destination) {
-			Debug.Log($"Bot.dropItem({location}, {origin}, {destination}");
+			//Debug.Log($"Bot.dropItem({location}, {origin}, {destination}");
 			base.dropItem(location, origin, destination);
 		}
 
 		public override bool performDropDownAction(Farmer who) {
-			Debug.Log($"Bot.performDropDownAction({who.Name})");
+			//Debug.Log($"Bot.performDropDownAction({who.Name})");
 			base.performDropDownAction(who);
 
 			// Keep our farmer positioned wherever this object is
@@ -395,7 +403,7 @@ namespace Farmtronics {
 		/// to create a new Bot instance that matches its data.
 		/// </summary>
 		public override bool placementAction(GameLocation location, int x, int y, Farmer who = null) {
-			Debug.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
+			//Debug.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
 			Vector2 placementTile = new Vector2(x / 64, y / 64);
 			// Create a new bot, copying the farmer (including inventory) from this one.
 			var bot = new Bot(placementTile, location, farmer);
@@ -415,7 +423,7 @@ namespace Farmtronics {
 			// Remove the old item, if it happens to be in there (though it probably isn't).
 			instances.Remove(this);
 			if (!instances.Contains(bot)) instances.Add(bot);
-			Debug.Log($"Added {bot.Name} to instances; now have {instances.Count}");
+			//Debug.Log($"Added {bot.Name} to instances; now have {instances.Count}");
 
 			location.playSound("hammer");
 			return true;
@@ -470,7 +478,7 @@ namespace Farmtronics {
 		public bool PlaceItem() {
 			var item = inventory[currentToolIndex] as StardewValley.Object;
 			if (item == null) {
-				Debug.Log($"No item equipped in slot {currentToolIndex}");
+				//Debug.Log($"No item equipped in slot {currentToolIndex}");
 				return false;
 			}
 			int placeX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
@@ -479,7 +487,7 @@ namespace Farmtronics {
 
 			// make sure we can place the item here
 			if (!Utility.playerCanPlaceItemHere(farmer.currentLocation, item, placeX, placeY, farmer)) {
-				Debug.Log($"Can't place {item} (stack size {item.Stack}) at {placeX},{placeY}");
+				//Debug.Log($"Can't place {item} (stack size {item.Stack}) at {placeX},{placeY}");
 				return false;
 			}
 
@@ -550,7 +558,7 @@ namespace Farmtronics {
 
 		public void Rotate(int stepsClockwise) {
 			farmer.faceDirection((farmer.FacingDirection + 4 + stepsClockwise) % 4);
-			Debug.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
+			//Debug.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
 		}
 
 		void ApplyToolToTile() {
@@ -574,19 +582,19 @@ namespace Farmtronics {
 			// Otherwise, big pain in the neck time.
 
 			// Apply it to the location itself.
-			Debug.Log($"{name} Performing {tool} action at {tileX},{tileY}");
+			//Debug.Log($"{name} Performing {tool} action at {tileX},{tileY}");
 			location.performToolAction(tool, tileX, tileY);
 
 			// Then, apply it to any terrain feature (grass, weeds, etc.) at this location.
 			if (location.terrainFeatures.ContainsKey(tile) && location.terrainFeatures[tile].performToolAction(tool, 0, tile, location)) {
-				Debug.Log($"Performed tool action on the terrain feature {location.terrainFeatures[tile]}; removing it");
+				//Debug.Log($"Performed tool action on the terrain feature {location.terrainFeatures[tile]}; removing it");
 				location.terrainFeatures.Remove(tile);
 			}
 			if (location.largeTerrainFeatures is not null) {
 				var tileRect = new Rectangle(tileX*64, tileY*64, 64, 64);
 				for (int i = location.largeTerrainFeatures.Count - 1; i >= 0; i--) {
 					if (location.largeTerrainFeatures[i].getBoundingBox().Intersects(tileRect) && location.largeTerrainFeatures[i].performToolAction(tool, 0, tile, location)) {
-						Debug.Log($"Performed tool action on the LARGE terrain feature {location.terrainFeatures[tile]}; removing it");
+						//Debug.Log($"Performed tool action on the LARGE terrain feature {location.terrainFeatures[tile]}; removing it");
 						location.largeTerrainFeatures.RemoveAt(i);
 					}
 				}
@@ -598,11 +606,11 @@ namespace Farmtronics {
 				if (obj != null && obj.Type != null && obj.performToolAction(tool, location)) {
 					if (obj.Type.Equals("Crafting") && (int)obj.Fragility != 2) {
 						var center = farmer.GetBoundingBox().Center;
-						Debug.Log($"Performed tool action on the object {obj}; adding debris");
+						//Debug.Log($"Performed tool action on the object {obj}; adding debris");
 						location.debris.Add(new Debris(obj.bigCraftable.Value ? (-obj.ParentSheetIndex) : obj.ParentSheetIndex,
 							farmer.GetToolLocation(), new Vector2(center.X, center.Y)));
 					}
-					Debug.Log($"Performing {obj} remove action, then removing it from {tile}");
+					//Debug.Log($"Performing {obj} remove action, then removing it from {tile}");
 					obj.performRemoveAction(tile, location);
 					location.Objects.Remove(tile);
 				}
@@ -611,7 +619,7 @@ namespace Farmtronics {
 		}
 
 		public void Update(GameTime gameTime) {
-			bool debug = ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
+			bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
 			if (debug) Debug.Log($"{Name} updating with farmer in {farmer.currentLocation?.Name}, here is {Game1.currentLocation.Name}, shell is {shell}");
 
 

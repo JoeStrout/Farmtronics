@@ -44,7 +44,7 @@ namespace Farmtronics {
 
 			if (shell.bot == null) HostInfo.name = "Farmtronics Home Computer";
 			else HostInfo.name = "Farmtronics Bot";
-			HostInfo.version = 1.06;
+			HostInfo.version = 1.08;
 			HostInfo.info = "https://github.com/JoeStrout/Farmtronics/";
 		
 			Intrinsic f;
@@ -283,6 +283,12 @@ namespace Farmtronics {
 				return Intrinsic.Result.Null;
 			};
 
+			// The world intrinsic gives access to information about the world of SDV.
+			// Currently mostly the things related to time.
+			f = Intrinsic.Create("world");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(WorldModule());
+			};
 		}
 
 		static bool DisallowAllAssignment(Value key, Value value) {
@@ -1610,6 +1616,73 @@ namespace Farmtronics {
 				return true;
 			};
 			return textModule;
+		}
+
+
+
+		static ValMap worldModule;
+
+		/// <summary>
+		/// Creates a module for accessing data about the SDV world.
+		/// </summary>
+		/// <returns>A value map with functions to get information about the world.</returns>
+		static ValMap WorldModule() {
+			if(worldModule != null) { return worldModule; }
+			worldModule = new ValMap();
+			worldModule.assignOverride = DisallowAllAssignment;
+
+			// The in-game time on this day.
+			// Can exceed 2400 when the farmer refuses to sleep.
+			Intrinsic f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(new ValNumber(ModEntry.instance.CurrentGameTime));
+			};
+			worldModule["timeOfDay"] = f.GetFunc();
+
+			// Days since start is the amount of in-game days since this farm was started.
+			// Day 1 of year 1 is 1 in this function.
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(new ValNumber(SDate.Now().DaysSinceStart));
+			};
+			worldModule["daySinceGameStart"] = f.GetFunc();
+
+			// The current day in the in-game season.
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(new ValNumber(SDate.Now().Day));
+			};
+			worldModule["dayOfSeason"] = f.GetFunc();
+
+			// The name of the in-game day.
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(new ValString(SDate.Now().DayOfWeek.ToString()));
+			};
+			worldModule["dayOfWeekName"] = f.GetFunc();
+
+			// The in-game year, starts at 1.
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(new ValNumber(SDate.Now().Year));
+			};
+			worldModule["year"] = f.GetFunc();
+
+			// The numeric representation for the current in-game season.
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(new ValNumber(SDate.Now().SeasonIndex));
+			};
+			worldModule["season"] = f.GetFunc();
+
+			// The human-readable representation for the current in-game season.
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				return new Intrinsic.Result(new ValString(SDate.Now().Season));
+			};
+			worldModule["seasonName"] = f.GetFunc();
+
+			return worldModule;
 		}
 
 		/// <summary>

@@ -25,13 +25,13 @@ namespace Farmtronics
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
-			//HACK not needed:
-			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+			//HACK not needed: helper.Events.Input.ButtonPressed += this.OnButtonPressed;
 			helper.Events.GameLoop.Saving += this.OnSaving;
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
 			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
-
+			helper.Events.GameLoop.TimeChanged += this.OnTimeChanged;
+			
 			print($"CurrentSavePath: {Constants.CurrentSavePath}");
 		}
 
@@ -153,12 +153,25 @@ namespace Farmtronics
 			Bot.InitShellAll();
 		}
 
+    // The day always starts at 0600.
+		private int currentGameTime = 600;
+
+		/// <summary>
+		/// Gets the current in-game time.
+		/// The time is formatted as HHmm, so 15:20 just becomes 1520 for example.
+		/// </summary>
+		public int CurrentGameTime => currentGameTime;
+		private void OnTimeChanged(object sender, TimeChangedEventArgs e) {
+			// Update the registered game time.
+			currentGameTime = e.NewTime;
+		}
+
 		/// <summary>
 		/// Initializes the home computer shell.
 		/// Effectively boots up the home computer if it is not already running.
 		/// </summary>
 		private void InitComputerShell() {
-			if(shell == null) {
+			if (shell == null) {
 				shell = new Shell();
 				shell.Init();
 			}

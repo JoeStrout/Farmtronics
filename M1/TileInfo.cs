@@ -170,6 +170,13 @@ namespace Farmtronics {
 			loc.terrainFeatures.TryGetValue(xy, out feature);
 			if (feature != null) return ToMap(feature);
 
+			// check LARGE terrain features
+			// (not 100% certain we need to check these separately, but maybe)
+			var xyBounds = new Rectangle((int)(xy.X*64), (int)(xy.Y*64), 64, 64);
+			foreach (LargeTerrainFeature ltf in loc.largeTerrainFeatures) {
+				if (ltf.getBoundingBox().Intersects(xyBounds)) return ToMap(ltf);
+			}
+
 			// check resource clumps (these span multiple tiles)
 			var bbox = new Rectangle((int)xy.X * 64, (int)xy.Y * 64, 64, 64);
 			foreach (var clump in loc.resourceClumps) {
@@ -189,6 +196,16 @@ namespace Farmtronics {
 				result.map[_name] = new ValString(hasProp);
 				return result;
 			}
+
+			// check buildings
+			var buildings_layer = loc.map.GetLayer("Buildings");
+			var tmp = buildings_layer.PickTile(new xTile.Dimensions.Location(x*64, y*64), Game1.viewport.Size);
+			if (tmp != null) {
+				var result = new ValMap();
+				result.map[_type] = new ValString("Building");
+				result.map[_name] = result.map[_type];
+				return result;
+			}			
 
 			return null;
 		}
