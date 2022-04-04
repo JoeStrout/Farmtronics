@@ -30,7 +30,8 @@ namespace Farmtronics
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
 			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
-
+			helper.Events.GameLoop.TimeChanged += this.OnTimeChanged;
+			
 			print($"CurrentSavePath: {Constants.CurrentSavePath}");
 		}
 
@@ -145,6 +146,19 @@ namespace Farmtronics
 					break;
 				}
 			}
+		}
+
+		// The day always starts at 0600.
+		private int currentGameTime = 600;
+
+		/// <summary>
+		/// Gets the current in-game time.
+		/// The time is formatted as HHmm, so 15:20 just becomes 1520 for example.
+		/// </summary>
+		public int CurrentGameTime => currentGameTime;
+		private void OnTimeChanged(object sender, TimeChangedEventArgs e) {
+			// Update the registered game time.
+			currentGameTime = e.NewTime;
 		}
 
 		private void PresentComputer() {
