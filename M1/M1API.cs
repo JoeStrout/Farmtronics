@@ -1635,7 +1635,7 @@ namespace Farmtronics {
 			// Can exceed 2400 when the farmer refuses to sleep.
 			Intrinsic f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
-				return new Intrinsic.Result(new ValNumber(ModEntry.instance.CurrentGameTime));
+				return new Intrinsic.Result(new ValNumber(Game1.timeOfDay));
 			};
 			worldModule["timeOfDay"] = f.GetFunc();
 

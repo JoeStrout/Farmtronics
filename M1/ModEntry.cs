@@ -30,7 +30,6 @@ namespace Farmtronics
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
 			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
-			helper.Events.GameLoop.TimeChanged += this.OnTimeChanged;
 			
 			print($"CurrentSavePath: {Constants.CurrentSavePath}");
 		}
@@ -153,19 +152,6 @@ namespace Farmtronics
 			Bot.InitShellAll();
 		}
 
-    // The day always starts at 0600.
-		private int currentGameTime = 600;
-
-		/// <summary>
-		/// Gets the current in-game time.
-		/// The time is formatted as HHmm, so 15:20 just becomes 1520 for example.
-		/// </summary>
-		public int CurrentGameTime => currentGameTime;
-		private void OnTimeChanged(object sender, TimeChangedEventArgs e) {
-			// Update the registered game time.
-			currentGameTime = e.NewTime;
-		}
-
 		/// <summary>
 		/// Initializes the home computer shell.
 		/// Effectively boots up the home computer if it is not already running.
@@ -178,39 +164,9 @@ namespace Farmtronics
 		}
 
 		private void PresentComputer() {
-			// Initialize the home computer if it is not already running.
+			// Initialize the home computer if it is not already running, then present it.
 			InitComputerShell();
 			shell.console.Present();
-
-			/*
-			var farm = (Farm)Game1.getLocationFromName("Farm");
-
-			var layer = farm.map.Layers[0];
-			shell.PrintLine($"Farm size: {layer.LayerWidth} x {layer.LayerHeight}");
-			shell.PrintLine($"Farm animals: {farm.getAllFarmAnimals().Count}");
-			shell.PrintLine($"Buildings: {farm.buildings.Count}");
-
-			int featureCount = 0;
-			int trees=0, bushes=0, grasses=0, hoeDirts=0, paths=0;
-			var hoeLocs = new List<string>();
-			foreach (KeyValuePair<Vector2, TerrainFeature> kvp in farm.terrainFeatures.Pairs) {
-				if (kvp.Value is Tree) trees++;
-				else if (kvp.Value is Bush) bushes++;
-				else if (kvp.Value is Grass) grasses++;
-				else if (kvp.Value is HoeDirt) {
-					hoeDirts++;
-					hoeLocs.Add(kvp.Key.ToString());	// locations are integers, X right and Y down from top-left
-				}
-				else if (kvp.Value is Flooring) paths++;
-				featureCount++;
-			}
-			shell.PrintLine($"Trees: {trees}");
-			shell.PrintLine($"Bushes: {bushes}");
-			shell.PrintLine($"Grass: {grasses}");
-			shell.PrintLine($"Tilled Ground: {hoeDirts}");// at: {string.Join(',', hoeLocs)}");
-			shell.PrintLine($"Paved: {paths}");
-			shell.PrintLine($"Total features: {featureCount}");
-			*/
 		}
 
 		bool IAssetEditor.CanEdit<T>(IAssetInfo asset) {
