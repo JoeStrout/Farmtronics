@@ -44,7 +44,7 @@ namespace Farmtronics {
 
 			if (shell.bot == null) HostInfo.name = "Farmtronics Home Computer";
 			else HostInfo.name = "Farmtronics Bot";
-			HostInfo.version = 1.08;
+			HostInfo.version = 1.09;
 			HostInfo.info = "https://github.com/JoeStrout/Farmtronics/";
 		
 			Intrinsic f;

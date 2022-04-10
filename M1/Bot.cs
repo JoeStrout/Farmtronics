@@ -172,7 +172,7 @@ namespace Farmtronics {
 			if (includingEnergy) farmer.Stamina = d.GetInt(dataKey.energy, energy);
 			farmer.faceDirection(d.GetInt(dataKey.facing, facingDirection));
 			if (string.IsNullOrEmpty(name)) Name = "Bot " + (uniqueFarmerID++);
-			Debug.Log($"after ApplyModData, name=[{name}]");
+			//Debug.Log($"after ApplyModData, name=[{name}]");
 		}
 
 		//----------------------------------------------------------------------
@@ -181,8 +181,8 @@ namespace Farmtronics {
 
 		// Convert all bots everywhere into vanilla chests, with appropriate metadata.
 		public static void ConvertBotsToChests() {
-			Debug.Log("Bot.ConvertBotsToChests");
-			Debug.Log($"NOTE: Game1.player.recoveredItem = {Game1.player.recoveredItem}");
+			//Debug.Log("Bot.ConvertBotsToChests");
+			//Debug.Log($"NOTE: Game1.player.recoveredItem = {Game1.player.recoveredItem}");
 			int count = 0;
 
 			// New approach: search all game locations.
@@ -190,14 +190,14 @@ namespace Farmtronics {
 
 			// Also convert the player's inventory.
 			int playerBotCount = ConvertBotsInListToChests(Game1.player.Items);
-			Debug.Log($"Converted {playerBotCount} bots in player inventory");
+			//Debug.Log($"Converted {playerBotCount} bots in player inventory");
 			count += playerBotCount;
 
 			// And watch out for a recoveredItem (mail attachment).
 			if (Game1.player.recoveredItem is Bot) Game1.player.recoveredItem = null;
 
 			instances.Clear();
-			Debug.Log($"Total bots converted to chests: {count}");
+			//Debug.Log($"Total bots converted to chests: {count}");
 		}
 
 		static Chest ConvertBotToChest(Bot bot) {
@@ -214,10 +214,10 @@ namespace Farmtronics {
 				if (chest.items.Count < inventory.Count) chest.items.Set(inventory);
 				for (int i=0; i<chest.items.Count && i<inventory.Count; i++) {
 					//chest.items[i] = inventory[i];
-					Debug.Log($"Moved {chest.items[i]} in slot {i} from bot to chest");
+					//Debug.Log($"Moved {chest.items[i]} in slot {i} from bot to chest");
 				}
 				int convertedItems = ConvertBotsInListToChests(chest.items);
-				if (convertedItems > 0) Debug.Log($"Converted {convertedItems} bots inside a bot");
+				//if (convertedItems > 0) Debug.Log($"Converted {convertedItems} bots inside a bot");
 				inventory.Clear();
 			}
 			return chest;
@@ -234,7 +234,7 @@ namespace Farmtronics {
 				Bot bot = items[i] as Bot;
 				if (bot == null) continue;
 				items[i] = ConvertBotToChest(bot);
-				Debug.Log($"Converted list item {i} to {items[i]} of stack {items[i].Stack}");
+				//Debug.Log($"Converted list item {i} to {items[i]} of stack {items[i].Stack}");
 				count++;
 			}
 			return count;
@@ -258,18 +258,18 @@ namespace Farmtronics {
 			foreach (var kv in inLocation.objects.Pairs) {
 				if (kv.Value is Bot) targetTileLocs.Add(kv.Key);
 				if (kv.Value is Chest chest) {
-					Debug.Log($"Found a chest in {inLocation.Name} at {kv.Key}");
+					//Debug.Log($"Found a chest in {inLocation.Name} at {kv.Key}");
 					countInLoc += ConvertBotsInListToChests(chest.items);
 				}
 			}
 			foreach (var tileLoc in targetTileLocs) {
-				Debug.Log($"Found bot in {inLocation.Name} at {tileLoc}; converting");
+				//Debug.Log($"Found bot in {inLocation.Name} at {tileLoc}; converting");
 				var chest = ConvertBotToChest(inLocation.objects[tileLoc] as Bot);
 				inLocation.objects.Remove(tileLoc);
 				inLocation.objects.Add(tileLoc, chest);
 				countInLoc++;
 			}
-			if (countInLoc > 0) Debug.Log($"Converted {countInLoc} bots in {inLocation.Name}");
+			//if (countInLoc > 0) Debug.Log($"Converted {countInLoc} bots in {inLocation.Name}");
 			return countInLoc;
 		}
 
@@ -287,7 +287,7 @@ namespace Farmtronics {
 
 			// Convert chests in the player's inventory.
 			int count = ConvertChestsInListToBots(Game1.player.Items);
-			Debug.Log($"Converted {count} chests to bots in player inventory");
+			//Debug.Log($"Converted {count} chests to bots in player inventory");
 		}
 
 		/// <summary>
@@ -309,7 +309,7 @@ namespace Farmtronics {
 				var chest = kv.Value as Chest;
 				if (chest == null) continue;
 				int inChestCount = ConvertChestsInListToBots(chest.items);
-				if (inChestCount > 0) Debug.Log($"Converted {inChestCount} chests stored in a chest into bots");
+				//if (inChestCount > 0) Debug.Log($"Converted {inChestCount} chests stored in a chest into bots");
 
 				if (!chest.modData.GetBool(dataKey.isBot)) continue;
 				targetTileLocs.Add(tileLoc);
@@ -331,9 +331,9 @@ namespace Farmtronics {
 				chest.items.Clear();
 
 				count++;
-				Debug.Log($"Converted {chest} to {bot} at {tileLoc} of {inLocation}");
+				//Debug.Log($"Converted {chest} to {bot} at {tileLoc} of {inLocation}");
 			}
-			if (count > 0) Debug.Log($"Converted {count} chests to bots in {inLocation}");
+			//if (count > 0) Debug.Log($"Converted {count} chests to bots in {inLocation}");
 		}
 
 		/// <summary>
@@ -519,7 +519,7 @@ namespace Farmtronics {
 				newBounds.Y += dRow * 64;
 				bool coll = location.isCollidingPosition(newBounds, Game1.viewport, isFarmer:false, 0, glider:false, farmer);
 				if (coll) {
-					Debug.Log("Colliding position: " + newBounds);
+					//Debug.Log("Colliding position: " + newBounds);
 					return;
 				}
 			}
@@ -670,7 +670,7 @@ namespace Farmtronics {
 			if (justCheckingForActivity) return true;
 			// all this overriding... just to change the open sound.
 			if (!Game1.didPlayerJustRightClick(ignoreNonMouseHeldInput: true)) {
-				Debug.Log($"Bailing because didPlayerJustRightClick is false");
+				//Debug.Log($"Bailing because didPlayerJustRightClick is false");
 				return false;
 			}
 
@@ -696,16 +696,16 @@ namespace Farmtronics {
 		}
 
 		public override bool performToolAction(Tool t, GameLocation location) {
-			Debug.Log($"{name} Bot.performToolAction({t}, {location})");
+			//Debug.Log($"{name} Bot.performToolAction({t}, {location})");
 
            if (t is Pickaxe or Axe or Hoe) {
-				Debug.Log("{name} Bot.performToolAction: creating custom debris");
+				//Debug.Log("{name} Bot.performToolAction: creating custom debris");
 				var who = t.getLastFarmerToUse();
                 this.performRemoveAction(this.TileLocation, location);
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
 				SetModData(deb.item.modData);
                 Game1.currentLocation.debris.Add(deb);
-				Debug.Log($"{name} Created debris with item {deb.item} and energy {energy}");
+				//Debug.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
                 Game1.currentLocation.overlayObjects.Remove(this.TileLocation);
 				if (shell != null) shell.interpreter.Stop();
