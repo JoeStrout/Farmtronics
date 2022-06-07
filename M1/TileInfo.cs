@@ -15,7 +15,7 @@ using StardewValley;
 using StardewValley.Menus;
 using StardewValley.BellsAndWhistles;
 using StardewValley.TerrainFeatures;
-
+using StardewValley.Locations;
 
 namespace Farmtronics {
 	public static class TileInfo {
@@ -147,6 +147,7 @@ namespace Farmtronics {
 		}
 
 		public static ValMap GetInfo(GameLocation loc, Vector2 xy) {
+
 			// check farmers
 			if (Game1.player.currentLocation == loc && Game1.player.getTileLocation() == xy) return ToMap(Game1.player);
 			foreach (var farmer in Game1.otherFarmers.Values) {
@@ -164,6 +165,20 @@ namespace Farmtronics {
 			StardewValley.Object obj = null;
 			loc.objects.TryGetValue(xy, out obj);
 			if (obj != null) return ToMap(obj);
+
+			// check for buildings in the buildings list (which are not always in the buildings layer!)
+			if (loc is BuildableGameLocation) {
+				var bl = loc as BuildableGameLocation;
+				foreach (var b in bl.buildings) {
+					if (xy.X >= b.tileX.Value && xy.X < b.tileX.Value + b.tilesWide.Value
+							&& xy.Y >= b.tileY.Value && xy.Y < b.tileY.Value + b.tilesHigh.Value) {
+						var result = new ValMap();
+						result.map[_type] = new ValString("Building");
+						result.map[_name] = new ValString(b.buildingType.ToString());
+						return result;
+                    }
+                }
+            }
 
 			// check terrain features
 			TerrainFeature feature = null;
@@ -187,9 +202,10 @@ namespace Farmtronics {
 			int x = (int)xy.X;
 			int y = (int)xy.Y;
 			string hasProp = null;
-			if (loc.doesTileHaveProperty(x, y, "Water", "Back") != null) hasProp = "Water";
-			if (loc.doesTileHaveProperty(x, y, "Trough", "Back") != null) hasProp = "Trough";
-			if (loc.doesTileHaveProperty(x, y, "Bed", "Back") != null) hasProp = "Bed";
+			string[] propNames = {"Water", "Trough", "Bed"};
+			foreach (string prop in propNames) { 
+				if (loc.doesTileHaveProperty(x, y, prop, "Back") != null) hasProp = prop;
+			}
 			if (!string.IsNullOrEmpty(hasProp)) { 
 				var result = new ValMap();
 				result.map[_type] = new ValString("Property");
@@ -197,15 +213,29 @@ namespace Farmtronics {
 				return result;
 			}
 
-			// check buildings
+			// check buildings (any not covered above -- such as the cabin)
+			var tileLocation = new xTile.Dimensions.Location(x*64, y*64);
 			var buildings_layer = loc.map.GetLayer("Buildings");
-			var tmp = buildings_layer.PickTile(new xTile.Dimensions.Location(x*64, y*64), Game1.viewport.Size);
+			var tmp = buildings_layer.PickTile(tileLocation, Game1.viewport.Size);
 			if (tmp != null) {
 				var result = new ValMap();
 				result.map[_type] = new ValString("Building");
 				result.map[_name] = result.map[_type];
+				if (loc.doesTileHaveProperty(x, y, "Passable", "Buildings") != null) result.map[new ValString("passable")] = ValNumber.one;
+				if (loc.doesTileHaveProperty(x, y, "Action", "Buildings") != null) result.map[new ValString("action")] = ValNumber.one;
+
 				return result;
-			}			
+			}
+
+			// for debugging: check properties in various layers
+			string[] layers = {"Front", "Back", "Buildings", "Paths", "AlwaysFront"};
+			foreach (string layer in layers) {
+				var tile = loc.map.GetLayer(layer).PickTile(tileLocation, Game1.viewport.Size);
+				if (tile == null) continue;
+				foreach (var kv in tile.TileIndexProperties) {
+					Debug.Log($"layer {layer}, {kv.Key} = {kv.Value}");
+                }
+            }
 
 			return null;
 		}

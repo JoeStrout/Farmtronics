@@ -170,7 +170,7 @@ namespace Farmtronics
 		}
 
 		bool IAssetEditor.CanEdit<T>(IAssetInfo asset) {
-			return asset.AssetNameEquals("Data\\mail");
+			return asset.Name.IsEquivalentTo("Data\\mail");
 		}
 
 		void IAssetEditor.Edit<T>(IAssetData asset) {

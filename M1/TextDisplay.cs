@@ -82,7 +82,7 @@ namespace Farmtronics {
 			}
 			
 
-			fontAtlas = ModEntry.helper.Content.Load<Texture2D>("assets/fontAtlas.png");
+			fontAtlas = ModEntry.helper.ModContent.Load<Texture2D>("assets/fontAtlas.png");
 			ModEntry.instance.print($"Loaded fontAtlas with size {fontAtlas.Width}x{fontAtlas.Height}");
 
 			string modPath = ModEntry.instance.Helper.DirectoryPath;

@@ -74,7 +74,7 @@ namespace Farmtronics {
 		public Bot(Farmer farmer) {
 			//Debug.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
 			if (botSprites == null) {
-				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
+				botSprites = ModEntry.helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
 			}
 
 			Name = "Farmtronics Bot";
