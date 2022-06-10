@@ -1,0 +1,24 @@
+Programmers are the witches and wizards\nof the modern world.
+Remember to use `==` to compare values.
+Use `val(s)` to convert a string to a\nnumber.
+Use `str(n)` to convert a number, list,\nor map to a string.
+MiniScript has two ways of looping:\n`for` and `while`.
+You can always `break` out of a loop if\nyou like.
+MiniScript has four basic types:\nnumbers, strings, lists, and maps.
+Sometimes truth is a little fuzzy.
+You can use `*` with strings and lists\nto make things repeat.
+You can use `+` with any data type.
+You can use `-` to lop off the end of a\nstring.
+Strings, lists, and maps are considered\n`true` if they are nonempty.
+Numbers are considered true if they are\nnot zero.
+Use parentheses only when you really\nneed them.
+`round(x, 2)` rounds x to 2 decimal\nplaces.
+`rnd` returns a random number between 0\nand 1.
+`m[rnd * m.len]` gets a random element\nfrom list `m`.
+Join the community at `http://miniscript.org`!
+"Everybody should learn how to program a\ncomputer... because it teaches you how\nto think." -- Steve Jobs
+Use the `view` command to preview any\nfile.
+Use `@` to check the parameters of a\nfunction, e.g.: `@gfx.drawPoly`
+Stuck at a `...]` prompt?  Press\n`Control-C`!
+Press `Control-C` to stop a running\nprogram.
+Use the `pprint` command to "pretty\nprint" a list or map.
