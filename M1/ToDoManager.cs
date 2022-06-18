@@ -49,7 +49,7 @@ namespace Farmtronics {
 				MarkTaskDone(Task.helloWorld);
 			} else if (s.StartsWith("Editing: ")) {
 				MarkTaskDone(Task.editProgram);
-			} else if (s.Contains(" lines saved to ")) {
+			} else if (s.Contains(" lines saved to ") || s.Contains(" line saved to ")) {
 				MarkTaskDone(Task.saveProgram);
 			}
 
