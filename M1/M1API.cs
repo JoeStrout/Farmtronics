@@ -286,7 +286,7 @@ namespace Farmtronics {
 			// Currently mostly the things related to time.
 			f = Intrinsic.Create("world");
 			f.code = (context, partialResult) => {
-				return new Intrinsic.Result(WorldModule());
+				return new Intrinsic.Result(WorldInfo());
 			};
 		}
 
@@ -1619,69 +1619,60 @@ namespace Farmtronics {
 
 
 
-		static ValMap worldModule;
+		static ValMap worldInfo;
 
 		/// <summary>
 		/// Creates a module for accessing data about the SDV world.
 		/// </summary>
 		/// <returns>A value map with functions to get information about the world.</returns>
-		static ValMap WorldModule() {
-			if(worldModule != null) { return worldModule; }
-			worldModule = new ValMap();
-			worldModule.assignOverride = DisallowAllAssignment;
+		static ValMap WorldInfo() {
+			if (worldInfo == null) {
+				worldInfo = new ValMap();
+				worldInfo.assignOverride = DisallowAllAssignment;
+			}
 
 			// The in-game time on this day.
 			// Can exceed 2400 when the farmer refuses to sleep.
-			Intrinsic f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				return new Intrinsic.Result(new ValNumber(Game1.timeOfDay));
-			};
-			worldModule["timeOfDay"] = f.GetFunc();
+			worldInfo["timeOfDay"] = new ValNumber(Game1.timeOfDay);
 
 			// Days since start is the amount of in-game days since this farm was started.
 			// Day 1 of year 1 is 1 in this function.
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				return new Intrinsic.Result(new ValNumber(SDate.Now().DaysSinceStart));
-			};
-			worldModule["daySinceGameStart"] = f.GetFunc();
+			worldInfo["daySinceGameStart"] = new ValNumber(SDate.Now().DaysSinceStart);
 
 			// The current day in the in-game season.
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				return new Intrinsic.Result(new ValNumber(SDate.Now().Day));
-			};
-			worldModule["dayOfSeason"] = f.GetFunc();
+			worldInfo["dayOfSeason"] = new ValNumber(SDate.Now().Day);
+
+			// The number of the in-game day of week (0 = Sunday).
+			worldInfo["dayOfWeek"] = new ValNumber((int)SDate.Now().DayOfWeek);
 
 			// The name of the in-game day.
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				return new Intrinsic.Result(new ValString(SDate.Now().DayOfWeek.ToString()));
-			};
-			worldModule["dayOfWeekName"] = f.GetFunc();
+			worldInfo["dayOfWeekName"] = new ValString(SDate.Now().DayOfWeek.ToString());
 
 			// The in-game year, starts at 1.
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				return new Intrinsic.Result(new ValNumber(SDate.Now().Year));
-			};
-			worldModule["year"] = f.GetFunc();
+			worldInfo["year"] = new ValNumber(SDate.Now().Year);
 
-			// The numeric representation for the current in-game season.
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				return new Intrinsic.Result(new ValNumber(SDate.Now().SeasonIndex));
-			};
-			worldModule["season"] = f.GetFunc();
+			// The numeric representation for the current in-game season (0 = spring).
+			worldInfo["season"] = new ValNumber(SDate.Now().SeasonIndex);
 
 			// The human-readable representation for the current in-game season.
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				return new Intrinsic.Result(new ValString(SDate.Now().Season));
-			};
-			worldModule["seasonName"] = f.GetFunc();
+			worldInfo["seasonName"] = new ValString(SDate.Now().Season);
 
-			return worldModule;
+			// The current weather
+			{
+				var loc = (Farm)Game1.getLocationFromName("Farm");
+				var weather = Game1.netWorldState.Value.GetWeatherForLocation(loc.GetLocationContext());
+				string result = "Sunny";
+				if (weather.isLightning) result = "stormy";
+				else if (weather.isRaining) result = "raining";
+				else if (weather.isSnowing) result = "snowing";
+				else if (weather.isDebrisWeather) result = "windy";
+				worldInfo["weather"] = new ValString(result);
+			};
+
+			// Daily luck
+			worldInfo["luck"] = new ValNumber(Game1.player.DailyLuck);
+
+			return worldInfo;
 		}
 
 		/// <summary>

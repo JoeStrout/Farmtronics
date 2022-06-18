@@ -1,0 +1,5 @@
+﻿The `world` global provides a information
+about the world.  This includes current
+date, time, and weather.  Try:
+
+  `pprint world`

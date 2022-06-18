@@ -21,6 +21,9 @@ pal.cursor = "#CCCCFF"
 pal.topBar = "#AAAAAA"
 pal.topBarText = "#8888CC"
 
+cutLines = []
+linesCutFromLineNum = null
+
 lineLen = function(lineNum)
 	if lineNum < data.len then return data[lineNum].len
 	return 0
@@ -33,7 +36,7 @@ drawTopBar = function()
 	print " " + _sourceFile
 	lstr = str(cursorY + 1)
 	print " " * (screenW - 13 - lstr.len - text.column)
-	print "^Q: Quit   L" + lstr
+	print "^H: Help   L" + lstr
 	print " " * (screenW - text.column)
 end function
 
@@ -172,6 +175,66 @@ nextWord = function(dir)
 	outer.cursorX = x
 end function
 
+cutLine = function
+	if cursorY != linesCutFromLineNum then
+		outer.cutLines = []
+		outer.linesCutFromLineNum = cursorY
+	end if
+	if cursorY >= data.len then return "End of File"
+	cutLines.push data[cursorY]
+	data.remove cursorY
+	refreshDisplay
+	if cutLines.len == 1 then return "Cut (1 Line)"
+	return "Cut (" + cutLines.len + " Lines)"
+end function
+
+pasteLines = function
+	for line in cutLines
+		data.insert cursorY, line
+		outer.cursorY = cursorY + 1
+	end for
+	scrollCursorIntoView
+	refreshDisplay
+	if cutLines.len == 1 then return "Paste (1 Line)"
+	return "Paste (" + cutLines.len + " Lines)"
+end function
+
+showHelp =  function
+	text.color = pal.text; text.backColor = "#4F1CDBFF"
+	text.clear; text.delimiter = char(13)
+	text.row = 19; text.column = 0
+	text.inverse = true
+	print " "*8 + "Farmtronics Text Editor" + " "*9
+	text.inverse = false
+	print "Hold the Control key and press a letter"
+	print "to perform one of the functions below."
+	print "Example: "
+	print "   ^Q means hold Contol and press Q."
+	print
+	funcs = [
+		"^A: Go to start of line",
+		"^E: Go to end of line",
+		"^U: Page up",
+		"^D: Page down",
+		"^K: Cut line(s)",
+		"^V: Paste line(s)",
+		"^H: View this help",
+		"^Q: Quit"]
+	text.delimiter = ""
+	for func in funcs
+		parts = func.split(":")
+		text.column = 3; text.inverse = true
+		print parts[0] + " "
+		text.inverse = false
+		print parts[1] + char(13)
+	end for
+	text.row = 0
+	print "(Press any key to continue.)"
+	key.get
+	text.backColor = color.clear
+	refreshDisplay
+end function
+
 showCommand = function(keyPress, desc)
 	refreshRow 0
 	s = keyPress
@@ -197,18 +260,27 @@ handleControlKey = function(k)
 	if kcode > 31 then keyPress = "^" + char(kcode)
 	if anyShift then keyPress = "Shift-" + keyPress
 
+	// Want to customize your key bindings?  Change
+	// the code below, and the help in showHelp above.
 	if keyPress == "^A" then  // ctrl-A (start of line)
 		desc = "LineStart"
 		outer.cursorX = 0
 	else if keyPress == "^E" then // ctrl-E (end of line)
 		desc = "LineEnd"
 		outer.cursorX = lineLen(cursorY)
+	else if keyPress == "^H" then  // help
+		showHelp
+		desc = "Help"
 	else if keyPress == "^U" then	// Page Up
 		desc = "PageUp"
 		outer.cursorY = outer.cursorY - screenLines
 	else if keyPress == "^D" then	// Page Down
 		desc = "PageDown"
-		outer.cursorY = outer.cursorY + screenLines		
+		outer.cursorY = outer.cursorY + screenLines
+	else if keyPress == "^K" then  // Cut line
+		desc = cutLine
+	else if keyPress == "^V" then  // Paste lines
+		desc = pasteLines
 	else if keyPress == "^Q" then  // Escape or Ctrl+X
 		desc = "Quit"
 		outer.quitting = true
