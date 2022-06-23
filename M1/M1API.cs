@@ -6,6 +6,7 @@ custom intrinsic functions/classes for use on the M-1.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 using Miniscript;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -1629,6 +1630,33 @@ namespace Farmtronics {
 			if (worldInfo == null) {
 				worldInfo = new ValMap();
 				worldInfo.assignOverride = DisallowAllAssignment;
+
+				Intrinsic f;
+				f = Intrinsic.Create("");
+				f.code = (context, partialResult) => {
+					var messages = ModEntry.instance.Helper.Reflection.GetField<List<ChatMessage>>(Game1.chatBox, "messages").GetValue();
+					var result = new ValList();
+					foreach (ChatMessage msg in messages) {
+						string msgText = ChatMessage.makeMessagePlaintext(msg.message, false);
+						result.values.Add(new ValString(msgText));
+                    }
+					return new Intrinsic.Result(result);
+                };
+				worldInfo["chatMessages"] = f.GetFunc();
+
+				f = Intrinsic.Create("");
+				f.AddParam("message", "");
+				f.code = (context, partialResult) => {
+					string msg = context.variables.GetString("message");
+					Shell sh = context.interpreter.hostData as Shell;
+					string name;
+					if (sh.bot == null) name = "Home Computer";
+					else name = sh.bot.name;
+					TextDisplay disp = sh.textDisplay;
+					Game1.chatBox.addMessage(name + ": " + msg, disp.textColor);
+					return Intrinsic.Result.Null;
+                };
+				worldInfo["chat"] = f.GetFunc();
 			}
 
 			// The in-game time on this day.

@@ -375,7 +375,7 @@ reset = function
 	globals._sourceFile = null
 	_restoreGlobals
 	env.importPaths = [".", "/usr/lib", "/sys/lib"]
-	print("Program source cleared and reset")
+	print "Program source cleared and reset"
 	return null
 end function
 
