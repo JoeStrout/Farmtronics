@@ -34,7 +34,7 @@ namespace Farmtronics {
 
 		public BotUIMenu(Bot bot)
 		: base(null, okButton: true, trashCan: true) {
-			print($"Created BotUIMenu for {bot.Name}. PositionOnScreen:{xPositionOnScreen},{yPositionOnScreen}; viewport:{Game1.uiViewport.Width}, {Game1.uiViewport.Height}, shell {bot.shell}");
+			//print($"Created BotUIMenu for {bot.Name}. PositionOnScreen:{xPositionOnScreen},{yPositionOnScreen}; viewport:{Game1.uiViewport.Width}, {Game1.uiViewport.Height}, shell {bot.shell}");
 
 			this.bot = bot;
 
@@ -56,7 +56,7 @@ namespace Farmtronics {
 			// So:
 			int playerInvYDelta = consoleTop + totalHeight - playerInvHeight - yPositionForInventory;
 
-			print($"playerInvHeight:{playerInvHeight}, consoleTop:{consoleTop} (={Game1.uiViewport.Height/2}-{totalHeight/2}), new yPositionOnScreen:{totalHeight - playerInvHeight - yPositionForInventory}");
+			//print($"playerInvHeight:{playerInvHeight}, consoleTop:{consoleTop} (={Game1.uiViewport.Height/2}-{totalHeight/2}), new yPositionOnScreen:{totalHeight - playerInvHeight - yPositionForInventory}");
 
 			movePosition(0, playerInvYDelta);	// (adjust position of player UI)
 
@@ -89,7 +89,6 @@ namespace Farmtronics {
 			if (preferredPosition != default(Vector2) && lastGameviewSize.X == Game1.uiViewport.Width && lastGameviewSize.Y == Game1.uiViewport.Height) {
 				shift((int)(preferredPosition.X - xPositionOnScreen), (int)(preferredPosition.Y - yPositionOnScreen));
 			}
-
 		}
 
 		static void print(string s) {
@@ -125,6 +124,10 @@ namespace Farmtronics {
 		}
 
 		public override void receiveKeyPress(Keys key) {
+			if (key == Keys.Escape && heldItem != null) {
+				// No closing the menu while holding an item (issue #26)
+				return;
+            }
 			bot.shell.console.receiveKeyPress(key);
 			if (key == Keys.Delete && heldItem != null && heldItem.canBeTrashed()) {
 				Utility.trashItem(heldItem);
@@ -133,13 +136,13 @@ namespace Farmtronics {
 		}
 
 		public override void receiveLeftClick(int x, int y, bool playSound = true) {
-			Debug.Log($"Bot.receiveLeftClick({x}, {y}, {playSound}) while heldItem={heldItem}; inDragArea={inDragArea(x,y)}");
+			//Debug.Log($"Bot.receiveLeftClick({x}, {y}, {playSound}) while heldItem={heldItem}; inDragArea={inDragArea(x,y)}");
 			//int slot = botInventoryMenu.getInventoryPositionOfClick(x, y);
 			//Debug.Log($"Bot.receiveLeftClick: slot={slot}");
 			base.receiveLeftClick(x, y, playSound);
 			heldItem = botInventoryMenu.leftClick(x, y, heldItem, false);
 			
-			Debug.Log($"after calling botInventoryMenu.leftClick, heldItem = {heldItem}");
+			//Debug.Log($"after calling botInventoryMenu.leftClick, heldItem = {heldItem}");
 
 			if (heldItem == null && inDragArea(x,y)) {
 				var cursor = ModEntry.instance.Helper.Input.GetCursorPosition();
@@ -149,13 +152,13 @@ namespace Farmtronics {
 		}
 
 		public override void receiveRightClick(int x, int y, bool playSound = true) {
-			Debug.Log($"Bot.receiveRightClick({x}, {y}, {playSound})");
+			//Debug.Log($"Bot.receiveRightClick({x}, {y}, {playSound})");
 			base.receiveRightClick(x, y, playSound);
 		}
 
 		// Invoked by InventoryMenu.leftClick when an item is dropped in an inventory slot.
 		void onAddItem(Item item, Farmer who) {
-			Debug.Log($"Bot.onAddItem({item}, {who}");
+			//Debug.Log($"Bot.onAddItem({item}, {who}");
 			// Note: bot inventory has already been added, so we don't really need this.
 		}
 
