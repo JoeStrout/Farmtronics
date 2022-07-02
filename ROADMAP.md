@@ -45,12 +45,6 @@ These will be addressed ASAP.
 - When a bot tries to break something its tools aren't strong enough for (e.g. a large stump with the default axe), it causes a dialog to briefly appear and the player farmer to jitter in place, even if they are nowhere near the bot.
 - Under certain circumstances, when two bots are moving at the same time (perhaps onto the same space?), one of them may disappear.
 
-## Coming Soon
-
-- Bots no longer lose their inventory when picked up.
-- You can get or set the name of a bot as `bot.name`, and these names persist across saves and pick-up/set-down.
-- Tile information (e.g. from `bot.ahead` or `Location.tile` now includes characters (players and NPCs).
-
 ## Unscheduled Future Version
 
 The following features are definitely things we want to include, but they have not yet been scheduled for a particular version.
@@ -61,7 +55,7 @@ The following features are definitely things we want to include, but they have n
 - `mouse` module (allowing for point-and-click UI)
 - bots can be recharged (energy refilled), perhaps via some craftable charging station
 - bots can use weapons to fight monsters
-- bots and Home Computer can communicate via networking
+- bots and Home Computer can communicate via networking (besides shared files and world.chat)
 - bots can pick up and drop items
 - allow a bot to stay on top of a crop plant overnight without squashing (destroying) it
 
@@ -77,5 +71,5 @@ The features below are under consideration, but may not make it if they unbalanc
 - Display object: can display color/message in the world; tileable to make any size Jumbotron
 - PixelDisplay for drawing graphics
 - bots can fish (including handling bait)
-- bots can speak to the player: "!" icon appears above the bot, and when left-clicked, starts a programmable dialogue (like speaking to an NPC)
-  
+- bot dialog: "!" icon appears above the bot, and when left-clicked, starts a programmable dialogue (like speaking to an NPC)
+
