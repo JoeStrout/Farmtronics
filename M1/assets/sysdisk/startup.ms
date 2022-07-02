@@ -408,13 +408,13 @@ if bot then
 	end function
 	
 	bot.select = function(toolNameOrIndex)
+		inv = bot.inventory
 		if toolNameOrIndex isa number then
 			bot.currentToolIndex = toolNameOrIndex
 			print "Using " + inv[toolNameOrIndex].name + " (index " + toolNameOrIndex + ")"
 			return
 		end if
 		toolName = str(toolNameOrIndex).lower
-		inv = bot.inventory
 		for i in inv.indexes
 			if inv[i] and inv[i].name.lower == toolName then
 				bot.currentToolIndex = i
