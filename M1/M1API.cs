@@ -23,7 +23,7 @@ namespace Farmtronics {
 	public static class M1API  {
 
 		static bool initialized;
-	
+
 		public static Shell shell;		// these should be assigned whenever a shell is accessed
 		public static Console console;	// (usually by calling Init)
 
@@ -294,7 +294,6 @@ namespace Farmtronics {
 		static bool DisallowAllAssignment(Value key, Value value) {
 			throw new RuntimeException("Assignment to protected map");
 		}
-
 
 		static ValMap botModule;
 		static HashSet<string> botProtectedKeys;

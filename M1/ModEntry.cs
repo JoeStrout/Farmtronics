@@ -40,6 +40,7 @@ namespace Farmtronics
 
 		private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e) {
 			Bot.ClearAll();
+			shell = null;
 		}
 
 		uint prevTicks;

@@ -369,6 +369,7 @@ namespace Farmtronics {
 
 		public static void ClearAll() {
 			instances.Clear();
+			uniqueFarmerID = 1;
 		}
 
 		/// <summary>
