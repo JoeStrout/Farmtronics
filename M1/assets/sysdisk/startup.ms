@@ -390,6 +390,8 @@ toDo = function
 end function
 todo = @toDo	// (allow mistyping just this one time, because newbies)
 
+mkdir = @file.makedir  // (handy and expected alias)
+
 if bot then
 	// Additional bot functions
 	here = function
