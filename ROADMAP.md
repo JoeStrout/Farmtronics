@@ -51,7 +51,7 @@ The following features are definitely things we want to include, but they have n
 
 - multiplayer support
 - improved copy/paste support in the editor
-- console autocompletion (as in [https://miniscript.org/MiniMicro](MiniMicro)
+- console autocompletion (as in [Mini Micro](https://miniscript.org/MiniMicro))
 - `mouse` module (allowing for point-and-click UI)
 - bots can be recharged (energy refilled), perhaps via some craftable charging station
 - bots can use weapons to fight monsters
