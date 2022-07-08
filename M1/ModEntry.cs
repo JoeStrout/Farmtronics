@@ -97,7 +97,7 @@ namespace Farmtronics
 						Debug.Log($"Shop item {index}: {item} with {item.Name}");
 						if (item.Name == "Catalogue" || (index>0 && shop.forSale[index-1].Name == "Flooring")) break;
 					}
-					var botForSale = new Bot(null);
+					var botForSale = new SalableBot();
 					shop.forSale.Insert(index, botForSale);
 					shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });	// sale price and available stock
 				}
