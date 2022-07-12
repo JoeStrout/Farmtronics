@@ -39,6 +39,7 @@ namespace Farmtronics {
 
 		Shell owner;
 		public TextDisplay display {  get; private set; }
+		public Color backColor;
 
 		bool inInputMode;
 		RowCol inputStartPos;		// where on the screen we started taking input
@@ -551,9 +552,8 @@ namespace Farmtronics {
 			}
 			
 			// draw content
-			FillRect(b, displayArea, display.backColor);
+			FillRect(b, displayArea, backColor);
 			display.Render(b, displayArea);
-
 			
 			// draw bezel/shine on top
 			b.Draw(screenOverlay, positionOnScreen, drawFrame ? screenSrcR : innerSrcR,

@@ -296,17 +296,16 @@ namespace Farmtronics {
 		}
 
 		public void Render(SpriteBatch b, Rectangle displayArea) {
-			// Start by drawing the background, wherever the background color doesn't
-			// match the current default (which has already been drawn by the caller
-			// in one big go).
+			// Start by drawing the background, wherever the background color
+			// isn't transparent.
 			for (int row=0; row<rows; row++) {
 				int col=0;
 				while (col < cols) {
 					Color cellBg = Color.White;
-					// skip ahead to next cell that's a nonstandard background
+					// skip ahead to next cell that's a nonstransparent
 					while (col < cols) {
 						cellBg = cells[row,col].inverse ? cells[row,col].foreColor : cells[row,col].backColor;
-						if (cellBg != backColor) break;
+						if (cellBg.A > 0) break;
 						col++;
 					}
 					if (col >= cols) break;

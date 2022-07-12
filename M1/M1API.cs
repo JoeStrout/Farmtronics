@@ -44,7 +44,7 @@ namespace Farmtronics {
 			// language host info
 
 			HostInfo.name = "Farmtronics";
-			HostInfo.version = 1.10;
+			HostInfo.version = 1.11;
 			HostInfo.info = "https://github.com/JoeStrout/Farmtronics/";
 		
 			Intrinsic f;
@@ -1688,7 +1688,7 @@ namespace Farmtronics {
 			{
 				var loc = (Farm)Game1.getLocationFromName("Farm");
 				var weather = Game1.netWorldState.Value.GetWeatherForLocation(loc.GetLocationContext());
-				string result = "Sunny";
+				string result = "sunny";
 				if (weather.isLightning) result = "stormy";
 				else if (weather.isRaining) result = "raining";
 				else if (weather.isSnowing) result = "snowing";

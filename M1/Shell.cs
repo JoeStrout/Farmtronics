@@ -298,25 +298,36 @@ namespace Farmtronics {
 		}
 
 		public void AddGlobals() {
+			var globals = interpreter.vm.globalContext;
+			if (globals.variables == null) globals.variables = new ValMap();
 			if (bot != null) {
 				curStatusColor = new ValString(bot.statusColor.ToHexString());
 				curScreenColor = new ValString(bot.screenColor.ToHexString());
-				var globals = interpreter.vm.globalContext;
-				if (globals.variables == null) globals.variables = new ValMap();
 				globals.variables["statusColor"] = curStatusColor;
 				globals.variables["screenColor"] = curScreenColor;
 				globals.variables.assignOverride = (key, value) => {
 					string keyStr = key.ToString();
 					if (keyStr == "_") return false;
 					//Debug.Log($"global {key} = {value}");
-					if (keyStr == "statusColor") {
+					if (keyStr == "statusColor") {		// DEPRECATED: now in bot module
 						bot.statusColor = value.ToString().ToColor();
 					} else if (keyStr == "screenColor") {
-						bot.screenColor = value.ToString().ToColor();
+						console.backColor = value.ToString().ToColor();
 					}
 					return false;	// allow the assignment
 				};
-			}
+			} else {
+				globals.variables["screenColor"] = new ValString(console.backColor.ToHexString());
+				globals.variables.assignOverride = (key, value) => {
+					string keyStr = key.ToString();
+					if (keyStr == "_") return false;
+					//Debug.Log($"global {key} = {value}");
+					if (keyStr == "screenColor") {
+						console.backColor = value.ToString().ToColor();
+					}
+					return false;	// allow the assignment
+				};
+            }
 		}
 		
 		void Clear() {
