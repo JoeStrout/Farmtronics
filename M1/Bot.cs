@@ -20,7 +20,12 @@ namespace Farmtronics {
 	public class Bot : StardewValley.Object {
 
 		public IList<Item> inventory {  get {  return farmer == null ? null : farmer.Items; } }
-		public Color screenColor { get { return shell.console.backColor; } }
+		public Color screenColor {
+			get {
+				if (shell == null) return Color.Black;
+				return shell.console.backColor;
+			}
+		}
 		public Color statusColor = Color.Yellow;
 		public Shell shell { get; private set; }
 		public bool isUsingTool {  get {  return toolUseFrame > 0; } }
