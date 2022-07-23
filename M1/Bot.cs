@@ -458,233 +458,238 @@ namespace Farmtronics {
 			toolUseFrame = 1;
 		}
 
-		// Attempt to harvest the crop in front of the bot.
-		public bool Harvest() {
-			if (farmer == null) return false;
-			farmer.setTileLocation(TileLocation);
+        // Attempt to harvest the crop in front of the bot.
+        public bool Harvest()
+        {
+            if (farmer == null) return false;
+            farmer.setTileLocation(TileLocation);
 
-			GameLocation loc = this.currentLocation;
-			int aheadX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
-			int aheadY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
-			Vector2 tileLocation = new Vector2(aheadX/64, aheadY/64);
+            GameLocation loc = this.currentLocation;
+            int aheadX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
+            int aheadY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
+            Vector2 tileLocation = new Vector2(aheadX / 64, aheadY / 64);
 
-			TerrainFeature feature = null;
+            TerrainFeature feature = null;
             StardewValley.Object obj = null;
 
-			if (loc.terrainFeatures.TryGetValue(tileLocation, out feature))
-			{
-
-				var origPlayer = Game1.player;
-				Game1.player = farmer;
-				bool result = feature.performUseAction(tileLocation, loc);
-				Game1.player = origPlayer;
-				return result;
-
-			}else if (loc.objects.TryGetValue(tileLocation, out obj))
-			{
-				return doBotHarvestFromObject(obj);
-			}
-
-			return false;
-		}
-
-		public bool AddItemToInventoryBool(Item item)
-        {
-			//Returns false if the whole item stack can't be added
-			if (Utility.canItemBeAddedToThisInventoryList(item, inventory, inventory.Count))
+            if (loc.terrainFeatures.TryGetValue(tileLocation, out feature))
             {
-				//Debug.Log("Adding item");
-				Utility.addItemToThisInventoryList(item, inventory, inventory.Count);
-				return true;
+
+                var origPlayer = Game1.player;
+                Game1.player = farmer;
+                bool result = feature.performUseAction(tileLocation, loc);
+                Game1.player = origPlayer;
+                return result;
+
+            }
+            else if (loc.objects.TryGetValue(tileLocation, out obj))
+            {
+                return doBotHarvestFromObject(obj);
+            }
+
+            return false;
+        }
+
+        public bool AddItemToInventoryBool(Item item)
+        {
+            //Returns false if the whole item stack can't be added
+            if (Utility.canItemBeAddedToThisInventoryList(item, inventory, inventory.Count))
+            {
+                //Debug.Log("Adding item");
+                Utility.addItemToThisInventoryList(item, inventory, inventory.Count);
+                return true;
             }
             else
             {
-				//Debug.Log("Can't add item");
-				return false;
+                //Debug.Log("Can't add item");
+                return false;
             }
         }
 
-		public bool doBotHarvestFromObject(StardewValley.Object what)
-		{
-			//See "checkForAction" in StardewValley.Object
-			//This is effectively a snippet from it that deals with harvesting from machines
-			//We probably don't want to call checkForAction, as that could cause weird behaviour like opening menus 
-			//Unfortunately, if other mods are patching checkForAction to alter their harvest results this won't work well with those
-			//However, this doesn't seem to be common practise. This fix works with PFM (Producer Framework)
+        public bool doBotHarvestFromObject(StardewValley.Object what)
+        {
+            //See "checkForAction" in StardewValley.Object
+            //This is effectively a snippet from it that deals with harvesting from machines
+            //We probably don't want to call checkForAction, as that could cause weird behaviour like opening menus 
+            //Unfortunately, if other mods are patching checkForAction to alter their harvest results this won't work well with those
+            //However, this doesn't seem to be common practise. This fix works with PFM (Producer Framework)
 
-			Farmer who = farmer;
+            Farmer who = farmer;
 
-			StardewValley.Object objectThatWasHeld = what.heldObject.Value;
-			if ((bool)what.readyForHarvest)
-			{
-				if (who.isMoving())
-				{
-					Game1.haltAfterCheck = false;
-				}
-				bool check_for_reload = false;
-				if (what.name.Equals("Bee House"))
-				{
-					int honey_type = -1;
-					string honeyName = "Wild";
-					int honeyPriceAddition = 0;
-					Crop c = Utility.findCloseFlower(who.currentLocation, what.tileLocation, 5, (Crop crop) => (!crop.forageCrop.Value) ? true : false);
-					if (c != null)
-					{
-						honeyName = Game1.objectInformation[c.indexOfHarvest].Split('/')[0];
-						honey_type = c.indexOfHarvest.Value;
-						honeyPriceAddition = Convert.ToInt32(Game1.objectInformation[c.indexOfHarvest].Split('/')[1]) * 2;
-					}
-					if (what.heldObject.Value != null)
-					{
-						what.heldObject.Value.name = honeyName + " Honey";
-						//what.heldObject.Value.displayName = what.loadDisplayName();
-						what.heldObject.Value.Price = Convert.ToInt32(Game1.objectInformation[340].Split('/')[1]) + honeyPriceAddition;
-						what.heldObject.Value.preservedParentSheetIndex.Value = honey_type;
-						if (Game1.GetSeasonForLocation(Game1.currentLocation).Equals("winter"))
-						{
-							what.heldObject.Value = null;
-							what.readyForHarvest.Value = false;
-							what.showNextIndex.Value = false;
-							return false;
-						}
+            StardewValley.Object objectThatWasHeld = what.heldObject.Value;
+            if ((bool)what.readyForHarvest)
+            {
+                if (who.isMoving())
+                {
+                    Game1.haltAfterCheck = false;
+                }
+                bool check_for_reload = false;
+                if (what.name.Equals("Bee House"))
+                {
+                    int honey_type = -1;
+                    string honeyName = "Wild";
+                    int honeyPriceAddition = 0;
+                    Crop c = Utility.findCloseFlower(who.currentLocation, what.tileLocation, 5, (Crop crop) => (!crop.forageCrop.Value) ? true : false);
+                    if (c != null)
+                    {
+                        honeyName = Game1.objectInformation[c.indexOfHarvest].Split('/')[0];
+                        honey_type = c.indexOfHarvest.Value;
+                        honeyPriceAddition = Convert.ToInt32(Game1.objectInformation[c.indexOfHarvest].Split('/')[1]) * 2;
+                    }
+                    if (what.heldObject.Value != null)
+                    {
+                        what.heldObject.Value.name = honeyName + " Honey";
+                        //what.heldObject.Value.displayName = what.loadDisplayName();
+                        what.heldObject.Value.Price = Convert.ToInt32(Game1.objectInformation[340].Split('/')[1]) + honeyPriceAddition;
+                        what.heldObject.Value.preservedParentSheetIndex.Value = honey_type;
+                        if (Game1.GetSeasonForLocation(Game1.currentLocation).Equals("winter"))
+                        {
+                            what.heldObject.Value = null;
+                            what.readyForHarvest.Value = false;
+                            what.showNextIndex.Value = false;
+                            return false;
+                        }
 
 
-						StardewValley.Object item = what.heldObject.Value;
-						what.heldObject.Value = null;
-						if (!AddItemToInventoryBool(item))
+                        StardewValley.Object item = what.heldObject.Value;
+                        what.heldObject.Value = null;
+                        if (!AddItemToInventoryBool(item))
                         {
                             what.heldObject.Value = item;
                             Game1.showRedMessage(Game1.content.LoadString("Strings\\StringsFromCSFiles:Crop.cs.588"));
-							return false;
-						}
+                            return false;
+                        }
 
-						//Game1.playSound("coin");
-						check_for_reload = true;
-					}
-				}
-				else
-				{
-					//This is the real meat and potatoes.
-					//We remove the heldObject from whatever harvestable we are interacting with.
-					//If we do not successfully add the item to the bot, we then reassign our held item back to heldObject
-					what.heldObject.Value = null;
-					if (!AddItemToInventoryBool(objectThatWasHeld))
-					{
-						what.heldObject.Value = objectThatWasHeld;
-						Game1.showRedMessage("Cannot add item to Bot");
-						return false;
-					}
-					//Game1.playSound("coin");
-					check_for_reload = true;
-					switch (what.name)
-					{
-						case "Keg":
-							Game1.stats.BeveragesMade++;
-							break;
-						case "Preserves Jar":
-							Game1.stats.PreservesMade++;
-							break;
-						case "Cheese Press":
-							if (objectThatWasHeld.ParentSheetIndex == 426)
-							{
-								Game1.stats.GoatCheeseMade++;
-							}
-							else
-							{
-								Game1.stats.CheeseMade++;
-							}
-							break;
-					}
-				}
-				if (what.name.Equals("Crystalarium"))
-				{
-					//what.minutesUntilReady.Value = Object.getMinutesForCrystalarium(objectThatWasHeld.ParentSheetIndex);
-					what.heldObject.Value = (StardewValley.Object)objectThatWasHeld.getOne();
-				}
-				else if (what.name.Contains("Tapper"))
-				{
-					if (who.currentLocation.terrainFeatures.ContainsKey(what.tileLocation) && who.currentLocation.terrainFeatures[what.tileLocation] is Tree)
-					{
-						(who.currentLocation.terrainFeatures[what.tileLocation] as Tree).UpdateTapperProduct(what, objectThatWasHeld);
-					}
-				}
-				else
-				{
-					what.heldObject.Value = null;
-				}
-				what.readyForHarvest.Value = false;
-				what.showNextIndex.Value = false;
-				if (what.name.Equals("Bee House") && !Game1.GetSeasonForLocation(who.currentLocation).Equals("winter"))
-				{
-					what.heldObject.Value = new StardewValley.Object(Vector2.Zero, 340, null, canBeSetDown: false, canBeGrabbed: true, isHoedirt: false, isSpawnedObject: false);
-					what.minutesUntilReady.Value = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 4);
-				}
-				else if (what.name.Equals("Worm Bin"))
-				{
-					what.heldObject.Value = new StardewValley.Object(685, Game1.random.Next(2, 6));
-					what.minutesUntilReady.Value = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 1);
-				}
-				if (check_for_reload)
-				{
-					what.AttemptAutoLoad(who);
-				}
-				return true;
+                        //Game1.playSound("coin");
+                        check_for_reload = true;
+                    }
+                }
+                else
+                {
+                    //This is the real meat and potatoes.
+                    //We remove the heldObject from whatever harvestable we are interacting with.
+                    //If we do not successfully add the item to the bot, we then reassign our held item back to heldObject
+                    what.heldObject.Value = null;
+                    if (!AddItemToInventoryBool(objectThatWasHeld))
+                    {
+                        what.heldObject.Value = objectThatWasHeld;
+                        Game1.showRedMessage("Cannot add item to Bot");
+                        return false;
+                    }
+                    //Game1.playSound("coin");
+                    check_for_reload = true;
+                    switch (what.name)
+                    {
+                        case "Keg":
+                            Game1.stats.BeveragesMade++;
+                            break;
+                        case "Preserves Jar":
+                            Game1.stats.PreservesMade++;
+                            break;
+                        case "Cheese Press":
+                            if (objectThatWasHeld.ParentSheetIndex == 426)
+                            {
+                                Game1.stats.GoatCheeseMade++;
+                            }
+                            else
+                            {
+                                Game1.stats.CheeseMade++;
+                            }
+                            break;
+                    }
+                }
+                if (what.name.Equals("Crystalarium"))
+                {
+                    //what.minutesUntilReady.Value = Object.getMinutesForCrystalarium(objectThatWasHeld.ParentSheetIndex);
+                    what.heldObject.Value = (StardewValley.Object)objectThatWasHeld.getOne();
+                }
+                else if (what.name.Contains("Tapper"))
+                {
+                    if (who.currentLocation.terrainFeatures.ContainsKey(what.tileLocation) && who.currentLocation.terrainFeatures[what.tileLocation] is Tree)
+                    {
+                        (who.currentLocation.terrainFeatures[what.tileLocation] as Tree).UpdateTapperProduct(what, objectThatWasHeld);
+                    }
+                }
+                else
+                {
+                    what.heldObject.Value = null;
+                }
+                what.readyForHarvest.Value = false;
+                what.showNextIndex.Value = false;
+                if (what.name.Equals("Bee House") && !Game1.GetSeasonForLocation(who.currentLocation).Equals("winter"))
+                {
+                    what.heldObject.Value = new StardewValley.Object(Vector2.Zero, 340, null, canBeSetDown: false, canBeGrabbed: true, isHoedirt: false, isSpawnedObject: false);
+                    what.minutesUntilReady.Value = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 4);
+                }
+                else if (what.name.Equals("Worm Bin"))
+                {
+                    what.heldObject.Value = new StardewValley.Object(685, Game1.random.Next(2, 6));
+                    what.minutesUntilReady.Value = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 1);
+                }
+                if (check_for_reload)
+                {
+                    what.AttemptAutoLoad(who);
+                }
+                return true;
 
-			}
-			else
-			{
-				return false;
-			}
-		}
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		// Place the currently selected item (e.g., seed) in/on the ground
-		// ahead of the robot.
-		public bool PlaceItem() {
-			var item = inventory[currentToolIndex] as StardewValley.Object;
-			if (item == null) {
-				//Debug.Log($"No item equipped in slot {currentToolIndex}");
-				return false;
-			}
-			int placeX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
-			int placeY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
-			Vector2 tileLocation = new Vector2(placeX/64, placeY/64);
-			StardewValley.Object obj;
+        // Place the currently selected item (e.g., seed) in/on the ground
+        // ahead of the robot.
+        public bool PlaceItem()
+        {
+            var item = inventory[currentToolIndex] as StardewValley.Object;
+            if (item == null)
+            {
+                //Debug.Log($"No item equipped in slot {currentToolIndex}");
+                return false;
+            }
+            int placeX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
+            int placeY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
+            Vector2 tileLocation = new Vector2(placeX / 64, placeY / 64);
+            StardewValley.Object obj;
 
-			// make sure we can place the item here
-			if (Utility.playerCanPlaceItemHere(farmer.currentLocation, item, placeX, placeY, farmer)) {
-				//Debug.Log($"Can't place {item} (stack size {item.Stack}) at {placeX},{placeY}");
-				//Place it
-				bool result = item.placementAction(currentLocation, placeX, placeY, farmer);
+            // make sure we can place the item here
+            if (Utility.playerCanPlaceItemHere(farmer.currentLocation, item, placeX, placeY, farmer))
+            {
+                //Debug.Log($"Can't place {item} (stack size {item.Stack}) at {placeX},{placeY}");
+                //Place it
+                bool result = item.placementAction(currentLocation, placeX, placeY, farmer);
 
-				// reduce inventory by one
-				item.Stack--;
-				if (item.Stack <= 0) inventory[currentToolIndex] = null;
+                // reduce inventory by one
+                item.Stack--;
+                if (item.Stack <= 0) inventory[currentToolIndex] = null;
 
-			}// Check the Object layer for machines etc
+            }// Check the Object layer for machines etc
             else if (farmer.currentLocation.objects.TryGetValue(tileLocation, out obj))
-			{
-				//Perform the object drop in
-				//This method is patched by mods like PFM to get custom machines working so we get compat with that by default
-				bool result = obj.performObjectDropInAction(item, false, farmer);
+            {
+                //Perform the object drop in
+                //This method is patched by mods like PFM to get custom machines working so we get compat with that by default
+                bool result = obj.performObjectDropInAction(item, false, farmer);
 
                 if (result)
-				{ 
-					// reduce inventory by one
-					//Fixes bug where the item stack goes to 1 instead of removing itself when you perform drop in with the precise amount of item needed
-					//Eg. Either way 10 Copper ore into furnace would leave the bot with 5 copper ore.
-					// But without this fix, putting 5 Copper Ore into furnace would leave the bot with 1 copper ore.
-					item.Stack--;
-					if (item.Stack <= 0) inventory[currentToolIndex] = null;
-				}
-			}
-			else
+                {
+                    // reduce inventory by one
+                    //Fixes bug where the item stack goes to 1 instead of removing itself when you perform drop in with the precise amount of item needed
+                    //Eg. Either way 10 Copper ore into furnace would leave the bot with 5 copper ore.
+                    // But without this fix, putting 5 Copper Ore into furnace would leave the bot with 1 copper ore.
+                    item.Stack--;
+                    if (item.Stack <= 0) inventory[currentToolIndex] = null;
+                }
+            }
+            else
             {
-				return false;
-			}
-			return true;
-		}
+                return false;
+            }
+            return true;
+        }
 
-		public void Move(int dColumn, int dRow) {
+        public void Move(int dColumn, int dRow) {
 			// Face in the specified direction
 			if (dRow < 0) farmer.faceDirection(0);
 			else if (dRow > 0) farmer.faceDirection(2);
