@@ -15,6 +15,7 @@ using StardewValley.Tools;
 using StardewValley.Network;
 using StardewValley.TerrainFeatures;
 using StardewValley.Objects;
+using System.Linq;
 
 namespace Farmtronics {
 	public class Bot : StardewValley.Object {
@@ -965,11 +966,19 @@ namespace Farmtronics {
 					origin2, scale, SpriteEffects.None, z + 0.002f);
 			}
 
+			var hat = inventory.OfType<Hat>().FirstOrDefault();
+
+			if (hat != null)
+			{
+				drawHat(spriteBatch, hat, position3, z + 0.002f, alpha);
+			}
+
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int xNonTile, int yNonTile, float layerDepth, float alpha = 1) {
 			//ModEntry.instance.print($"draw 2 at {xNonTile},{yNonTile}, {layerDepth}, {alpha}");
 			base.draw(spriteBatch, xNonTile, yNonTile, layerDepth, alpha);
+
 		}
 
 		/// <summary>
@@ -1032,6 +1041,15 @@ namespace Farmtronics {
 				effects: SpriteEffects.None,
 				layerDepth: Math.Max(0f, (float)((y + 1) * 64 - 1) / 10000f));
         }
+
+		public void drawHat(SpriteBatch spriteBatch, Hat hat, Vector2 position, float layerDepth, float alpha = 1)
+		{
+			layerDepth += 1E-07f;
+			var hatOffset = new Vector2();
+			hatOffset.X = -42f;
+			hatOffset.Y = -38f;
+			hat.draw(spriteBatch, position + hatOffset, 1.5f, alpha, layerDepth, facingDirection);
+		}
 
 		/// <summary>
 		/// This method is called to get an "Item" (something that can be carried) from this Bot.
