@@ -496,6 +496,18 @@ namespace Farmtronics {
             //Returns false if the whole item stack can't be added
             if (Utility.canItemBeAddedToThisInventoryList(item, inventory, inventory.Count))
             {
+				//Without this, taking a tool will fill the bots inventory with it for some reason
+				if (item is Tool)
+				{
+					for (int j = inventory.Count - 1; j >= 0; j--)
+					{
+						if (inventory[j] == null)
+						{
+							inventory[j] = item;
+							return true;
+						}
+					}
+				}
                 //Debug.Log("Adding item");
                 Utility.addItemToThisInventoryList(item, inventory, inventory.Count);
                 return true;
@@ -601,7 +613,8 @@ namespace Farmtronics {
                 }
                 if (what.name.Equals("Crystalarium"))
                 {
-                    //what.minutesUntilReady.Value = Object.getMinutesForCrystalarium(objectThatWasHeld.ParentSheetIndex);
+					int mins = ModEntry.helper.Reflection.GetMethod(objectThatWasHeld, "getMinutesForCrystalarium").Invoke<int>(objectThatWasHeld.ParentSheetIndex);
+					what.minutesUntilReady.Value = mins;
                     what.heldObject.Value = (StardewValley.Object)objectThatWasHeld.getOne();
                 }
                 else if (what.name.Contains("Tapper"))
