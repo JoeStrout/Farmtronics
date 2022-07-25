@@ -55,12 +55,10 @@ namespace Farmtronics {
 			result["description"] = new ValString(obj.getDescription());
 
 			var chest = obj as Chest;
-			if (chest != null)
-			{
+			if (chest != null) {
 				var list = new ValList();
 				result["inventory"] = list;
-				foreach (var item in chest.items)
-				{
+				foreach (var item in chest.items) {
 					list.values.Add(TileInfo.ToMap(item));
 				}
 			}

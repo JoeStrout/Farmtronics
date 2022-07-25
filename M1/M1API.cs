@@ -407,8 +407,8 @@ namespace Farmtronics {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				sh.bot.StoreItem();
-				return Intrinsic.Result.Null;
+				bool result = sh.bot.StoreItem();
+				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
 			};
 			botModule["storeItem"] = f.GetFunc();
 
@@ -416,8 +416,8 @@ namespace Farmtronics {
 			f.AddParam("slot", -1);
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				sh.bot.TakeItem(context.GetLocalInt("slot"));
-				return Intrinsic.Result.Null;
+				bool result = sh.bot.TakeItem(context.GetLocalInt("slot"));
+				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
 			};
 			botModule["takeItem"] = f.GetFunc();
 
