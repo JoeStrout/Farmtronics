@@ -640,6 +640,87 @@ namespace Farmtronics {
             }
         }
 
+		public bool TakeItem(int slotNumber, int amount = -1)
+        {
+			if (farmer == null) return false;
+			farmer.setTileLocation(TileLocation);
+
+			int placeX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
+			int placeY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
+			Vector2 tileLocation = new Vector2(placeX / 64, placeY / 64);
+
+			StardewValley.Object obj;
+			if (farmer.currentLocation.objects.TryGetValue(tileLocation, out obj))
+			{
+				Chest chest = obj as Chest;
+
+				if (obj == null)
+				{
+					Debug.Log($"Object ahead of bot is not Chest");
+					return false;
+				}
+
+				if (chest.items[slotNumber] != null)
+				{
+					if (AddItemToInventoryBool(chest.items[slotNumber])){
+						Utility.removeItemFromInventory(slotNumber, chest.items);
+                    }
+                    else
+                    {
+						return false;
+                    }
+				}
+
+				return false;
+			}
+			else
+			{
+				Debug.Log("Not facing anything");
+				return false;
+			}
+
+			
+			return false;
+        }
+
+		public bool StoreItem(int amount = -1)
+        {
+
+			if (farmer == null) return false;
+			farmer.setTileLocation(TileLocation);
+
+			var item = inventory[currentToolIndex] as StardewValley.Object;
+			if (item == null)
+			{
+				Debug.Log($"No item equipped in slot {currentToolIndex}");
+				return false;
+			}
+
+			int placeX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
+			int placeY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
+			Vector2 tileLocation = new Vector2(placeX / 64, placeY / 64);
+
+            StardewValley.Object obj;
+			if (farmer.currentLocation.objects.TryGetValue(tileLocation, out obj))
+			{
+				Chest chest = obj as Chest;
+
+				if (obj == null)
+                {
+					Debug.Log($"Object ahead of bot is not Chest");
+					return false;
+                }
+				Debug.Log($"Added {item.DisplayName} to chest.");
+				inventory[currentToolIndex] = chest.addItem(item);
+				return true;
+			}
+			else
+			{
+				Debug.Log("Not facing anything");
+				return false;
+			}
+		}
+
         // Place the currently selected item (e.g., seed) in/on the ground
         // ahead of the robot.
         public bool PlaceItem()
@@ -669,6 +750,29 @@ namespace Farmtronics {
             }// Check the Object layer for machines etc
             else if (farmer.currentLocation.objects.TryGetValue(tileLocation, out obj))
             {
+				if (obj is Sign)
+                {
+					Sign s = obj as Sign;
+					s.displayItem.Value = inventory[currentToolIndex].getOne();
+					s.displayType.Value = 1;
+					if (s.displayItem.Value is Hat)
+					{
+						s.displayType.Value = 2;
+					}
+					else if (s.displayItem.Value is Ring)
+					{
+						s.displayType.Value = 4;
+					}
+					else if (s.displayItem.Value is Furniture)
+					{
+						s.displayType.Value = 5;
+					}
+					else if (s.displayItem.Value is StardewValley.Object)
+					{
+						s.displayType.Value = ((!(s.displayItem.Value as StardewValley.Object).bigCraftable) ? 1 : 3);
+					}
+					return true;
+                }
                 //Perform the object drop in
                 //This method is patched by mods like PFM to get custom machines working so we get compat with that by default
                 bool result = obj.performObjectDropInAction(item, false, farmer);

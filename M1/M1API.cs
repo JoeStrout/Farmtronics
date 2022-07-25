@@ -407,6 +407,23 @@ namespace Farmtronics {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				sh.bot.StoreItem();
+				return Intrinsic.Result.Null;
+			};
+			botModule["storeItem"] = f.GetFunc();
+
+			f = Intrinsic.Create("");
+			f.AddParam("slot", -1);
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				sh.bot.TakeItem(context.GetLocalInt("slot"));
+				return Intrinsic.Result.Null;
+			};
+			botModule["takeItem"] = f.GetFunc();
+
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
 				
 				if (partialResult == null) {
 					// Just starting our tool use; tell the bot and return partial result
