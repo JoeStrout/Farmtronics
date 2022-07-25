@@ -16,6 +16,7 @@ using StardewValley.Menus;
 using StardewValley.BellsAndWhistles;
 using StardewValley.TerrainFeatures;
 using StardewValley.Locations;
+using StardewValley.Objects;
 
 namespace Farmtronics {
 	public static class TileInfo {
@@ -52,6 +53,17 @@ namespace Farmtronics {
 			result["minutesTillReady"] = new ValNumber(obj.MinutesUntilReady);
 			result["value"] = new ValNumber(obj.sellToStorePrice());
 			result["description"] = new ValString(obj.getDescription());
+
+			var chest = obj as Chest;
+			if (chest != null)
+			{
+				var list = new ValList();
+				result["inventory"] = list;
+				foreach (var item in chest.items)
+				{
+					list.values.Add(TileInfo.ToMap(item));
+				}
+			}
 			return result;
 		}
 
