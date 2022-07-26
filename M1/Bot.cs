@@ -626,117 +626,97 @@ namespace Farmtronics {
 
 			StardewValley.Object obj;
 			if (farmer.currentLocation.objects.TryGetValue(tileLocation, out obj)) {
-				Chest chest = obj as Chest;
-
-				if (obj == null) {
-					Debug.Log($"Object ahead of bot is not Chest");
-					return false;
+				IList<Item> sourceItems = null;
+				if (obj is Chest chest) sourceItems = chest.items;
+				else if (obj is Bot bot) sourceItems = bot.inventory;
+				if (sourceItems != null && sourceItems[slotNumber] != null && AddItemToInventory(sourceItems[slotNumber])) {
+					Debug.Log($"Taking {sourceItems[slotNumber].DisplayName} from container");
+					Utility.removeItemFromInventory(slotNumber, sourceItems);
+					return true;
 				}
-
-				if (chest.items[slotNumber] != null) {
-					if (AddItemToInventory(chest.items[slotNumber])) {
-						Utility.removeItemFromInventory(slotNumber, chest.items);
-					} else {
-						return false;
-					}
-				}
-
-				return false;
 			} else {
 				Debug.Log("Not facing anything");
-				return false;
 			}
-
 
 			return false;
 		}
-
-		public bool StoreItem(int amount = -1) {
-
-			if (farmer == null) return false;
-			farmer.setTileLocation(TileLocation);
-
-			var item = inventory[currentToolIndex] as StardewValley.Object;
+		
+		// Place the currently selected item (e.g., seed) in/on the ground
+		// or machine/container ahead of the robot.  Return the number
+		// successfully placed.
+		public int PlaceItem() {
+			var item = inventory[currentToolIndex];
 			if (item == null) {
 				Debug.Log($"No item equipped in slot {currentToolIndex}");
-				return false;
+				return 0;
 			}
-
+			Debug.Log($"Placing {item.DisplayName} from slot {currentToolIndex}");
 			int placeX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
 			int placeY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
-			Vector2 tileLocation = new Vector2(placeX / 64, placeY / 64);
 
-			StardewValley.Object obj;
-			if (farmer.currentLocation.objects.TryGetValue(tileLocation, out obj)) {
-				Chest chest = obj as Chest;
-
-				if (obj == null) {
-					Debug.Log($"Object ahead of bot is not Chest");
-					return false;
-				}
-				Debug.Log($"Added {item.DisplayName} to chest.");
-				inventory[currentToolIndex] = chest.addItem(item);
-				return true;
-			} else {
-				Debug.Log("Not facing anything");
-				return false;
-			}
-		}
-
-		// Place the currently selected item (e.g., seed) in/on the ground
-		// or machine/container ahead of the robot.
-		public bool PlaceItem() {
-			var item = inventory[currentToolIndex] as StardewValley.Object;
-			if (item == null) {
-				//Debug.Log($"No item equipped in slot {currentToolIndex}");
-				return false;
-			}
-			int placeX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
-			int placeY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
-			Vector2 tileLocation = new Vector2(placeX / 64, placeY / 64);
-			StardewValley.Object obj;
-
-			// make sure we can place the item here
-			if (Utility.playerCanPlaceItemHere(farmer.currentLocation, item, placeX, placeY, farmer)) {
-				//Debug.Log($"Can't place {item} (stack size {item.Stack}) at {placeX},{placeY}");
+			// if we can place the item via standard Utility/item methods, do so
+			var itemAsObj = item as StardewValley.Object;
+			if (itemAsObj != null && Utility.playerCanPlaceItemHere(farmer.currentLocation, item, placeX, placeY, farmer)) {
 				//Place it
-				bool result = item.placementAction(currentLocation, placeX, placeY, farmer);
-
-				// reduce inventory by one
+				bool result = itemAsObj.placementAction(currentLocation, placeX, placeY, farmer);
+				Debug.Log($"placementAction result: {result}");
+				// reduce inventory by one, and clear the inventory if the stack is empty
 				item.Stack--;
 				if (item.Stack <= 0) inventory[currentToolIndex] = null;
+				return 1;
+			}
 
-			}// Check the Object layer for machines etc
-			else if (farmer.currentLocation.objects.TryGetValue(tileLocation, out obj)) {
-				if (obj is Sign) {
-					Sign s = obj as Sign;
-					s.displayItem.Value = inventory[currentToolIndex].getOne();
-					s.displayType.Value = 1;
-					if (s.displayItem.Value is Hat) {
-						s.displayType.Value = 2;
-					} else if (s.displayItem.Value is Ring) {
-						s.displayType.Value = 4;
-					} else if (s.displayItem.Value is Furniture) {
-						s.displayType.Value = 5;
-					} else if (s.displayItem.Value is StardewValley.Object) {
-						s.displayType.Value = ((!(s.displayItem.Value as StardewValley.Object).bigCraftable) ? 1 : 3);
-					}
-					return true;
-				}
+			// check the Object layer for machines etc
+			Vector2 tileLocation = new Vector2(placeX / 64, placeY / 64);
+			StardewValley.Object obj;
+			if (farmer.currentLocation.objects.TryGetValue(tileLocation, out obj)) {
 				// Perform the object drop in
 				// This method is patched by mods like PFM to get custom machines working,
                 // so we get compatibility with that by default.
 				bool result = obj.performObjectDropInAction(item, false, farmer);
-
+				Debug.Log($"performObjectDropInAction({item.DisplayName}) result: {result}");
 				if (result) {
 					// reduce inventory by one, and clear the inventory if the stack is empty
 					item.Stack--;
 					if (item.Stack <= 0) inventory[currentToolIndex] = null;
+					return 1;
 				}
-			} else {
-				return false;
+				// If that doesn't work, then check various special cases
+				// (including placing in bots and chests).
+				if (obj is Sign sign) {
+					var oneItem = inventory[currentToolIndex].getOne();
+					sign.displayItem.Value = oneItem;
+					sign.displayType.Value = 1;
+					if (sign.displayItem.Value is Hat) {
+						sign.displayType.Value = 2;
+					} else if (sign.displayItem.Value is Ring) {
+						sign.displayType.Value = 4;
+					} else if (sign.displayItem.Value is Furniture) {
+						sign.displayType.Value = 5;
+					} else if (sign.displayItem.Value is StardewValley.Object) {
+						sign.displayType.Value = ((!(oneItem as StardewValley.Object).bigCraftable) ? 1 : 3);
+					}
+					return 1;
+				}
+				if (obj is Chest chest) {
+					Debug.Log($"Adding {item.DisplayName} to chest.");
+					int beforeCount = item.Stack;
+					inventory[currentToolIndex] = chest.addItem(item);
+					int afterCount = (inventory[currentToolIndex] == null ? 0 : inventory[currentToolIndex].Stack);
+					return beforeCount - afterCount;
+				} else if (obj is Bot bot) {
+					Debug.Log($"Adding {item.DisplayName} to bot.");
+					int beforeCount = item.Stack;
+					if (!bot.AddItemToInventory(item)) return 0;
+					inventory[currentToolIndex] = null;
+					return beforeCount;
+                } else {
+					Debug.Log($"Object ahead of bot is neither Chest nor Bot");
+					return 0;
+				}
 			}
-			return true;
+			else Debug.Log($"No object found at {tileLocation}");
+			return 0;
 		}
 
 		public void Move(int dColumn, int dRow) {

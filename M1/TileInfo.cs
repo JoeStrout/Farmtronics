@@ -6,6 +6,7 @@
 // which you may well find on a tile.
 
 using System;
+using System.Collections.Generic;
 using Miniscript;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -54,11 +55,13 @@ namespace Farmtronics {
 			result["value"] = new ValNumber(obj.sellToStorePrice());
 			result["description"] = new ValString(obj.getDescription());
 
-			var chest = obj as Chest;
-			if (chest != null) {
+			IList<Item> inventory = null;
+			if (obj is Chest chest) inventory = chest.items;
+			else if(obj is Bot bot) inventory = bot.inventory;
+			if (inventory != null) {
 				var list = new ValList();
 				result["inventory"] = list;
-				foreach (var item in chest.items) {
+				foreach (var item in inventory) {
 					list.values.Add(TileInfo.ToMap(item));
 				}
 			}

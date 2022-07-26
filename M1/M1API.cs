@@ -397,20 +397,14 @@ namespace Farmtronics {
 			botModule["right"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
+			// ToDo: accept a count of items to place.
+			// For now, we'll just always place as many as possible.
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				sh.bot.PlaceItem();
-				return Intrinsic.Result.Null;
+				int itemsPlaced = sh.bot.PlaceItem();
+				return new Intrinsic.Result(itemsPlaced);
 			};
 			botModule["placeItem"] = f.GetFunc();
-
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				Shell sh = context.interpreter.hostData as Shell;
-				bool result = sh.bot.StoreItem();
-				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
-			};
-			botModule["storeItem"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.AddParam("slot", -1);
