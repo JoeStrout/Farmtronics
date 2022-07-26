@@ -23,7 +23,8 @@ Methods:
  `bot.right`: turn right
  `bot.select toolNameOrIndex`: choose item
  `bot.placeItem`: place item down
- `bot.harvest`: harvest a crop
+ `bot.takeItem`: take item from chest
+ `bot.harvest`: harvest a crop/item
  `bot.useTool`: apply current tool
  `bot.clearAhead`: choose/apply tool
  `bot.clearAndMove`: clear ahead and move
