@@ -44,7 +44,7 @@ namespace Farmtronics {
 			// language host info
 
 			HostInfo.name = "Farmtronics";
-			HostInfo.version = 1.11;
+			HostInfo.version = 1.20;
 			HostInfo.info = "https://github.com/JoeStrout/Farmtronics/";
 		
 			Intrinsic f;
