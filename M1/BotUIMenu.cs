@@ -217,6 +217,10 @@ namespace Farmtronics {
 			Game1.drawDialogueBox(invR.X, invR.Y, invR.Width, invR.Height, speaker: false, drawOnlyBox: true);
 			botInventoryMenu.draw(b);
 
+			// highlight the currently selected slot
+			Vector2 slotPos = botInventoryMenu.GetSlotDrawPositions()[bot.currentToolIndex];
+			b.Draw(Game1.menuTexture, slotPos, Game1.getSourceRectForStandardTileSheet(Game1.menuTexture, 56), Color.Gray, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.5f);
+
 			// draw the console
 			Rectangle consoleR = consoleBounds();
 			Game1.drawDialogueBox(consoleR.X, consoleR.Y, consoleR.Width, consoleR.Height, speaker: false, drawOnlyBox: true);
