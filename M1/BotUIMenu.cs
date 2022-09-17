@@ -5,8 +5,6 @@ It has several parts:
 	2. The bot inventory
 	3. A MiniScript console.
 */
-using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;

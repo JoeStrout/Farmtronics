@@ -7,15 +7,11 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using StardewModdingAPI;
-using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Tools;
 using StardewValley.Network;
 using StardewValley.TerrainFeatures;
 using StardewValley.Objects;
-using System.Linq;
 
 namespace Farmtronics {
 	public class Bot : StardewValley.Object {

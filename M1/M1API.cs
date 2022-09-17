@@ -3,19 +3,14 @@ This static class implements the APIs that extend MiniScript with
 custom intrinsic functions/classes for use on the M-1.
 */
 
-using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Reflection;
 using Miniscript;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
-using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
-using StardewValley.BellsAndWhistles;
-using StardewValley.TerrainFeatures;
 
 
 

@@ -4,12 +4,9 @@ It connects a MiniScript interpreter to the Console which interacts with
 the user. 
 */
 
-using System;
 using System.Collections.Generic;
 using System.IO;
-using StardewValley;
 using StardewModdingAPI;
-//using StardewValley.Menus;
 using Miniscript;
 using Microsoft.Xna.Framework;
 

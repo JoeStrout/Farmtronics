@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using StardewValley.BellsAndWhistles;
-using StardewValley.TerrainFeatures;
 
 
 namespace Farmtronics

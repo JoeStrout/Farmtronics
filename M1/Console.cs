@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewModdingAPI;
 using StardewValley.Menus;
-using StardewValley.BellsAndWhistles;
 
 namespace Farmtronics {
 	public class Console : IClickableMenu, IKeyboardSubscriber {

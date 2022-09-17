@@ -7,7 +7,6 @@ Unless you’re writing a fancy MiniScript code editor, you probably don’t
 need to worry about this stuff. 
 
 */
-using System;
 using System.Collections.Generic;
 
 namespace Miniscript {

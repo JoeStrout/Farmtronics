@@ -3,19 +3,7 @@
 	with mod (either StardewValley or SMAPI) classes easier.
 
 */
-using System;
-using System.Collections.Generic;
-using System.Xml.Serialization;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using StardewModdingAPI;
-using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
-using StardewValley.Tools;
-using StardewValley.Network;
-using StardewValley.TerrainFeatures;
-using StardewValley.Objects;
 
 namespace Farmtronics {
 	public static class ModUtils {
