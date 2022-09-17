@@ -1695,10 +1695,10 @@ namespace Farmtronics {
 				var loc = (Farm)Game1.getLocationFromName("Farm");
 				var weather = Game1.netWorldState.Value.GetWeatherForLocation(loc.GetLocationContext());
 				string result = "sunny";
-				if (weather.isLightning) result = "stormy";
-				else if (weather.isRaining) result = "raining";
-				else if (weather.isSnowing) result = "snowing";
-				else if (weather.isDebrisWeather) result = "windy";
+				if (weather.isLightning.Value) result = "stormy";
+				else if (weather.isRaining.Value) result = "raining";
+				else if (weather.isSnowing.Value) result = "snowing";
+				else if (weather.isDebrisWeather.Value) result = "windy";
 				worldInfo["weather"] = new ValString(result);
 			};
 

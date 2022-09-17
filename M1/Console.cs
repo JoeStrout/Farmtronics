@@ -61,7 +61,7 @@ namespace Farmtronics {
 
 			screenArea = new Rectangle(20*drawScale, 18*drawScale, 160*drawScale, 120*drawScale);	// 640x480 (VGA)!
 
-			screenOverlay = ModEntry.helper.Content.Load<Texture2D>("assets/ScreenOverlay.png");
+			screenOverlay = ModEntry.helper.GameContent.Load<Texture2D>("assets/ScreenOverlay.png");
 			screenSrcR = new Rectangle(0, 0, 200, 160);
 
 			innerSrcR = new Rectangle(20, 18, 160, 120);
@@ -158,9 +158,9 @@ namespace Farmtronics {
 			// Most keys are handled through one of the misspelled IKeyboardSubscriber
 			// interface methods.  But not these:
 			switch (key) {
-			case Keys.Left:	
+			case Keys.Left: 
 			case Keys.Right:
-			case Keys.Down:	
+			case Keys.Down: 
 			case Keys.Up:
 			case Keys.Delete:
 				return;		// these are now handled via KeyWatchers in Update()

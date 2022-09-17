@@ -102,7 +102,7 @@ namespace Farmtronics {
 			//Debug.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 
 			if (botSprites == null) {
-				botSprites = ModEntry.helper.Content.Load<Texture2D>("assets/BotSprites.png");
+				botSprites = ModEntry.helper.GameContent.Load<Texture2D>("assets/BotSprites.png");
 			}
 
 			Name = "Bot";
@@ -516,7 +516,7 @@ namespace Farmtronics {
 			Farmer who = farmer;
 
 			StardewValley.Object objectThatWasHeld = what.heldObject.Value;
-			if ((bool)what.readyForHarvest) {
+			if (what != null && what.readyForHarvest.Value) {
 				if (who.isMoving()) {
 					Game1.haltAfterCheck = false;
 				}
@@ -525,11 +525,11 @@ namespace Farmtronics {
 					int honey_type = -1;
 					string honeyName = "Wild";
 					int honeyPriceAddition = 0;
-					Crop c = Utility.findCloseFlower(who.currentLocation, what.tileLocation, 5, (Crop crop) => (!crop.forageCrop.Value) ? true : false);
+					Crop c = Utility.findCloseFlower(who.currentLocation, what.TileLocation, 5, (Crop crop) => (!crop.forageCrop.Value) ? true : false);
 					if (c != null) {
-						honeyName = Game1.objectInformation[c.indexOfHarvest].Split('/')[0];
+						honeyName = Game1.objectInformation[c.indexOfHarvest.Value].Split('/')[0];
 						honey_type = c.indexOfHarvest.Value;
-						honeyPriceAddition = Convert.ToInt32(Game1.objectInformation[c.indexOfHarvest].Split('/')[1]) * 2;
+						honeyPriceAddition = Convert.ToInt32(Game1.objectInformation[c.indexOfHarvest.Value].Split('/')[1]) * 2;
 					}
 					if (what.heldObject.Value != null) {
 						what.heldObject.Value.name = honeyName + " Honey";
@@ -584,11 +584,11 @@ namespace Farmtronics {
 				}
 				if (what.name.Equals("Crystalarium")) {
 					int mins = ModEntry.helper.Reflection.GetMethod(objectThatWasHeld, "getMinutesForCrystalarium").Invoke<int>(objectThatWasHeld.ParentSheetIndex);
-					what.minutesUntilReady.Value = mins;
+					what.MinutesUntilReady = mins;
 					what.heldObject.Value = (StardewValley.Object)objectThatWasHeld.getOne();
 				} else if (what.name.Contains("Tapper")) {
-					if (who.currentLocation.terrainFeatures.ContainsKey(what.tileLocation) && who.currentLocation.terrainFeatures[what.tileLocation] is Tree) {
-						(who.currentLocation.terrainFeatures[what.tileLocation] as Tree).UpdateTapperProduct(what, objectThatWasHeld);
+					if (who.currentLocation.terrainFeatures.ContainsKey(what.TileLocation) && who.currentLocation.terrainFeatures[what.TileLocation] is Tree) {
+						(who.currentLocation.terrainFeatures[what.TileLocation] as Tree).UpdateTapperProduct(what, objectThatWasHeld);
 					}
 				} else {
 					what.heldObject.Value = null;
@@ -597,10 +597,10 @@ namespace Farmtronics {
 				what.showNextIndex.Value = false;
 				if (what.name.Equals("Bee House") && !Game1.GetSeasonForLocation(who.currentLocation).Equals("winter")) {
 					what.heldObject.Value = new StardewValley.Object(Vector2.Zero, 340, null, canBeSetDown: false, canBeGrabbed: true, isHoedirt: false, isSpawnedObject: false);
-					what.minutesUntilReady.Value = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 4);
+					what.MinutesUntilReady = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 4);
 				} else if (what.name.Equals("Worm Bin")) {
 					what.heldObject.Value = new StardewValley.Object(685, Game1.random.Next(2, 6));
-					what.minutesUntilReady.Value = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 1);
+					what.MinutesUntilReady = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 1);
 				}
 				if (check_for_reload) {
 					what.AttemptAutoLoad(who);
@@ -690,7 +690,7 @@ namespace Farmtronics {
 					} else if (sign.displayItem.Value is Furniture) {
 						sign.displayType.Value = 5;
 					} else if (sign.displayItem.Value is StardewValley.Object) {
-						sign.displayType.Value = ((!(oneItem as StardewValley.Object).bigCraftable) ? 1 : 3);
+						sign.displayType.Value = ((!(oneItem as StardewValley.Object).bigCraftable.Value) ? 1 : 3);
 					}
 					return 1;
 				}
