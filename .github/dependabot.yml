@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - directory: "/M1"
+    open-pull-requests-limit: 5
+    package-ecosystem: "nuget"
+    commit-message:
+      prefix: "dep nuget"
+    schedule:
+      interval: daily
