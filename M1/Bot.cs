@@ -102,7 +102,7 @@ namespace Farmtronics {
 			//Debug.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 
 			if (botSprites == null) {
-				botSprites = ModEntry.helper.GameContent.Load<Texture2D>("assets/BotSprites.png");
+				botSprites = ModEntry.helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
 			}
 
 			Name = "Bot";
