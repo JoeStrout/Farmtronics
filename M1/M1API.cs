@@ -402,7 +402,7 @@ namespace Farmtronics {
 			botModule["placeItem"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
-			f.AddParam("slot", -1);
+			f.AddParam("slot", 0);
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				bool result = sh.bot.TakeItem(context.GetLocalInt("slot"));
