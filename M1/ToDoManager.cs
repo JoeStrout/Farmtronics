@@ -1,9 +1,6 @@
 ﻿// This module detects and keeps track of the state of the "to-do" (quest) tasks,
 // mostly based on observing `print` output to the console.
-
-using System;
 using System.Collections.Generic;
-using StardewModdingAPI;
 using StardewValley;
 
 namespace Farmtronics {

@@ -3,19 +3,14 @@ This static class implements the APIs that extend MiniScript with
 custom intrinsic functions/classes for use on the M-1.
 */
 
-using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Reflection;
 using Miniscript;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
-using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
-using StardewValley.BellsAndWhistles;
-using StardewValley.TerrainFeatures;
 
 
 
@@ -1700,10 +1695,10 @@ namespace Farmtronics {
 				var loc = (Farm)Game1.getLocationFromName("Farm");
 				var weather = Game1.netWorldState.Value.GetWeatherForLocation(loc.GetLocationContext());
 				string result = "sunny";
-				if (weather.isLightning) result = "stormy";
-				else if (weather.isRaining) result = "raining";
-				else if (weather.isSnowing) result = "snowing";
-				else if (weather.isDebrisWeather) result = "windy";
+				if (weather.isLightning.Value) result = "stormy";
+				else if (weather.isRaining.Value) result = "raining";
+				else if (weather.isSnowing.Value) result = "snowing";
+				else if (weather.isDebrisWeather.Value) result = "windy";
 				worldInfo["weather"] = new ValString(result);
 			};
 

@@ -1,12 +1,9 @@
-﻿using MonoGame;
-using System;
+﻿using System;
 using System.IO;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using StardewValley;
-using StardewModdingAPI;
 
 namespace Farmtronics {
 

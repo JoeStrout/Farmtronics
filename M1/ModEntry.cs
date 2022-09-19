@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using StardewValley.BellsAndWhistles;
-using StardewValley.TerrainFeatures;
 
 
 namespace Farmtronics
 {
-	public class ModEntry : Mod, IAssetEditor {
+	public class ModEntry : Mod {
 		public static IModHelper helper;
 		public static ModEntry instance;
 
@@ -21,7 +18,6 @@ namespace Farmtronics
 		public override void Entry(IModHelper helper) {
 			instance = this;
 			ModEntry.helper = helper;
-			helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
@@ -30,13 +26,11 @@ namespace Farmtronics
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
 			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
+            Helper.Events.Content.AssetRequested += this.OnAssetRequested;
 			
 			print($"CurrentSavePath: {Constants.CurrentSavePath}");
 		}
 
-		private void OnGameLaunched(object sender, GameLaunchedEventArgs e) {
-			Helper.Content.AssetEditors.Add(this);
-		}
 
 		private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e) {
 			Bot.ClearAll();
@@ -170,27 +164,29 @@ namespace Farmtronics
 			shell.console.Present();
 		}
 
-		bool IAssetEditor.CanEdit<T>(IAssetInfo asset) {
-			return asset.Name.IsEquivalentTo("Data\\mail");
-		}
-
-		void IAssetEditor.Edit<T>(IAssetData asset) {
-			Debug.Log($"ModEntry.Edit(Mail)");
-			var data = asset.AsDictionary<string, string>().Data;
-			data["FarmtronicsFirstBotMail"] = "Dear @,"
-				+ "^^Congratulations!  You have been selected to receive a complementary FARMTRONICS BOT, the latest in farm technology!"
-				+ "^With this robotic companion, your days of toiling in the fields will soon be over."
-				+ "^Check your local stores for additional bots as needed.  Enjoy!"
-				+ "^^%item itemRecovery %%";
-			foreach (var msg in Game1.player.mailbox) {
-				Debug.Log($"mail in mailbox: {msg}");
-				if (msg == "FarmtronicsFirstBotMail") {
-					Debug.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-					Game1.player.recoveredItem = new Bot(null);
-					break;
-				}
-			}
-
-		}
-	}
+        /// <inheritdoc cref="IContentEvents.AssetRequested" />
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        private void OnAssetRequested(object sender, AssetRequestedEventArgs e) {
+            if (e.NameWithoutLocale.IsEquivalentTo("Data/mail")) {
+                e.Edit(asset => {
+                    Debug.Log($"ModEntry.Edit(Mail)");
+                    var data = asset.AsDictionary<string, string>().Data;
+                    data["FarmtronicsFirstBotMail"] = "Dear @,"
+                        + "^^Congratulations!  You have been selected to receive a complementary FARMTRONICS BOT, the latest in farm technology!"
+                        + "^With this robotic companion, your days of toiling in the fields will soon be over."
+                        + "^Check your local stores for additional bots as needed.  Enjoy!"
+                        + "^^%item itemRecovery %%";
+                    foreach (var msg in Game1.player.mailbox) {
+                        Debug.Log($"mail in mailbox: {msg}");
+                        if (msg == "FarmtronicsFirstBotMail") {
+                            Debug.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
+                            Game1.player.recoveredItem = new Bot(null);
+                            break;
+                        }
+                    }
+                });
+            }
+        }
+    }
 }

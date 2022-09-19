@@ -5,16 +5,10 @@
 // It also contains some related methods to get info about objects and items,
 // which you may well find on a tile.
 
-using System;
 using System.Collections.Generic;
 using Miniscript;
 using Microsoft.Xna.Framework;
-using StardewModdingAPI;
-using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
-using StardewValley.Menus;
-using StardewValley.BellsAndWhistles;
 using StardewValley.TerrainFeatures;
 using StardewValley.Locations;
 using StardewValley.Objects;
