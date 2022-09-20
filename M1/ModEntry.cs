@@ -1,4 +1,5 @@
 ﻿using System;
+using Farmtronics.Bot;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -35,14 +36,14 @@ namespace Farmtronics
 
 
 		private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e) {
-			Bot.ClearAll();
+			BotObject.ClearAll();
 			shell = null;
 		}
 
 		private void UpdateTicking(object sender, UpdateTickingEventArgs e) {
 			uint dTicks = e.Ticks - prevTicks;
 			var gameTime = new GameTime(new TimeSpan(e.Ticks * 10000000 / 60), new TimeSpan(dTicks * 10000000 / 60));
-			Bot.UpdateAll(gameTime);
+			BotObject.UpdateAll(gameTime);
 			prevTicks = e.Ticks;
 		}
 
@@ -56,7 +57,7 @@ namespace Farmtronics
 				Vector2 pos = Game1.player.position;
 				pos.X -= 64;
 				Vector2 tilePos = new Vector2((int)(pos.X / 64), (int)(pos.Y / 64));
-				var bot = new Bot(tilePos);
+				var bot = new BotObject(tilePos);
 
 				//Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
 				Game1.player.currentLocation.overlayObjects[tilePos] = bot;
@@ -73,7 +74,7 @@ namespace Farmtronics
 					this.Monitor.Log($"Mail in mailbox: {msg}");
 					if (msg == "FarmtronicsFirstBotMail") {
 						this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-						Game1.player.recoveredItem = new Bot(null);
+						Game1.player.recoveredItem = new BotObject(null);
 						break;
 					}
 				}
@@ -116,15 +117,15 @@ namespace Farmtronics
 		}
 
 		public void OnSaving(object sender, SavingEventArgs args) {
-			if (Context.IsMainPlayer) Bot.ConvertBotsToChests();
+			if (Context.IsMainPlayer) BotObject.ConvertBotsToChests();
 		}
 
 		public void OnSaved(object sender, SavedEventArgs args) {
-			if (Context.IsMainPlayer) Bot.ConvertChestsToBots();
+			if (Context.IsMainPlayer) BotObject.ConvertChestsToBots();
 		}
 
 		public void OnSaveLoaded(object sender, SaveLoadedEventArgs args) {
-			if (Context.IsMainPlayer) Bot.ConvertChestsToBots();
+			if (Context.IsMainPlayer) BotObject.ConvertChestsToBots();
 		}
 
 		public void OnDayStarted(object sender, DayStartedEventArgs args) {
@@ -135,7 +136,7 @@ namespace Farmtronics
 				this.Monitor.Log($"Mail in mailbox: {msg}");
 				if (msg == "FarmtronicsFirstBotMail") {
 					this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-					Game1.player.recoveredItem = new Bot(null);
+					Game1.player.recoveredItem = new BotObject(null);
 					break;
 				}
 			}
@@ -143,7 +144,7 @@ namespace Farmtronics
 			// Initialize the home computer and all bots for autostart.
 			// This initialization will also cause all startup scripts to run.
 			InitComputerShell();
-			Bot.InitShellAll();
+			BotObject.InitShellAll();
 		}
 
 		/// <summary>
@@ -180,7 +181,7 @@ namespace Farmtronics
                         this.Monitor.Log($"mail in mailbox: {msg}");
                         if (msg == "FarmtronicsFirstBotMail") {
                             this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-                            Game1.player.recoveredItem = new Bot(null);
+                            Game1.player.recoveredItem = new BotObject(null);
                             break;
                         }
                     }

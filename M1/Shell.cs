@@ -9,13 +9,14 @@ using System.IO;
 using StardewModdingAPI;
 using Miniscript;
 using Microsoft.Xna.Framework;
+using Farmtronics.Bot;
 
 namespace Farmtronics {
 	public class Shell {
 		static Value _bootOpts = new ValString("bootOpts");
 		static Value _controlC = new ValString("controlC");
 		public Console console { get; private set; }
-		public Bot bot {  get; private set; }
+		public BotObject bot {  get; private set; }
 		public bool allowControlCBreak {
 			get {
 				ValMap bootOpts = env.Lookup(_bootOpts) as ValMap;
@@ -41,7 +42,7 @@ namespace Farmtronics {
 		public TextDisplay textDisplay {  get {  return console.display; } }
 		
 		public Shell() {
-			console = new Farmtronics.Console(this);
+			console = new Console(this);
 
 			// prepare the interpreter
 			interpreter = new Interpreter(null, PrintLineWithTaskCheck, PrintLine);
@@ -49,7 +50,7 @@ namespace Farmtronics {
 			interpreter.hostData = this;
 		}
 
-		public void Init(Bot botContext=null) {
+		public void Init(BotObject botContext=null) {
 			this.bot = botContext;
 			M1API.Init(this);
 

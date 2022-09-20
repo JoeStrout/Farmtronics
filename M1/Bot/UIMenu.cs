@@ -12,10 +12,10 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace Farmtronics {
-	public class BotUIMenu : MenuWithInventory {
+namespace Farmtronics.Bot {
+	public class UIMenu : MenuWithInventory {
 
-		Bot bot;
+		BotObject bot;
 		InventoryMenu botInventoryMenu;
 
 		//Shell shell;
@@ -30,7 +30,7 @@ namespace Farmtronics {
 		static Vector2 preferredPosition;
 		static Vector2 lastGameviewSize;
 
-		public BotUIMenu(Bot bot)
+		public UIMenu(BotObject bot)
 		: base(null, okButton: true, trashCan: true) {
 			//print($"Created BotUIMenu for {bot.Name}. PositionOnScreen:{xPositionOnScreen},{yPositionOnScreen}; viewport:{Game1.uiViewport.Width}, {Game1.uiViewport.Height}, shell {bot.shell}");
 

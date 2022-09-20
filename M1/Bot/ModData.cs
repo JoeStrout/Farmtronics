@@ -1,5 +1,5 @@
-namespace Farmtronics {
-	class BotModData : IModData {
+namespace Farmtronics.Bot {
+	class ModData : IModData {
 		// mod data keys, used for saving/loading extra data with the game save:
 		public static readonly string IS_BOT = "isBot";
 		public static readonly string NAME   = "name";

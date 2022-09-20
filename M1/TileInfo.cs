@@ -12,6 +12,7 @@ using StardewValley;
 using StardewValley.TerrainFeatures;
 using StardewValley.Locations;
 using StardewValley.Objects;
+using Farmtronics.Bot;
 
 namespace Farmtronics {
 	public static class TileInfo {
@@ -51,7 +52,7 @@ namespace Farmtronics {
 
 			IList<Item> inventory = null;
 			if (obj is Chest chest) inventory = chest.items;
-			else if(obj is Bot bot) inventory = bot.inventory;
+			else if(obj is BotObject bot) inventory = bot.inventory;
 			if (inventory != null) {
 				var list = new ValList();
 				result["inventory"] = list;

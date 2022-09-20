@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 
-namespace Farmtronics {
+namespace Farmtronics.Bot {
     public class SalableBot : ISalable {
         static Texture2D botSprites;
 
@@ -73,7 +73,7 @@ namespace Farmtronics {
 
         public ISalable GetSalableInstance() {
             // Create a new instance of the actual Bot class.
-            return new Bot(null);
+            return new BotObject(null);
         }
 
         public bool IsInfiniteStock() {

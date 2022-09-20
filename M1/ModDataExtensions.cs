@@ -7,11 +7,11 @@ namespace Farmtronics {
 		
 		public static void SetModData<T>(this ModDataDictionary modData, T model) where T : IModData {
 			switch (model) {
-				case BotModData botModel:
-					modData[$"{UniqueID}/{BotModData.IS_BOT}"] = botModel.IsBot ? "1" : "0";
-					modData[$"{UniqueID}/{BotModData.NAME}"]   = botModel.Name;
-					modData[$"{UniqueID}/{BotModData.ENERGY}"] = botModel.Energy.ToString();
-					modData[$"{UniqueID}/{BotModData.FACING}"] = botModel.FacingDirection.ToString();
+				case Bot.ModData botModel:
+					modData[$"{UniqueID}/{Bot.ModData.IS_BOT}"] = botModel.IsBot ? "1" : "0";
+					modData[$"{UniqueID}/{Bot.ModData.NAME}"]   = botModel.Name;
+					modData[$"{UniqueID}/{Bot.ModData.ENERGY}"] = botModel.Energy.ToString();
+					modData[$"{UniqueID}/{Bot.ModData.FACING}"] = botModel.FacingDirection.ToString();
 					break;
 				
 				default:
@@ -20,11 +20,11 @@ namespace Farmtronics {
 		}
 		
 		public static bool HasModData<T>(this ModDataDictionary modData) where T : IModData {
-			if (typeof(T) == typeof(BotModData)) {
-				if (!(modData.ContainsKey($"{UniqueID}/{BotModData.IS_BOT}")
-						&& modData.ContainsKey($"{UniqueID}/{BotModData.NAME}")
-						&& modData.ContainsKey($"{UniqueID}/{BotModData.ENERGY}")
-						&& modData.ContainsKey($"{UniqueID}/{BotModData.FACING}"))) {
+			if (typeof(T) == typeof(Bot.ModData)) {
+				if (!(modData.ContainsKey($"{UniqueID}/{Bot.ModData.IS_BOT}")
+						&& modData.ContainsKey($"{UniqueID}/{Bot.ModData.NAME}")
+						&& modData.ContainsKey($"{UniqueID}/{Bot.ModData.ENERGY}")
+						&& modData.ContainsKey($"{UniqueID}/{Bot.ModData.FACING}"))) {
 					return false;
 				}
 				return true;	
@@ -38,11 +38,11 @@ namespace Farmtronics {
 		public static T GetModData<T>(this ModDataDictionary modData) where T : IModData {
 			T model = default;
 			
-			if (typeof(T) == typeof(BotModData)) {
-				(model as BotModData).IsBot  		  = int.Parse(modData[$"{UniqueID}/{BotModData.IS_BOT}"]) == 1;
-				(model as BotModData).Name   		  = modData[$"{UniqueID}/{BotModData.NAME}"];
-				(model as BotModData).Energy 		  = int.Parse(modData[$"{UniqueID}/{BotModData.ENERGY}"]);
-				(model as BotModData).FacingDirection = int.Parse(modData[$"{UniqueID}/{BotModData.FACING}"]);
+			if (typeof(T) == typeof(Bot.ModData)) {
+				(model as Bot.ModData).IsBot  		  = int.Parse(modData[$"{UniqueID}/{Bot.ModData.IS_BOT}"]) == 1;
+				(model as Bot.ModData).Name   		  = modData[$"{UniqueID}/{Bot.ModData.NAME}"];
+				(model as Bot.ModData).Energy 		  = int.Parse(modData[$"{UniqueID}/{Bot.ModData.ENERGY}"]);
+				(model as Bot.ModData).FacingDirection = int.Parse(modData[$"{UniqueID}/{Bot.ModData.FACING}"]);
 					
 				return model;
 			}
