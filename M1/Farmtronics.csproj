@@ -12,4 +12,8 @@
       <Version>4.0.1</Version>
     </PackageReference>
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Miniscript\MiniScript-cs\Miniscript.csproj" />
+  </ItemGroup>
 </Project>
