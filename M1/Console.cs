@@ -31,7 +31,6 @@ namespace Farmtronics {
 		int drawScale = 4;
 		Rectangle screenArea;	// "work area" of the actual TV screen, in dialog coordinates
 
-		Texture2D screenOverlay;	// frame and shine
 		Rectangle screenSrcR;		// source rectangle for entire screen, including frame
 		Rectangle innerSrcR;		// source rectangle for just the display area of the screen
 		Texture2D whiteTex;
@@ -62,8 +61,7 @@ namespace Farmtronics {
 			this.owner = owner;
 
 			screenArea = new Rectangle(20*drawScale, 18*drawScale, 160*drawScale, 120*drawScale);	// 640x480 (VGA)!
-
-			screenOverlay = ModEntry.instance.Helper.ModContent.Load<Texture2D>(Path.Combine("assets", "ScreenOverlay.png"));
+			
 			screenSrcR = new Rectangle(0, 0, 200, 160);
 
 			innerSrcR = new Rectangle(20, 18, 160, 120);
@@ -555,7 +553,7 @@ namespace Farmtronics {
 			display.Render(b, displayArea);
 			
 			// draw bezel/shine on top
-			b.Draw(screenOverlay, positionOnScreen, drawFrame ? screenSrcR : innerSrcR,
+			b.Draw(Assets.ScreenOverlay, positionOnScreen, drawFrame ? screenSrcR : innerSrcR,
 				Color.White,
 				0, Vector2.Zero, drawScale, SpriteEffects.None, 0.5f);
 		}

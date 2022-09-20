@@ -62,15 +62,10 @@ namespace Farmtronics.Bot {
 		const float speed = 64;     // pixels/sec
 
 		int toolUseFrame = 0;       // > 0 when using a tool
-
-		static Texture2D botSprites;
 		
 
 		public BotObject(Farmer farmer) {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
-			if (botSprites == null) {
-				botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>(Path.Combine("assets", "BotSprites.png"));
-			}
 
 			Name = "Farmtronics Bot";
 			type.Value = "Crafting";
@@ -94,10 +89,6 @@ namespace Farmtronics.Bot {
 
 		public BotObject(Vector2 tileLocation, GameLocation location = null, Farmer farmer = null) : base(tileLocation, 130) {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
-
-			if (botSprites == null) {
-				botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>(Path.Combine("assets", "BotSprites.png"));
-			}
 
 			Name = "Bot";
 			Type = "Crafting";
@@ -948,11 +939,6 @@ namespace Farmtronics.Bot {
 				SpriteEffects.None, (float)getBoundingBox(new Vector2(x, y)).Bottom / 15000f);
 
 			// draw sprite
-			if (botSprites == null) {
-				ModEntry.instance.Monitor.Log("Bot.draw: botSprites is null; bailing out");
-				return;
-			}
-
 			Vector2 position3 = Game1.GlobalToLocal(Game1.viewport, new Vector2(
 				position.X + 32 + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0),
 				position.Y + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0)));
@@ -964,22 +950,22 @@ namespace Farmtronics.Bot {
 			float scale = (this.scale.Y > 1f) ? getScale().Y : 4f;
 			float z = (float)(getBoundingBox(new Vector2(x, y)).Bottom) / 10000f;
 			// base sprite
-			spriteBatch.Draw(botSprites, position3, srcRect, Color.White * alpha, 0f,
+			spriteBatch.Draw(Assets.BotSprites, position3, srcRect, Color.White * alpha, 0f,
 				origin2, scale, SpriteEffects.None, z);
 			// screen color (if not black or clear)
 			if (screenColor.A > 0 && (screenColor.R > 0 || screenColor.G > 0 || screenColor.B > 0)) {
 				srcRect.Y = 24;
-				spriteBatch.Draw(botSprites, position3, srcRect, screenColor * alpha, 0f,
+				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, screenColor * alpha, 0f,
 					origin2, scale, SpriteEffects.None, z + 0.001f);
 			}
 			// screen shine overlay
 			srcRect.Y = 48;
-			spriteBatch.Draw(botSprites, position3, srcRect, Color.White * alpha, 0f,
+			spriteBatch.Draw(Assets.BotSprites, position3, srcRect, Color.White * alpha, 0f,
 				origin2, scale, SpriteEffects.None, z + 0.002f);
 			// status light color (if not black or clear)
 			if (statusColor.A > 0 && (statusColor.R > 0 || statusColor.G > 0 || statusColor.B > 0)) {
 				srcRect.Y = 72;
-				spriteBatch.Draw(botSprites, position3, srcRect, statusColor * alpha, 0f,
+				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, statusColor * alpha, 0f,
 					origin2, scale, SpriteEffects.None, z + 0.002f);
 			}
 
@@ -999,19 +985,11 @@ namespace Farmtronics.Bot {
 		/// </summary>
 		public override void drawWhenHeld(SpriteBatch spriteBatch, Vector2 objectPosition, Farmer f) {
 			//ModEntry.instance.Monitor.Log($"Bot.drawWhenHeld");
-			if (botSprites == null) {
-				ModEntry.instance.Monitor.Log("Bot.drawWhenHeld: botSprites is null; bailing out");
-				return;
-			}
 			Rectangle srcRect = new Rectangle(16 * f.facingDirection, 0, 16, 24);
-			spriteBatch.Draw(botSprites, objectPosition, srcRect, Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingY() + 3) / 10000f));
+			spriteBatch.Draw(Assets.BotSprites, objectPosition, srcRect, Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingY() + 3) / 10000f));
 		}
 
 		public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow) {
-			if (botSprites == null) {
-				ModEntry.instance.Monitor.Log("Bot.drawInMenu: botSprites is null; bailing out");
-				return;
-			}
 			//ModEntry.instance.Monitor.Log($"Bot.drawInMenu with scaleSize {scaleSize}");
 			if ((bool)this.IsRecipe) {
 				transparency = 0.5f;
@@ -1021,7 +999,7 @@ namespace Farmtronics.Bot {
 				|| drawStackNumber == StackDrawType.Draw_OneInclusive) && (double)scaleSize > 0.3 && this.Stack != int.MaxValue;
 
 			Rectangle srcRect = new Rectangle(0, 112, 16, 16);
-			spriteBatch.Draw(botSprites, location + new Vector2((int)(32f * scaleSize), (int)(32f * scaleSize)), srcRect, color * transparency, 0f,
+			spriteBatch.Draw(Assets.BotSprites, location + new Vector2((int)(32f * scaleSize), (int)(32f * scaleSize)), srcRect, color * transparency, 0f,
 				new Vector2(8f, 8f) * scaleSize, 4f * scaleSize, SpriteEffects.None, layerDepth);
 
 			if (shouldDrawStackNumber) {
@@ -1032,10 +1010,6 @@ namespace Farmtronics.Bot {
 
 		public override void drawAsProp(SpriteBatch b) {
 			//ModEntry.instance.Monitor.Log($"Bot.drawAsProp");
-			if (botSprites == null) {
-				ModEntry.instance.Monitor.Log("Bot.drawAsProp: botSprites is null; bailing out");
-				return;
-			}
 			if (this.isTemporarilyInvisible) return;
 			int x = (int)this.TileLocation.X;
 			int y = (int)this.TileLocation.Y;
@@ -1046,7 +1020,7 @@ namespace Farmtronics.Bot {
 			Rectangle srcRect = new Rectangle(16 * 2, 0, 16, 24);
 			b.Draw(destinationRectangle: new Rectangle((int)(position.X - scaleFactor.X / 2f), (int)(position.Y - scaleFactor.Y / 2f),
 				(int)(64f + scaleFactor.X), (int)(128f + scaleFactor.Y / 2f)),
-				texture: botSprites,
+				texture: Assets.BotSprites,
 				sourceRectangle: srcRect,
 				color: Color.White,
 				rotation: 0f,

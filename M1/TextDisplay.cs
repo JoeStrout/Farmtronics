@@ -61,7 +61,6 @@ namespace Farmtronics {
 		bool cursorBlinking = false;	// whether cursor is currently hidden just due to blinking
 		float cursorTime;
 	
-		Texture2D fontAtlas;
 		Dictionary<char, int> fontCharToIndex;
 		Texture2D whiteTex;
 
@@ -77,22 +76,14 @@ namespace Farmtronics {
 					cells[row, col] = new Cell(textColor, backColor);
 				}
 			}
-			
-
-			fontAtlas = ModEntry.instance.Helper.ModContent.Load<Texture2D>(Path.Combine("assets", "fontAtlas.png"));
-			ModEntry.instance.Monitor.Log($"Loaded fontAtlas with size {fontAtlas.Width}x{fontAtlas.Height}");
-
-			string modPath = ModEntry.instance.Helper.DirectoryPath;
-			string[] lines = System.IO.File.ReadAllLines(Path.Combine(modPath, "assets", "fontList.txt"));
-			ModEntry.instance.Monitor.Log($"read {lines.Length} lines from fontList, starting with {lines[0]}");
 
 			// First line just defines the atlas cell size... ignoring that for now...
 			fontCharToIndex = new Dictionary<char, int>();
-			for (int i=1; i<lines.Length; i++) {
+			for (int i=1; i<Assets.FontList.Length; i++) {
 				// Subsequent lines have the Unicode code point, then a Tab, then the character in UTF-8.
 				// We really only need the character.
-				int tabPos = lines[i].IndexOf('\t');
-				if (tabPos >= 0) fontCharToIndex[lines[i][tabPos+1]] = i-1;
+				int tabPos = Assets.FontList[i].IndexOf('\t');
+				if (tabPos >= 0) fontCharToIndex[Assets.FontList[i][tabPos+1]] = i-1;
 			}
 
 			whiteTex = new Texture2D(Game1.graphics.GraphicsDevice, 1, 1);
@@ -411,7 +402,7 @@ namespace Farmtronics {
 			float drawX = displayArea.Left + screenCol * 16 + 1;
 			float drawY = displayArea.Bottom - screenRow * 24 - 27; 
 			
-			b.Draw(fontAtlas, new Vector2(drawX, drawY), srcR, color,
+			b.Draw(Assets.FontAtlas, new Vector2(drawX, drawY), srcR, color,
 				0, Vector2.Zero, 2, SpriteEffects.None, 0.95f);
 		}
 

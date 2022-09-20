@@ -10,7 +10,6 @@ using StardewValley;
 
 namespace Farmtronics.Bot {
     public class SalableBot : ISalable {
-        static Texture2D botSprites;
 
         public string DisplayName => Name;
 
@@ -25,9 +24,6 @@ namespace Farmtronics.Bot {
         }
 
         public SalableBot() {
-            if (botSprites == null) {
-                botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>(Path.Combine("assets", "BotSprites.png"));
-            }
         }
 
         public bool actionWhenPurchased() {
@@ -49,16 +45,11 @@ namespace Farmtronics.Bot {
         }
 
         public void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow) {
-            if (botSprites == null) {
-                ModEntry.instance.Monitor.Log("Bot.drawInMenu: botSprites is null; bailing out");
-                return;
-            }
-
             bool shouldDrawStackNumber = ((drawStackNumber == StackDrawType.Draw && this.maximumStackSize() > 1 && this.Stack > 1)
                 || drawStackNumber == StackDrawType.Draw_OneInclusive) && (double)scaleSize > 0.3 && this.Stack != int.MaxValue;
 
             Rectangle srcRect = new Rectangle(0, 112, 16, 16);
-            spriteBatch.Draw(botSprites, location + new Vector2((int)(32f * scaleSize), (int)(32f * scaleSize)), srcRect, color * transparency, 0f,
+            spriteBatch.Draw(Assets.BotSprites, location + new Vector2((int)(32f * scaleSize), (int)(32f * scaleSize)), srcRect, color * transparency, 0f,
                 new Vector2(8f, 8f) * scaleSize, 4f * scaleSize, SpriteEffects.None, layerDepth);
 
             if (shouldDrawStackNumber) {

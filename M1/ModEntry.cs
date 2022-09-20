@@ -32,6 +32,7 @@ namespace Farmtronics
             helper.Events.Content.AssetRequested += this.OnAssetRequested;
 			
 			this.Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
+			Assets.Initialize(helper);
 		}
 
 
