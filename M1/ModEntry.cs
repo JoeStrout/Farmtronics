@@ -34,6 +34,8 @@ namespace Farmtronics
             helper.Events.Content.AssetRequested += this.OnAssetRequested;
 			
 			Assets.Initialize(helper);
+			Monitor.Log($"Loaded fontAtlas with size {Assets.FontAtlas.Width}x{Assets.FontAtlas.Height}");
+			Monitor.Log($"read {Assets.FontList.Length} lines from fontList, starting with {Assets.FontList[0]}");
 		}
 
 

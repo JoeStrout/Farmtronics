@@ -16,9 +16,6 @@ namespace Farmtronics {
 			ScreenOverlay = helper.ModContent.Load<Texture2D>(Path.Combine("assets", "ScreenOverlay.png"));
 			FontAtlas 	  = helper.ModContent.Load<Texture2D>(Path.Combine("assets", "fontAtlas.png"));
 			FontList	  = System.IO.File.ReadAllLines(Path.Combine(helper.DirectoryPath, "assets", "fontList.txt"));
-
-			ModEntry.instance.Monitor.Log($"Loaded fontAtlas with size {FontAtlas.Width}x{FontAtlas.Height}");
-			ModEntry.instance.Monitor.Log($"read {FontList.Length} lines from fontList, starting with {FontList[0]}");
 		}
 	}
 }
