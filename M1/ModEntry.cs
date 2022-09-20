@@ -46,6 +46,7 @@ namespace Farmtronics
 			prevTicks = e.Ticks;
 		}
 
+#if DEBUG
 		// HACK used only for early testing/development:
 		public void OnButtonPressed(object sender, ButtonPressedEventArgs e) {
 			//this.Monitor.Log($"OnButtonPressed: {e.Button}");
@@ -61,6 +62,7 @@ namespace Farmtronics
 				Game1.player.currentLocation.overlayObjects[tilePos] = bot;
 			}
 		}
+#endif
 		
 
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
