@@ -18,6 +18,8 @@ namespace Farmtronics
 
 		public override void Entry(IModHelper helper) {
 			instance = this;
+			I18n.Init(helper.Translation);
+			
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
@@ -31,7 +33,6 @@ namespace Farmtronics
 			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             helper.Events.Content.AssetRequested += this.OnAssetRequested;
 			
-			this.Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
 			Assets.Initialize(helper);
 		}
 
@@ -66,7 +67,6 @@ namespace Farmtronics
 		}
 #endif
 		
-
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
 			this.Monitor.Log($"Menu opened: {e.NewMenu}");
 			if (e.NewMenu is LetterViewerMenu) {
