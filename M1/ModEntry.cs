@@ -3,8 +3,8 @@ using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Menus;
 using StardewValley.BellsAndWhistles;
+using StardewValley.Menus;
 
 
 namespace Farmtronics
@@ -21,7 +21,10 @@ namespace Farmtronics
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
-			//HACK not needed: helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+#if DEBUG
+			// HACK not needed:
+			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+#endif
 			helper.Events.GameLoop.Saving += this.OnSaving;
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
@@ -46,7 +49,7 @@ namespace Farmtronics
 		}
 
 		public void print(string s) {
-            this.Monitor.Log(s, LogLevel.Debug);
+            this.Monitor.Log(s, LogLevel.Trace);
 		}
 
 		// HACK used only for early testing/development:
