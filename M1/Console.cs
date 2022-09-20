@@ -105,7 +105,7 @@ namespace Farmtronics {
 			drawFrame = false;
 			xPositionOnScreen = left - screenArea.Left;
 			yPositionOnScreen = top - screenArea.Top;
-			ModEntry.instance.print($"Console.RemoveFrameAndPositionAt({left}, {top})");
+			ModEntry.instance.Monitor.Log($"Console.RemoveFrameAndPositionAt({left}, {top})");
 
 			Game1.keyboardDispatcher.Subscriber = this;
 			this.Selected = true;
@@ -124,7 +124,7 @@ namespace Farmtronics {
 		}
 
 		private void Exit() {
-			Debug.Log("Console.Exit()");
+			ModEntry.instance.Monitor.Log("Console.Exit()");
 			Game1.playSound("smallSelect");
 			Game1.exitActiveMenu();
 			Game1.player.canMove = true;
@@ -153,7 +153,7 @@ namespace Farmtronics {
 				else HandleKey((char)27);
 				return;
 			}
-			//Debug.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
+			//ModEntry.instance.Monitor.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
 
 			// Most keys are handled through one of the misspelled IKeyboardSubscriber
 			// interface methods.  But not these:
@@ -168,28 +168,28 @@ namespace Farmtronics {
 
 			bool control = inp.IsDown(SButton.LeftControl) || inp.IsDown(SButton.RightControl);
 			if (control && key >= Keys.A && key <= Keys.Z) {
-				//Debug.Log($"Handling control-{key}");
+				//ModEntry.instance.Monitor.Log($"Handling control-{key}");
 				if (key == Keys.C && owner.allowControlCBreak) owner.Break();
 				else HandleKey((char)(kControlA + (int)key - (int)Keys.A));
 			} else {
-				//Debug.Log("Not a control key press: {control}, {key}");
+				//ModEntry.instance.Monitor.Log("Not a control key press: {control}, {key}");
 			}
 		}
 
 		public bool Selected {  get; set; }
 
 		public virtual void RecieveTextInput(char inputChar) {
-			//Debug.Log($"RecieveTextInput<char>({inputChar})");
+			//ModEntry.instance.Monitor.Log($"RecieveTextInput<char>({inputChar})");
 			HandleKey(inputChar);
 		}
 
 		public virtual void RecieveTextInput(string text) {
-			//Debug.Log($"RecieveTextInput<string>({text})");
+			//ModEntry.instance.Monitor.Log($"RecieveTextInput<string>({text})");
 			foreach (char c in text) HandleKey(c);
 		}
 
 		public virtual void RecieveCommandInput(char command) {
-			//Debug.Log($"RecieveCommandInput({command}, int {(int)command})");
+			//ModEntry.instance.Monitor.Log($"RecieveCommandInput({command}, int {(int)command})");
 			switch (command) {
 			case '\b':		// backspace
 				HandleKey((char)kBackspace);
@@ -204,11 +204,11 @@ namespace Farmtronics {
 		}
 
 		public void RecieveSpecialInput(Keys key) {
-			//Debug.Log($"RecieveSpecialInput({key}, int {(int)key})");
+			//ModEntry.instance.Monitor.Log($"RecieveSpecialInput({key}, int {(int)key})");
 		}
 
 		void HandleKey(char keyChar) {
-			//Debug.Log($"HandleKey: {keyChar} ({(int)keyChar})");
+			//ModEntry.instance.Monitor.Log($"HandleKey: {keyChar} ({(int)keyChar})");
 			KeyboardState state = Keyboard.GetState();
 
 			if (!inInputMode) {
@@ -291,7 +291,7 @@ namespace Farmtronics {
 			foreach (var kw in keyWatchers) {
 				kw.Update(time);
 				if (kw.justPressedOrRepeats) {
-					//Debug.Log($"KeyWatcher {kw.keyButton} pressed or repeats");
+					//ModEntry.instance.Monitor.Log($"KeyWatcher {kw.keyButton} pressed or repeats");
 					HandleKey(kw.keyChar);
 				}
 			}
@@ -307,7 +307,7 @@ namespace Farmtronics {
 		}
 	
 		public void CommitInput() {
-			//Debug.Log("Committing input: " + inputBuf);
+			//ModEntry.instance.Monitor.Log("Committing input: " + inputBuf);
 			ClearSelection();
 			inputIndex = inputBuf.Length;
 			SetCursorForInput(false);
@@ -388,7 +388,7 @@ namespace Farmtronics {
 				display.textColor = c;
 				for (int i=0; i<curSuggestion.Length; i++) display.Backup();
 				display.SetCursor(curRow, curCol);	// (again, after above printing)
-				//Debug.Log("Showed autocomp: " + curSuggestion);
+				//ModEntry.instance.Monitor.Log("Showed autocomp: " + curSuggestion);
 			}
 		}
 	
@@ -437,7 +437,7 @@ namespace Farmtronics {
 				Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 				selStart = selEnd = display.RowColForXY(display.transform.InverseTransformPoint(worldPos));
 				mouseDownPos = Input.mousePosition;
-				//Debug.Log("You clicked: " + selStart);
+				//ModEntry.instance.Monitor.Log("You clicked: " + selStart);
 			}
 			if (Input.GetMouseButton(0)) {
 				if (Vector2.Distance(Input.mousePosition, mouseDownPos) < 10) {

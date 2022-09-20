@@ -66,7 +66,7 @@ public static class FileUtils {
 		error = null;
 		if (!path.StartsWith("/")) path = PathCombine(curdir, path);
 
-		//Debug.Log("resolving path: " + path);
+		//ModEntry.instance.Monitor.Log("resolving path: " + path);
 		// Simplify and then validate our full path.
 		List<string> parts = new List<string>(path.Split(new char[]{'/'}));
 		for (int i=1; i<parts.Count; i++) {
@@ -77,7 +77,7 @@ public static class FileUtils {
 			} else if (parts[i] == "..") {
 				// go up one level (error if we're at the root)
 				if (i == 1) {
-					Debug.Log("Wtf? " + parts[i]);
+					ModEntry.instance.Monitor.Log("Wtf? " + parts[i]);
 					error = "Invalid path";
 					return null;
 				}
@@ -87,7 +87,7 @@ public static class FileUtils {
 			}				
 		}
 		path = string.Join("/", parts.ToArray());
-		//Debug.Log($"resolved path to: {path}");
+		//ModEntry.instance.Monitor.Log($"resolved path to: {path}");
 		return path;
 	}
 	
@@ -105,11 +105,11 @@ public static class FileUtils {
 		if (slashPos >= 0) diskName = diskName.Substring(0, slashPos);
 
 		foreach (string volName in disks.Keys) {
-			//Debug.Log("Checking " + volName + " -> " + disks[volName] + " against " + diskName);
+			//ModEntry.instance.Monitor.Log("Checking " + volName + " -> " + disks[volName] + " against " + diskName);
 			if (diskName == volName) {
 				if (path.Length <= volName.Length + 2) path = "";
 				else path = path.Substring(volName.Length + 2);
-				//Debug.Log("Matches " + disks[volName] + " with remainder " + path);
+				//ModEntry.instance.Monitor.Log("Matches " + disks[volName] + " with remainder " + path);
 				return disks[volName];
 			}
 		}

@@ -80,11 +80,11 @@ namespace Farmtronics {
 			
 
 			fontAtlas = ModEntry.helper.ModContent.Load<Texture2D>("assets/fontAtlas.png");
-			ModEntry.instance.print($"Loaded fontAtlas with size {fontAtlas.Width}x{fontAtlas.Height}");
+			ModEntry.instance.Monitor.Log($"Loaded fontAtlas with size {fontAtlas.Width}x{fontAtlas.Height}");
 
 			string modPath = ModEntry.instance.Helper.DirectoryPath;
 			string[] lines = System.IO.File.ReadAllLines(Path.Combine(modPath, "assets", "fontList.txt"));
-			ModEntry.instance.print($"read {lines.Length} lines from fontList, starting with {lines[0]}");
+			ModEntry.instance.Monitor.Log($"read {lines.Length} lines from fontList, starting with {lines[0]}");
 
 			// First line just defines the atlas cell size... ignoring that for now...
 			fontCharToIndex = new Dictionary<char, int>();
@@ -199,7 +199,7 @@ namespace Farmtronics {
 	
 		public void Print(string s) {
 			HideCursorVisual();
-			//Debug.Log($"Printing `{s}` with colors {textColor},{backColor}");
+			//ModEntry.instance.Monitor.Log($"Printing `{s}` with colors {textColor},{backColor}");
 			if (s != null) foreach (char c in s) Put(c);
 		}
 	
@@ -241,14 +241,14 @@ namespace Farmtronics {
 		}
 	
 		public void HideCursor() {
-			//Debug.Log("Hiding cursor at " + cursorY + ", " + cursorX);
+			//ModEntry.instance.Monitor.Log("Hiding cursor at " + cursorY + ", " + cursorX);
 			HideCursorVisual();
 			cursorTime = 0;
 			cursorShown = false;
 		}
 	
 		public void ShowCursor() {
-			//Debug.Log("Showing cursor at " + cursorY + ", " + cursorX);
+			//ModEntry.instance.Monitor.Log("Showing cursor at " + cursorY + ", " + cursorX);
 			cells[cursorY, cursorX].inverse = true;
 			if (cells[cursorY, cursorX].foreColor != textColor) {
 				// Looks like the cursor is over some weird-colored text...

@@ -14,6 +14,7 @@ namespace Farmtronics
 		public static ModEntry instance;
 
 		Shell shell;
+		uint prevTicks;
 
 		public override void Entry(IModHelper helper) {
 			instance = this;
@@ -31,7 +32,7 @@ namespace Farmtronics
 			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             Helper.Events.Content.AssetRequested += this.OnAssetRequested;
 			
-			print($"CurrentSavePath: {Constants.CurrentSavePath}");
+			this.Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
 		}
 
 
@@ -40,7 +41,6 @@ namespace Farmtronics
 			shell = null;
 		}
 
-		uint prevTicks;
 		private void UpdateTicking(object sender, UpdateTickingEventArgs e) {
 			uint dTicks = e.Ticks - prevTicks;
 			var gameTime = new GameTime(new TimeSpan(e.Ticks * 10000000 / 60), new TimeSpan(dTicks * 10000000 / 60));
@@ -48,15 +48,11 @@ namespace Farmtronics
 			prevTicks = e.Ticks;
 		}
 
-		public void print(string s) {
-            this.Monitor.Log(s, LogLevel.Trace);
-		}
-
 		// HACK used only for early testing/development:
 		public void OnButtonPressed(object sender, ButtonPressedEventArgs e) {
-			//print($"OnButtonPressed: {e.Button}");
+			//this.Monitor.Log($"OnButtonPressed: {e.Button}");
 			if (e.Button == SButton.PageUp) {
-				print($"CurrentSavePath: {Constants.CurrentSavePath}");
+				this.Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
 				// Create a bot.
 				Vector2 pos = Game1.player.position;
 				pos.X -= 64;
@@ -70,13 +66,13 @@ namespace Farmtronics
 		
 
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
-			Debug.Log($"Menu opened: {e.NewMenu}");
+			this.Monitor.Log($"Menu opened: {e.NewMenu}");
 			if (e.NewMenu is LetterViewerMenu) {
-				Debug.Log("Hey hey, it's a LetterViewerMenu!");
+				this.Monitor.Log("Hey hey, it's a LetterViewerMenu!");
 				foreach (var msg in Game1.player.mailbox) {
-					Debug.Log($"Mail in mailbox: {msg}");
+					this.Monitor.Log($"Mail in mailbox: {msg}");
 					if (msg == "FarmtronicsFirstBotMail") {
-						Debug.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
+						this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 						Game1.player.recoveredItem = new Bot(null);
 						break;
 					}
@@ -91,7 +87,7 @@ namespace Farmtronics
 					int index = 0;
 					for (; index < shop.forSale.Count; index++) {
 						var item = shop.forSale[index];
-						Debug.Log($"Shop item {index}: {item} with {item.Name}");
+						this.Monitor.Log($"Shop item {index}: {item} with {item.Name}");
 						if (item.Name == "Catalogue" || (index>0 && shop.forSale[index-1].Name == "Flooring")) break;
 					}
 					var botForSale = new SalableBot();
@@ -113,7 +109,7 @@ namespace Farmtronics
 			// intercept the handler (but call the original one for other responses)
 			var prevHandler = Game1.currentLocation.afterQuestion;
 			Game1.currentLocation.afterQuestion = (who, whichAnswer) => {
-				print($"{who} selected channel {whichAnswer}");
+				this.Monitor.Log($"{who} selected channel {whichAnswer}");
 				if (whichAnswer == "Farmtronics") PresentComputer();
 				else prevHandler(who, whichAnswer);
 			};
@@ -132,13 +128,13 @@ namespace Farmtronics
 		}
 
 		public void OnDayStarted(object sender, DayStartedEventArgs args) {
-			Debug.Log($"OnDayStarted");
+			this.Monitor.Log($"OnDayStarted");
 			// Check whether we have our first-bot letter waiting in the mailbox.
 			// If so, set the item to be "recovered" via the mail:
 			foreach (var msg in Game1.player.mailbox) {
-				Debug.Log($"Mail in mailbox: {msg}");
+				this.Monitor.Log($"Mail in mailbox: {msg}");
 				if (msg == "FarmtronicsFirstBotMail") {
-					Debug.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
+					this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 					Game1.player.recoveredItem = new Bot(null);
 					break;
 				}
@@ -173,7 +169,7 @@ namespace Farmtronics
         private void OnAssetRequested(object sender, AssetRequestedEventArgs e) {
             if (e.NameWithoutLocale.IsEquivalentTo("Data/mail")) {
                 e.Edit(asset => {
-                    Debug.Log($"ModEntry.Edit(Mail)");
+                    this.Monitor.Log($"ModEntry.Edit(Mail)");
                     var data = asset.AsDictionary<string, string>().Data;
                     data["FarmtronicsFirstBotMail"] = "Dear @,"
                         + "^^Congratulations!  You have been selected to receive a complementary FARMTRONICS BOT, the latest in farm technology!"
@@ -181,9 +177,9 @@ namespace Farmtronics
                         + "^Check your local stores for additional bots as needed.  Enjoy!"
                         + "^^%item itemRecovery %%";
                     foreach (var msg in Game1.player.mailbox) {
-                        Debug.Log($"mail in mailbox: {msg}");
+                        this.Monitor.Log($"mail in mailbox: {msg}");
                         if (msg == "FarmtronicsFirstBotMail") {
-                            Debug.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
+                            this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
                             Game1.player.recoveredItem = new Bot(null);
                             break;
                         }

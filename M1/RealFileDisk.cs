@@ -10,23 +10,23 @@ public class RealFileDisk : Disk {
 
 	public void Open(string basePath) {
 		this.basePath = Path.GetFullPath(basePath);
-		//Debug.Log("Set base path to: " + this.basePath);
+		//ModEntry.instance.Monitor.Log("Set base path to: " + this.basePath);
 		if (!Directory.Exists(this.basePath)) {
 			var dirInfo = Directory.CreateDirectory(this.basePath);
-			Debug.Log($"Created directory {this.basePath} with result {dirInfo.Exists}");
+			ModEntry.instance.Monitor.Log($"Created directory {this.basePath} with result {dirInfo.Exists}");
 		}
 	}
 	
 	string NativePath(string path) {
-		//Debug.Log("Getting native path for " + path);
+		//ModEntry.instance.Monitor.Log("Getting native path for " + path);
 		path = path.Replace('/', Path.DirectorySeparatorChar);
 		if (path.Length == 0 || path[0] != '/') {
 			path = basePath + Path.DirectorySeparatorChar + path;
 		}
-		//Debug.Log("Expanding " + path);
+		//ModEntry.instance.Monitor.Log("Expanding " + path);
 		path = Path.GetFullPath(path);
 		if (!path.StartsWith(basePath)) {
-			Debug.Log("Error: expected " + path + " to start with " + basePath);
+			ModEntry.instance.Monitor.Log("Error: expected " + path + " to start with " + basePath);
 			throw new System.ArgumentException();
 		}
 		return path;
@@ -39,7 +39,7 @@ public class RealFileDisk : Disk {
 	/// of files immediately within the given directory.
 	/// </summary>
 	public override List<string> GetFileNames(string dirPath) {
-		//Debug.Log("GetFileNames(" + dirPath + ")");
+		//ModEntry.instance.Monitor.Log("GetFileNames(" + dirPath + ")");
 		ShowDiskLight(false);
 		var names = new List<string>(Directory.GetFileSystemEntries(NativePath(dirPath)));
 		for (int i=0; i<names.Count; i++) {
@@ -82,7 +82,7 @@ public class RealFileDisk : Disk {
 		string dirPath = Path.GetDirectoryName(filePath);
 		string fileName = Path.GetFileName(filePath);
 		var trueNames = Directory.GetFiles(dirPath, fileName);
-		Debug.Log($"searching for {fileName} in {dirPath} returned {trueNames.Length} true names");
+		ModEntry.instance.Monitor.Log($"searching for {fileName} in {dirPath} returned {trueNames.Length} true names");
 		if (trueNames.Length == 1) fileName = Path.GetFileName(trueNames[0]);
 		else if (trueNames.Length > 1) {
 			int besti = 0;
@@ -91,11 +91,11 @@ public class RealFileDisk : Disk {
 			}
 			fileName = Path.GetFileName(trueNames[besti]);
 		}
-		Debug.Log($"picked: {fileName}");
+		ModEntry.instance.Monitor.Log($"picked: {fileName}");
 				
 		var di = new DirectoryInfo(dirPath);
 		var infos = di.GetFileSystemInfos(fileName);
-		Debug.Log($"GetFileSystemInfos returned {infos.Length} infos");
+		ModEntry.instance.Monitor.Log($"GetFileSystemInfos returned {infos.Length} infos");
 		*/
 		
 		var result = new Disk.FileInfo();

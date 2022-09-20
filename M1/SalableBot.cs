@@ -49,7 +49,7 @@ namespace Farmtronics {
 
         public void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow) {
             if (botSprites == null) {
-                Debug.Log("Bot.drawInMenu: botSprites is null; bailing out");
+                ModEntry.instance.Monitor.Log("Bot.drawInMenu: botSprites is null; bailing out");
                 return;
             }
 
