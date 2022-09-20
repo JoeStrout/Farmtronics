@@ -105,7 +105,7 @@ namespace Farmtronics
 			if (!dlog.isQuestion || dlog.responses[0].responseKey != "Weather") return;
 
 			// TV menu: insert a new option for the Home Computer
-			Response r = new Response("Farmtronics", "Farmtronics Home Computer");
+			Response r = new Response("Farmtronics", I18n.TvChannel_Label());
 			dlog.responses.Insert(dlog.responses.Count-1, r);
 			// adjust the dialog height
 			var h = SpriteText.getHeightOfString(r.responseText, dlog.width) + 16;
@@ -175,11 +175,7 @@ namespace Farmtronics
                 e.Edit(asset => {
                     this.Monitor.Log($"ModEntry.Edit(Mail)");
                     var data = asset.AsDictionary<string, string>().Data;
-                    data["FarmtronicsFirstBotMail"] = "Dear @,"
-                        + "^^Congratulations!  You have been selected to receive a complementary FARMTRONICS BOT, the latest in farm technology!"
-                        + "^With this robotic companion, your days of toiling in the fields will soon be over."
-                        + "^Check your local stores for additional bots as needed.  Enjoy!"
-                        + "^^%item itemRecovery %%";
+                    data["FarmtronicsFirstBotMail"] = I18n.Mail_Text("%item itemRecovery %%");
                     foreach (var msg in Game1.player.mailbox) {
                         this.Monitor.Log($"mail in mailbox: {msg}");
                         if (msg == "FarmtronicsFirstBotMail") {

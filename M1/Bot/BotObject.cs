@@ -67,8 +67,8 @@ namespace Farmtronics.Bot {
 		public BotObject(Farmer farmer) {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
 
-			Name = "Farmtronics Bot";
-			type.Value = "Crafting";
+			Name = I18n.Bot_Name();
+			Type = "Crafting";
 			bigCraftable.Value = true;
 			canBeSetDown.Value = true;
 			this.farmer = farmer;
@@ -90,7 +90,7 @@ namespace Farmtronics.Bot {
 		public BotObject(Vector2 tileLocation, GameLocation location = null, Farmer farmer = null) : base(tileLocation, 130) {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 
-			Name = "Bot";
+			Name = I18n.Bot_Name();
 			Type = "Crafting";
 			bigCraftable.Value = true;
 			canBeSetDown.Value = true;
