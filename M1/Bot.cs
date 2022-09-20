@@ -4,14 +4,15 @@ This class is a stardew valley Object subclass that represents a Bot.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
-using StardewValley.Tools;
 using StardewValley.Network;
-using StardewValley.TerrainFeatures;
 using StardewValley.Objects;
+using StardewValley.TerrainFeatures;
+using StardewValley.Tools;
 
 namespace Farmtronics {
 	public class Bot : StardewValley.Object {
@@ -47,14 +48,6 @@ namespace Farmtronics {
 
 		const int vanillaObjectTypeId = 130;    // "Chest"
 
-		// mod data keys, used for saving/loading extra data with the game save:
-		static class dataKey {
-			public static string isBot = $"{ModEntry.instance.ModManifest.UniqueID}/isBot";
-			public static string facing = $"{ModEntry.instance.ModManifest.UniqueID}/facing";
-			public static string energy = $"{ModEntry.instance.ModManifest.UniqueID}/energy";
-			public static string name = $"{ModEntry.instance.ModManifest.UniqueID}/name";
-		}
-
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
 		Farmer farmer;
@@ -75,7 +68,7 @@ namespace Farmtronics {
 		public Bot(Farmer farmer) {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
 			if (botSprites == null) {
-				botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
+				botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>(Path.Combine("assets", "BotSprites.png"));
 			}
 
 			Name = "Farmtronics Bot";
@@ -102,7 +95,7 @@ namespace Farmtronics {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 
 			if (botSprites == null) {
-				botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
+				botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>(Path.Combine("assets", "BotSprites.png"));
 			}
 
 			Name = "Bot";
@@ -139,7 +132,7 @@ namespace Farmtronics {
 			};
 
 			Name = "Bot " + uniqueFarmerID++;
-			farmer = new Farmer(new FarmerSprite("Characters\\Farmer\\farmer_base"),
+			farmer = new Farmer(new FarmerSprite(Path.Combine("Characters", "Farmer", "farmer_base")),
 				tileLocation * 64, 2,
 				Name, initialTools, isMale: true);
 			farmer.currentLocation = location;
@@ -155,24 +148,23 @@ namespace Farmtronics {
 		/// so they can be saved and restored later.
 		/// </summary>
 		void SetModData(ModDataDictionary d) {
-			d[dataKey.isBot] = "1";
-			d[dataKey.name] = name;
-			d[dataKey.energy] = energy.ToString();
-			d[dataKey.facing] = facingDirection.ToString();
+			d.SetModData<BotModData>(new() {
+				IsBot = true,
+				Name = name,
+				Energy = energy,
+				FacingDirection = facingDirection
+			});
 		}
 
 		/// <summary>
 		/// Apply the values in the given ModDataDictionary to this bot,
 		/// configuring name, energy, etc.
 		/// </summary>
-		void ApplyModData(ModDataDictionary d, bool includingEnergy = true) {
-			if (!d.GetBool(dataKey.isBot)) {
-				ModEntry.instance.Monitor.Log("ERROR: ApplyModData called with modData where isBot is not true!");
-			}
-			Name = d.GetString(dataKey.name, name);
-			if (includingEnergy) farmer.Stamina = d.GetInt(dataKey.energy, energy);
-			farmer.faceDirection(d.GetInt(dataKey.facing, facingDirection));
-			if (string.IsNullOrEmpty(name)) Name = "Bot " + (uniqueFarmerID++);
+		void ApplyModData(BotModData d, bool includingEnergy = true) {
+			if (string.IsNullOrEmpty(d.Name)) d.Name = "Bot " + (uniqueFarmerID++);
+			Name = d.Name;
+			if (includingEnergy) farmer.Stamina = d.Energy;
+			farmer.faceDirection(d.FacingDirection);
 			//ModEntry.instance.Monitor.Log($"after ApplyModData, name=[{name}]");
 		}
 
@@ -208,7 +200,7 @@ namespace Farmtronics {
 			bot.SetModData(chest.modData);
 			// Remove "energy" from the data, since this method happens at night, and
 			// we actually want our bots to wake up refreshed.
-			chest.modData.Remove(dataKey.energy);
+			chest.modData.Remove(BotModData.ENERGY);
 
 			var inventory = bot.inventory;
 			if (inventory != null) {
@@ -312,7 +304,7 @@ namespace Farmtronics {
 				int inChestCount = ConvertChestsInListToBots(chest.items);
 				//if (inChestCount > 0) ModEntry.instance.Monitor.Log($"Converted {inChestCount} chests stored in a chest into bots");
 
-				if (!chest.modData.GetBool(dataKey.isBot)) continue;
+				if (!chest.modData.HasModData<BotModData>() || !chest.modData.GetModData<BotModData>().IsBot) continue;
 				targetTileLocs.Add(tileLoc);
 			}
 			foreach (Vector2 tileLoc in targetTileLocs) {
@@ -323,7 +315,7 @@ namespace Farmtronics {
 				inLocation.overlayObjects.Add(tileLoc, bot);    // add bot to "overlayObjects"
 
 				// Apply mod data EXCEPT for energy; we want energy restored after a night
-				bot.ApplyModData(chest.modData, includingEnergy: false);
+				bot.ApplyModData(chest.modData.GetModData<BotModData>(), includingEnergy: false);
 
 				for (int i = 0; i < chest.items.Count && i < bot.inventory.Count; i++) {
 					//ModEntry.instance.Monitor.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
@@ -346,7 +338,7 @@ namespace Farmtronics {
 			for (int i = 0; i < items.Count; i++) {
 				var chest = items[i] as Chest;
 				if (chest == null) continue;
-				if (!chest.modData.GetBool(dataKey.isBot)) continue;
+				if (!chest.modData.HasModData<BotModData>() || !chest.modData.GetModData<BotModData>().IsBot) continue;
 				Bot bot = new Bot(null);
 				bot.Stack = chest.Stack;
 				items[i] = bot;
@@ -414,7 +406,7 @@ namespace Farmtronics {
 
 			// Copy other data from this item to bot.
 			SetModData(modData);
-			bot.ApplyModData(modData);
+			bot.ApplyModData(modData.GetModData<BotModData>());
 			bot.farmer.currentLocation = location;
 			bot.NotePosition();
 
@@ -547,7 +539,7 @@ namespace Farmtronics {
 						what.heldObject.Value = null;
 						if (!AddItemToInventory(item)) {
 							what.heldObject.Value = item;
-							Game1.showRedMessage(Game1.content.LoadString("Strings\\StringsFromCSFiles:Crop.cs.588"));
+							Game1.showRedMessage(Game1.content.LoadString(Path.Combine("Strings", "StringsFromCSFiles:Crop.cs.588")));
 							return false;
 						}
 

@@ -37,18 +37,17 @@ namespace Farmtronics {
 		
 		public static T GetModData<T>(this ModDataDictionary modData) where T : IModData {
 			T model = default;
-			switch (model)
-			{
-				case BotModData:					
-					(model as BotModData).IsBot  		  = int.Parse(modData[$"{UniqueID}/{BotModData.IS_BOT}"]) == 1;
-					(model as BotModData).Name   		  = modData[$"{UniqueID}/{BotModData.NAME}"];
-					(model as BotModData).Energy 		  = int.Parse(modData[$"{UniqueID}/{BotModData.ENERGY}"]);
-					(model as BotModData).FacingDirection = int.Parse(modData[$"{UniqueID}/{BotModData.FACING}"]);
+			
+			if (typeof(T) == typeof(BotModData)) {
+				(model as BotModData).IsBot  		  = int.Parse(modData[$"{UniqueID}/{BotModData.IS_BOT}"]) == 1;
+				(model as BotModData).Name   		  = modData[$"{UniqueID}/{BotModData.NAME}"];
+				(model as BotModData).Energy 		  = int.Parse(modData[$"{UniqueID}/{BotModData.ENERGY}"]);
+				(model as BotModData).FacingDirection = int.Parse(modData[$"{UniqueID}/{BotModData.FACING}"]);
 					
-					return model;
-				
-				default:
-					throw new InvalidOperationException("Couldn't find a matching ModData type.");
+				return model;
+			}
+			else {
+				throw new InvalidOperationException("Couldn't find a matching ModData type.");
 			}
 		}
 	}

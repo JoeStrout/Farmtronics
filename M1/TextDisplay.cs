@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
@@ -79,7 +79,7 @@ namespace Farmtronics {
 			}
 			
 
-			fontAtlas = ModEntry.instance.Helper.ModContent.Load<Texture2D>("assets/fontAtlas.png");
+			fontAtlas = ModEntry.instance.Helper.ModContent.Load<Texture2D>(Path.Combine("assets", "fontAtlas.png"));
 			ModEntry.instance.Monitor.Log($"Loaded fontAtlas with size {fontAtlas.Width}x{fontAtlas.Height}");
 
 			string modPath = ModEntry.instance.Helper.DirectoryPath;

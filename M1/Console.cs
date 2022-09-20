@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using StardewValley;
 using StardewModdingAPI;
+using StardewValley;
 using StardewValley.Menus;
 
 namespace Farmtronics {
@@ -61,7 +62,7 @@ namespace Farmtronics {
 
 			screenArea = new Rectangle(20*drawScale, 18*drawScale, 160*drawScale, 120*drawScale);	// 640x480 (VGA)!
 
-			screenOverlay = ModEntry.instance.Helper.ModContent.Load<Texture2D>("assets/ScreenOverlay.png");
+			screenOverlay = ModEntry.instance.Helper.ModContent.Load<Texture2D>(Path.Combine("assets", "ScreenOverlay.png"));
 			screenSrcR = new Rectangle(0, 0, 200, 160);
 
 			innerSrcR = new Rectangle(20, 18, 160, 120);

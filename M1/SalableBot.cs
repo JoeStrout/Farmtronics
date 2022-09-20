@@ -3,6 +3,7 @@ This class represents a bot for sale in the shop.  When the bot is purchased,
 it returns a new instance of the actual Bot class.
 */
 
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
@@ -25,7 +26,7 @@ namespace Farmtronics {
 
         public SalableBot() {
             if (botSprites == null) {
-                botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
+                botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>(Path.Combine("assets", "BotSprites.png"));
             }
         }
 
