@@ -78,7 +78,7 @@ namespace Farmtronics {
 			{
 				var d = new RealFileDisk();
 				d.readOnly = true;
-				d.Open(Path.Combine(ModEntry.helper.DirectoryPath, "assets", "sysdisk"));
+				d.Open(Path.Combine(ModEntry.instance.Helper.DirectoryPath, "assets", "sysdisk"));
 				sysDisk = d;
 				FileUtils.disks["sys"] = sysDisk;
 			}

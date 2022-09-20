@@ -10,7 +10,6 @@ using StardewValley.Menus;
 namespace Farmtronics
 {
 	public class ModEntry : Mod {
-		public static IModHelper helper;
 		public static ModEntry instance;
 
 		Shell shell;
@@ -18,7 +17,6 @@ namespace Farmtronics
 
 		public override void Entry(IModHelper helper) {
 			instance = this;
-			ModEntry.helper = helper;
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
@@ -30,7 +28,7 @@ namespace Farmtronics
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
 			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
-            Helper.Events.Content.AssetRequested += this.OnAssetRequested;
+            helper.Events.Content.AssetRequested += this.OnAssetRequested;
 			
 			this.Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
 		}

@@ -25,7 +25,7 @@ namespace Farmtronics {
 
         public SalableBot() {
             if (botSprites == null) {
-                botSprites = ModEntry.helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
+                botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
             }
         }
 

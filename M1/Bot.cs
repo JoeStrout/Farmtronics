@@ -75,7 +75,7 @@ namespace Farmtronics {
 		public Bot(Farmer farmer) {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
 			if (botSprites == null) {
-				botSprites = ModEntry.helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
+				botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
 			}
 
 			Name = "Farmtronics Bot";
@@ -102,7 +102,7 @@ namespace Farmtronics {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 
 			if (botSprites == null) {
-				botSprites = ModEntry.helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
+				botSprites = ModEntry.instance.Helper.ModContent.Load<Texture2D>("assets/BotSprites.png");
 			}
 
 			Name = "Bot";
@@ -583,7 +583,7 @@ namespace Farmtronics {
 					}
 				}
 				if (what.name.Equals("Crystalarium")) {
-					int mins = ModEntry.helper.Reflection.GetMethod(objectThatWasHeld, "getMinutesForCrystalarium").Invoke<int>(objectThatWasHeld.ParentSheetIndex);
+					int mins = ModEntry.instance.Helper.Reflection.GetMethod(objectThatWasHeld, "getMinutesForCrystalarium").Invoke<int>(objectThatWasHeld.ParentSheetIndex);
 					what.MinutesUntilReady = mins;
 					what.heldObject.Value = (StardewValley.Object)objectThatWasHeld.getOne();
 				} else if (what.name.Contains("Tapper")) {
