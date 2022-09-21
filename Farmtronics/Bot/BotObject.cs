@@ -854,10 +854,6 @@ namespace Farmtronics.Bot {
 			}
 		}
 
-		public override string getDescription() {
-			return "A programmable mechanical wonder.";
-		}
-
 		protected override string loadDisplayName() {
 			return name;
 		}
@@ -1059,12 +1055,6 @@ namespace Farmtronics.Bot {
 			return ret;
 		}
 
-		public override bool canStackWith(ISalable other) {
-			// Bots don't allow stacking.  Too hard to deal with individual bot
-			// names, energy, inventory, etc.
-			return false;
-		}
-
 
 		public int GetActualCapacity() {
 			return 12;
@@ -1089,5 +1079,37 @@ namespace Farmtronics.Bot {
 			InitShell();
 			Game1.activeClickableMenu = new UIMenu(this);
 		}
+
+		#region ShopEntry
+
+		public override bool actionWhenPurchased() {
+			return false;
+		}
+
+		public override bool CanBuyItem(Farmer farmer) {
+			// Pointless right now but could be useful for multiplayer:
+			// return farmer.mailRecieved.Contains("FarmtronicsFirstBotMail"); //Should work, haven't tested.
+			return Game1.player.mailReceived.Contains("FarmtronicsFirstBotMail");
+		}
+
+		public override bool canStackWith(ISalable other) {
+			// Bots don't allow stacking.  Too hard to deal with individual bot
+			// names, energy, inventory, etc.
+			return false;
+		}
+		
+		public override string getDescription() {
+			return I18n.Bot_Description();
+		}
+
+		public override int maximumStackSize() {
+			return 1;
+		}
+
+		public override int salePrice() {
+			return 50;
+		}
+		
+		#endregion
 	}
 }
