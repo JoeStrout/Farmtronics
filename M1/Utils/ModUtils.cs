@@ -5,7 +5,7 @@
 */
 using StardewValley;
 
-namespace Farmtronics {
+namespace Farmtronics.Utils {
 	public static class ModUtils {
 
 

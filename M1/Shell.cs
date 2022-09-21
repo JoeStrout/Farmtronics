@@ -10,6 +10,7 @@ using StardewModdingAPI;
 using Miniscript;
 using Microsoft.Xna.Framework;
 using Farmtronics.Bot;
+using Farmtronics.Utils;
 
 namespace Farmtronics {
 	public class Shell {

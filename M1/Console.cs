@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using Farmtronics.Bot;
+using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
