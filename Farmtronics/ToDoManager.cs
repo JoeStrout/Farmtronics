@@ -9,6 +9,15 @@ namespace Farmtronics {
 		static int nextFizzBuzzExpected = 1;
 
 		static Dictionary<Task, bool> taskDone = new Dictionary<Task, bool>();
+		
+#if DEBUG
+		public static void MarkAllTasksDone() {
+			for (int i = 0; i <(int)Task.kQtyTasks; i++)
+			{
+				MarkTaskDone((Task)i);
+			}
+		}
+#endif
 
 		public static bool IsTaskDone(Task task) {
 			if (!taskDone.ContainsKey(task)) {

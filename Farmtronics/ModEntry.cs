@@ -57,7 +57,8 @@ namespace Farmtronics
 		// HACK used only for early testing/development:
 		public void OnButtonPressed(object sender, ButtonPressedEventArgs e) {
 			//this.Monitor.Log($"OnButtonPressed: {e.Button}");
-			if (e.Button == SButton.PageUp) {
+			switch (e.Button) {
+			case SButton.PageUp:
 				this.Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
 				// Create a bot.
 				Vector2 pos = Game1.player.position;
@@ -67,6 +68,12 @@ namespace Farmtronics
 
 				//Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
 				Game1.player.currentLocation.overlayObjects[tilePos] = bot;
+				break;
+			
+			case SButton.PageDown:
+				ToDoManager.MarkAllTasksDone();
+				this.Monitor.Log("All tasks solved!");
+				break;
 			}
 		}
 #endif
