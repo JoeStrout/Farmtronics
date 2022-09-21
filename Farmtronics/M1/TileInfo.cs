@@ -15,7 +15,7 @@ using StardewValley.Objects;
 using Farmtronics.Bot;
 
 namespace Farmtronics.M1 {
-	public static class TileInfo {
+	static class TileInfo {
 
 		static ValString _name = new ValString("name");
 		static ValString _type = new ValString("type");

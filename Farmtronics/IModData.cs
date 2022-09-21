@@ -1,4 +1,4 @@
 namespace Farmtronics
 {
-	public interface IModData {	}
+	interface IModData {	}
 }

@@ -3,13 +3,12 @@ This class represents a bot for sale in the shop.  When the bot is purchased,
 it returns a new instance of the actual Bot class.
 */
 
-using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 
 namespace Farmtronics.Bot {
-    public class SalableBot : ISalable {
+    class SalableBot : ISalable {
 
         public string DisplayName => Name;
 

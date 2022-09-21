@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using StardewValley;
 
 namespace Farmtronics {
-	public static class ToDoManager {
+	static class ToDoManager {
 
 		public enum Task {
 			helloWorld = 0,

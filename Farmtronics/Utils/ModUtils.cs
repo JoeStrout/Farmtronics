@@ -6,7 +6,7 @@
 using StardewValley;
 
 namespace Farmtronics.Utils {
-	public static class ModUtils {
+	static class ModUtils {
 
 
 		public static int GetInt(this ModDataDictionary d, string key, int defaultValue=0) {
