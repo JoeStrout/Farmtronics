@@ -5,15 +5,15 @@ custom intrinsic functions/classes for use on the M-1.
 
 using System.Collections.Generic;
 using System.Globalization;
-using Miniscript;
+using Farmtronics.M1.Filesystem;
+using Farmtronics.M1.GUI;
+using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
+using Miniscript;
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
-using Farmtronics.Utils;
-using Farmtronics.M1.Filesystem;
-using Farmtronics.M1.GUI;
 
 namespace Farmtronics.M1 {
 	static class M1API  {
@@ -38,9 +38,9 @@ namespace Farmtronics.M1 {
 			initialized = true;
 
 			// language host info
-
-			HostInfo.name = "Farmtronics";
-			HostInfo.version = 1.20;
+			string version = ModEntry.instance.ModManifest.Version.ToString();
+			HostInfo.name = ModEntry.instance.ModManifest.Name;
+			HostInfo.version = double.Parse(version.Remove(version.LastIndexOf('.'), 1));
 			HostInfo.info = "https://github.com/JoeStrout/Farmtronics/";
 		
 			Intrinsic f;
