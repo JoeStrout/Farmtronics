@@ -268,8 +268,8 @@ namespace Farmtronics.M1 {
 			f.AddParam("taskNum");
 			f.code = (context, partialResult) => {
 				int taskNum = context.GetLocalInt("taskNum");
-				if (taskNum < 0 || taskNum >= (int)ToDoManager.Task.kQtyTasks) return Intrinsic.Result.Null;
-				var task = (ToDoManager.Task)taskNum;
+				if (taskNum < 0 || taskNum >= (int)Task.kQtyTasks) return Intrinsic.Result.Null;
+				var task = (Task)taskNum;
 				return new Intrinsic.Result(ValNumber.Truth(ToDoManager.IsTaskDone(task)));
 			};
 

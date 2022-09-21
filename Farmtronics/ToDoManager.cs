@@ -5,18 +5,6 @@ using StardewValley;
 
 namespace Farmtronics {
 	static class ToDoManager {
-
-		public enum Task {
-			helloWorld = 0,
-			cd = 1,
-			runDemo = 2,
-			editProgram = 3,
-			saveProgram = 4,
-			for1to100 = 5,
-			fizzBuzz = 6,
-			kQtyTasks
-		}
-
 		static int nextForOutputExpected = 1;
 		static int nextFizzBuzzExpected = 1;
 
