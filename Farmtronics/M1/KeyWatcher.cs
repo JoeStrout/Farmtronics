@@ -4,11 +4,11 @@ as a key input (due to initial press or repeat).
 */
 
 using System;
-using StardewModdingAPI;
 using Microsoft.Xna.Framework;
+using StardewModdingAPI;
 
-namespace Farmtronics {
-	public class KeyWatcher {
+namespace Farmtronics.M1 {
+	class KeyWatcher {
 		public SButton keyButton;
 		public char keyChar;
 		public bool justPressedOrRepeats { get; private set; }

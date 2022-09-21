@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Farmtronics.M1;
 
 namespace Farmtronics.Utils {
 	static class FileUtils {
@@ -163,7 +164,7 @@ namespace Farmtronics.Utils {
 	/// Because of the way our zip disk storage works, this has to actually do all
 	/// its work in memory until it is closed, at which point it is written to disk.
 	/// </summary>
-	public class OpenFile {
+	class OpenFile {
 		// where this data should be stored on disk:
 		public Disk disk;
 		public string path;

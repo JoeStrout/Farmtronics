@@ -12,8 +12,8 @@ using Microsoft.Xna.Framework;
 using Farmtronics.Bot;
 using Farmtronics.Utils;
 
-namespace Farmtronics {
-	public class Shell {
+namespace Farmtronics.M1 {
+	class Shell {
 		static Value _bootOpts = new ValString("bootOpts");
 		static Value _controlC = new ValString("controlC");
 		public Console console { get; private set; }

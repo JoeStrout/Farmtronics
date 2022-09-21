@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using Farmtronics.M1;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
@@ -15,7 +16,7 @@ using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
 
 namespace Farmtronics.Bot {
-	public class BotObject : StardewValley.Object {
+	class BotObject : StardewValley.Object {
 
 		public IList<Item> inventory { get { return farmer == null ? null : farmer.Items; } }
 		public Color screenColor {

@@ -7,8 +7,8 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace Farmtronics {
-	public class Console : IClickableMenu, IKeyboardSubscriber {
+namespace Farmtronics.M1 {
+	class Console : IClickableMenu, IKeyboardSubscriber {
 		public new const int width = 800;	// total width/height including the frame
 		public new const int height = 640;
 

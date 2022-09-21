@@ -13,7 +13,7 @@ using StardewValley;
 using StardewValley.Menus;
 
 namespace Farmtronics.Bot {
-	public class UIMenu : MenuWithInventory {
+	class UIMenu : MenuWithInventory {
 
 		BotObject bot;
 		InventoryMenu botInventoryMenu;

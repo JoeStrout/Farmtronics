@@ -13,8 +13,8 @@ using StardewValley;
 using StardewValley.Menus;
 using Farmtronics.Utils;
 
-namespace Farmtronics {
-	public static class M1API  {
+namespace Farmtronics.M1 {
+	static class M1API  {
 
 		static bool initialized;
 
