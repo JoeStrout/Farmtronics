@@ -19,6 +19,7 @@ namespace Farmtronics
 		public override void Entry(IModHelper helper) {
 			instance = this;
 			I18n.Init(helper.Translation);
+			ModDataExtensions.UniqueID = ModManifest.UniqueID;
 			
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;

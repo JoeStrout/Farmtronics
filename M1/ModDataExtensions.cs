@@ -2,7 +2,7 @@ using System;
 using StardewValley;
 
 namespace Farmtronics {
-	public static class ModDataExtensions {
+	static class ModDataExtensions {
 		public static string UniqueID;
 		
 		public static void SetModData<T>(this ModDataDictionary modData, T model) where T : IModData {
@@ -35,20 +35,13 @@ namespace Farmtronics {
 			}
 		}
 		
-		public static T GetModData<T>(this ModDataDictionary modData) where T : IModData {
-			T model = default;
-			
-			if (typeof(T) == typeof(Bot.ModData)) {
-				(model as Bot.ModData).IsBot  		  = int.Parse(modData[$"{UniqueID}/{Bot.ModData.IS_BOT}"]) == 1;
-				(model as Bot.ModData).Name   		  = modData[$"{UniqueID}/{Bot.ModData.NAME}"];
-				(model as Bot.ModData).Energy 		  = int.Parse(modData[$"{UniqueID}/{Bot.ModData.ENERGY}"]);
-				(model as Bot.ModData).FacingDirection = int.Parse(modData[$"{UniqueID}/{Bot.ModData.FACING}"]);
-					
-				return model;
-			}
-			else {
-				throw new InvalidOperationException("Couldn't find a matching ModData type.");
-			}
+		public static T GetModData<T>(this ModDataDictionary modData) where T : Bot.ModData,new() {
+			return new() {
+				IsBot  			= int.Parse(modData[$"{UniqueID}/{Bot.ModData.IS_BOT}"]) == 1,
+				Name   			= modData[$"{UniqueID}/{Bot.ModData.NAME}"],
+				Energy 			= int.Parse(modData[$"{UniqueID}/{Bot.ModData.ENERGY}"]),
+				FacingDirection = int.Parse(modData[$"{UniqueID}/{Bot.ModData.FACING}"])
+			};
 		}
 	}
 }
