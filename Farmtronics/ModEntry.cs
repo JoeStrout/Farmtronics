@@ -42,14 +42,14 @@ namespace Farmtronics
 
 
 		private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e) {
-			BotObject.ClearAll();
+			BotManager.ClearAll();
 			shell = null;
 		}
 
 		private void UpdateTicking(object sender, UpdateTickingEventArgs e) {
 			uint dTicks = e.Ticks - prevTicks;
 			var gameTime = new GameTime(new TimeSpan(e.Ticks * 10000000 / 60), new TimeSpan(dTicks * 10000000 / 60));
-			BotObject.UpdateAll(gameTime);
+			BotManager.UpdateAll(gameTime);
 			prevTicks = e.Ticks;
 		}
 
@@ -129,15 +129,15 @@ namespace Farmtronics
 		}
 
 		public void OnSaving(object sender, SavingEventArgs args) {
-			if (Context.IsMainPlayer) BotObject.ConvertBotsToChests();
+			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests();
 		}
 
 		public void OnSaved(object sender, SavedEventArgs args) {
-			if (Context.IsMainPlayer) BotObject.ConvertChestsToBots();
+			if (Context.IsMainPlayer) BotManager.ConvertChestsToBots();
 		}
 
 		public void OnSaveLoaded(object sender, SaveLoadedEventArgs args) {
-			if (Context.IsMainPlayer) BotObject.ConvertChestsToBots();
+			if (Context.IsMainPlayer) BotManager.ConvertChestsToBots();
 		}
 
 		public void OnDayStarted(object sender, DayStartedEventArgs args) {
@@ -156,7 +156,7 @@ namespace Farmtronics
 			// Initialize the home computer and all bots for autostart.
 			// This initialization will also cause all startup scripts to run.
 			InitComputerShell();
-			BotObject.InitShellAll();
+			BotManager.InitShellAll();
 		}
 
 		/// <summary>

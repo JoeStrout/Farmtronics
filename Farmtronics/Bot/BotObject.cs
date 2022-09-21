@@ -5,18 +5,20 @@ This class is a stardew valley Object subclass that represents a Bot.
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml.Serialization;
 using Farmtronics.M1;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
-using StardewValley.Network;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
 
 namespace Farmtronics.Bot {
 	class BotObject : StardewValley.Object {
+		// Stardew Valley craftables store 576 parentSheetIndices, so we choose a number after that to avoid conflicts.
+		// The wiki recommends not to do that: https://stardewvalleywiki.com/Modding:Items#Define_a_custom_item
+		// LookupAnything suggests that everything is fine in game.
+		const int ItemID = 0xB07;
 
 		public IList<Item> inventory { get { return farmer == null ? null : farmer.Items; } }
 		public Color screenColor {
@@ -44,10 +46,8 @@ namespace Farmtronics.Bot {
 			}
 		}
 
-		[XmlIgnore]
-		public readonly NetMutex mutex = new NetMutex();
-
-		const int vanillaObjectTypeId = 130;    // "Chest"
+		// [XmlIgnore]
+		// public readonly NetMutex mutex = new NetMutex();
 
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
@@ -56,25 +56,26 @@ namespace Farmtronics.Bot {
 		Vector2 position;   // our current position, in pixels
 		Vector2 targetPos;  // position we're moving to, in pixels
 
-		// Instances of bots which need updating, i.e., ones that actually exist in the world.
-		static List<BotObject> instances = new List<BotObject>();
-
-		static int uniqueFarmerID = 1;
 		const float speed = 64;     // pixels/sec
 
 		int toolUseFrame = 0;       // > 0 when using a tool
 		
-
-		public BotObject(Farmer farmer) {
-			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
-
+		// Assign common values
+		private void Initialize() {
 			Name = I18n.Bot_Name();
 			Type = "Crafting";
+			Category = StardewValley.Object.BigCraftableCategory;
+			ParentSheetIndex = ItemID;
 			bigCraftable.Value = true;
-			canBeSetDown.Value = true;
+			CanBeSetDown = true;
+		}
+
+		// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
+		public BotObject(Farmer farmer) {
+			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
+			Initialize();			
 			this.farmer = farmer;
 
-			// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
 			// In most cases we get the Farmer from some other bot (which is about to be destroyed).
 			// But if not given one, better create one now.
 			if (farmer == null) {
@@ -88,13 +89,10 @@ namespace Farmtronics.Bot {
 			// to the instances list.
 		}
 
-		public BotObject(Vector2 tileLocation, GameLocation location = null, Farmer farmer = null) : base(tileLocation, 130) {
+		public BotObject(Vector2 tileLocation, GameLocation location = null, Farmer farmer = null) : base(tileLocation, ItemID) {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 
-			Name = I18n.Bot_Name();
-			Type = "Crafting";
-			bigCraftable.Value = true;
-			canBeSetDown.Value = true;
+			Initialize();
 			this.farmer = farmer;
 			
 			if (location == null) {
@@ -110,7 +108,7 @@ namespace Farmtronics.Bot {
 
 			NotePosition();
 
-			instances.Add(this);
+			BotManager.instances.Add(this);
 		}
 
 		void CreateFarmer(Vector2 tileLocation, GameLocation location) {
@@ -123,7 +121,6 @@ namespace Farmtronics.Bot {
 	            new WateringCan()
 			};
 
-			Name = "Bot " + uniqueFarmerID++;
 			farmer = new Farmer(new FarmerSprite(Path.Combine("Characters", "Farmer", "farmer_base")),
 				tileLocation * 64, 2,
 				Name, initialTools, isMale: true);
@@ -139,7 +136,7 @@ namespace Farmtronics.Bot {
 		/// Fill in the given ModDataDictionary with values from this bot,
 		/// so they can be saved and restored later.
 		/// </summary>
-		void SetModData(ModDataDictionary d) {
+		internal void SetModData(ModDataDictionary d) {
 			d.SetModData<ModData>(new() {
 				IsBot = true,
 				Name = name,
@@ -152,220 +149,12 @@ namespace Farmtronics.Bot {
 		/// Apply the values in the given ModDataDictionary to this bot,
 		/// configuring name, energy, etc.
 		/// </summary>
-		void ApplyModData(ModData d, bool includingEnergy = true) {
-			if (string.IsNullOrEmpty(d.Name)) d.Name = "Bot " + (uniqueFarmerID++);
+		internal void ApplyModData(ModData d, bool includingEnergy = true) {
+			if (string.IsNullOrEmpty(d.Name)) d.Name = "Bot";
 			Name = d.Name;
 			if (includingEnergy) farmer.Stamina = d.Energy;
 			farmer.faceDirection(d.FacingDirection);
 			//ModEntry.instance.Monitor.Log($"after ApplyModData, name=[{name}]");
-		}
-
-		//----------------------------------------------------------------------
-		// Conversion of bots to chests (before saving)
-		//----------------------------------------------------------------------
-
-		// Convert all bots everywhere into vanilla chests, with appropriate metadata.
-		public static void ConvertBotsToChests() {
-			//ModEntry.instance.Monitor.Log("Bot.ConvertBotsToChests");
-			//ModEntry.instance.Monitor.Log($"NOTE: Game1.player.recoveredItem = {Game1.player.recoveredItem}");
-			int count = 0;
-
-			// New approach: search all game locations.
-			count += ConvertBotsInMapToChests();
-
-			// Also convert the player's inventory.
-			int playerBotCount = ConvertBotsInListToChests(Game1.player.Items);
-			//ModEntry.instance.Monitor.Log($"Converted {playerBotCount} bots in player inventory");
-			count += playerBotCount;
-
-			// And watch out for a recoveredItem (mail attachment).
-			if (Game1.player.recoveredItem is BotObject) Game1.player.recoveredItem = null;
-
-			instances.Clear();
-			//ModEntry.instance.Monitor.Log($"Total bots converted to chests: {count}");
-		}
-
-		static Chest ConvertBotToChest(BotObject bot) {
-			var chest = new Chest();
-			chest.Stack = bot.Stack;
-
-			bot.SetModData(chest.modData);
-			// Remove "energy" from the data, since this method happens at night, and
-			// we actually want our bots to wake up refreshed.
-			chest.modData.Remove(ModData.ENERGY);
-
-			var inventory = bot.inventory;
-			if (inventory != null) {
-				if (chest.items.Count < inventory.Count) chest.items.Set(inventory);
-				for (int i = 0; i < chest.items.Count && i < inventory.Count; i++) {
-					//chest.items[i] = inventory[i];
-					//ModEntry.instance.Monitor.Log($"Moved {chest.items[i]} in slot {i} from bot to chest");
-				}
-				int convertedItems = ConvertBotsInListToChests(chest.items);
-				//if (convertedItems > 0) ModEntry.instance.Monitor.Log($"Converted {convertedItems} bots inside a bot");
-				inventory.Clear();
-			}
-			return chest;
-		}
-
-
-		/// <summary>
-		/// Convert all bots in the given item list into chests with the appropriate metadata.
-		/// </summary>
-		/// <param name="items">Item list to search in</param>
-		static int ConvertBotsInListToChests(IList<Item> items) {
-			int count = 0;
-			for (int i = 0; i < items.Count; i++) {
-				BotObject bot = items[i] as BotObject;
-				if (bot == null) continue;
-				items[i] = ConvertBotToChest(bot);
-				//ModEntry.instance.Monitor.Log($"Converted list item {i} to {items[i]} of stack {items[i].Stack}");
-				count++;
-			}
-			return count;
-		}
-
-		/// <summary>
-		/// Convert all the bots in a map (or all maps) into chests with the appropriate metadata.
-		/// </summary>
-		/// <param name="inLocation">Location to search in, or if null, search all locations</param>
-		public static int ConvertBotsInMapToChests(GameLocation inLocation = null) {
-			if (inLocation == null) {
-				int totalCount = 0;
-				foreach (var loc in Game1.locations) {
-					totalCount += ConvertBotsInMapToChests(loc);
-				}
-				return totalCount;
-			}
-
-			int countInLoc = 0;
-			var targetTileLocs = new List<Vector2>();
-			foreach (var kv in inLocation.objects.Pairs) {
-				if (kv.Value is BotObject) targetTileLocs.Add(kv.Key);
-				if (kv.Value is Chest chest) {
-					//ModEntry.instance.Monitor.Log($"Found a chest in {inLocation.Name} at {kv.Key}");
-					countInLoc += ConvertBotsInListToChests(chest.items);
-				}
-			}
-			foreach (var tileLoc in targetTileLocs) {
-				//ModEntry.instance.Monitor.Log($"Found bot in {inLocation.Name} at {tileLoc}; converting");
-				var chest = ConvertBotToChest(inLocation.objects[tileLoc] as BotObject);
-				inLocation.objects.Remove(tileLoc);
-				inLocation.objects.Add(tileLoc, chest);
-				countInLoc++;
-			}
-			//if (countInLoc > 0) ModEntry.instance.Monitor.Log($"Converted {countInLoc} bots in {inLocation.Name}");
-			return countInLoc;
-		}
-
-		//----------------------------------------------------------------------
-		// Conversion of chests to bots (after loading)
-		//----------------------------------------------------------------------
-
-
-		/// <summary>
-		/// Convert all chests with appropriate metadata into bots, everywhere.
-		/// </summary>
-		public static void ConvertChestsToBots() {
-			// Convert chests in the world.
-			ConvertChestsInMapToBots();
-
-			// Convert chests in the player's inventory.
-			int count = ConvertChestsInListToBots(Game1.player.Items);
-			//ModEntry.instance.Monitor.Log($"Converted {count} chests to bots in player inventory");
-		}
-
-		/// <summary>
-		/// Convert all the chests with appropriate metadata into bots.
-		/// </summary>
-		/// <param name="inLocation">Location to search in, or if null, search all locations</param>
-		static void ConvertChestsInMapToBots(GameLocation inLocation = null) {
-			if (inLocation == null) {
-				foreach (var loc in Game1.locations) {
-					//ModEntry.instance.Monitor.Log($"Converting in location: {loc}");
-					ConvertChestsInMapToBots(loc);
-				}
-				return;
-			}
-			int count = 0;
-			var targetTileLocs = new List<Vector2>();
-			foreach (var kv in inLocation.objects.Pairs) {
-				var tileLoc = kv.Key;
-				var chest = kv.Value as Chest;
-				if (chest == null) continue;
-				int inChestCount = ConvertChestsInListToBots(chest.items);
-				//if (inChestCount > 0) ModEntry.instance.Monitor.Log($"Converted {inChestCount} chests stored in a chest into bots");
-
-				if (!chest.modData.HasModData<ModData>() || !chest.modData.GetModData<ModData>().IsBot) continue;
-				targetTileLocs.Add(tileLoc);
-			}
-			foreach (Vector2 tileLoc in targetTileLocs) {
-				var chest = inLocation.objects[tileLoc] as Chest;
-
-				BotObject bot = new BotObject(tileLoc, inLocation);
-				inLocation.objects.Remove(tileLoc);             // remove chest from "objects"
-				inLocation.overlayObjects.Add(tileLoc, bot);    // add bot to "overlayObjects"
-
-				// Apply mod data EXCEPT for energy; we want energy restored after a night
-				bot.ApplyModData(chest.modData.GetModData<ModData>(), includingEnergy: false);
-
-				for (int i = 0; i < chest.items.Count && i < bot.inventory.Count; i++) {
-					//ModEntry.instance.Monitor.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
-					bot.inventory[i] = chest.items[i];
-				}
-				chest.items.Clear();
-
-				count++;
-				//ModEntry.instance.Monitor.Log($"Converted {chest} to {bot} at {tileLoc} of {inLocation}");
-			}
-			//if (count > 0) ModEntry.instance.Monitor.Log($"Converted {count} chests to bots in {inLocation}");
-		}
-
-		/// <summary>
-		/// Convert all chests (with appropriate metadata) in the given item list into bots.
-		/// </summary>
-		/// <param name="items">Item list to search in</param>
-		static int ConvertChestsInListToBots(IList<Item> items) {
-			int count = 0;
-			for (int i = 0; i < items.Count; i++) {
-				var chest = items[i] as Chest;
-				if (chest == null) continue;
-				if (!chest.modData.HasModData<ModData>() || !chest.modData.GetModData<ModData>().IsBot) continue;
-				BotObject bot = new BotObject(null);
-				bot.Stack = chest.Stack;
-				items[i] = bot;
-				// Note: we assume that chests in an item list are just items,
-				// and can't themselves contain other stuff.
-				count++;
-			}
-			return count;
-		}
-
-
-		//----------------------------------------------------------------------
-
-		public static void UpdateAll(GameTime gameTime) {
-			bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
-			for (int i = instances.Count - 1; i >= 0; i--) {
-				if (debug) ModEntry.instance.Monitor.Log($"Updating {i}/{instances.Count}: {instances[i].Name}");
-				instances[i].Update(gameTime);
-			}
-		}
-
-		public static void ClearAll() {
-			instances.Clear();
-			uniqueFarmerID = 1;
-		}
-
-		/// <summary>
-		/// Initializes each bot instance.
-		/// Does nothing if the bot instance has already been initialized.
-		/// Effectively starts up the bots.
-		/// </summary>
-		public static void InitShellAll() {
-			foreach (var instance in instances) {
-				instance.InitShell();
-			}
 		}
 
 		public override void dropItem(GameLocation location, Vector2 origin, Vector2 destination) {
@@ -407,8 +196,8 @@ namespace Farmtronics.Bot {
 
 			// Add the new bot (which is in the world) to our instances list.
 			// Remove the old item, if it happens to be in there (though it probably isn't).
-			instances.Remove(this);
-			if (!instances.Contains(bot)) instances.Add(bot);
+			BotManager.instances.Remove(this);
+			if (!BotManager.instances.Contains(bot)) BotManager.instances.Add(bot);
 			//ModEntry.instance.Monitor.Log($"Added {bot.Name} to instances; now have {instances.Count}");
 
 			location.playSound("hammer");
@@ -902,7 +691,7 @@ namespace Farmtronics.Bot {
 				// Remove, stop, and destroy this bot
 				Game1.currentLocation.overlayObjects.Remove(this.TileLocation);
 				if (shell != null) shell.interpreter.Stop();
-				instances.Remove(this);
+				BotManager.instances.Remove(this);
 				return false;
 			}
 
@@ -953,22 +742,22 @@ namespace Farmtronics.Bot {
 			if (screenColor.A > 0 && (screenColor.R > 0 || screenColor.G > 0 || screenColor.B > 0)) {
 				srcRect.Y = 24;
 				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, screenColor * alpha, 0f,
-					origin2, scale, SpriteEffects.None, z + 0.001f);
+					origin2, scale, SpriteEffects.None, z + 0.0001f);
 			}
 			// screen shine overlay
 			srcRect.Y = 48;
 			spriteBatch.Draw(Assets.BotSprites, position3, srcRect, Color.White * alpha, 0f,
-				origin2, scale, SpriteEffects.None, z + 0.002f);
+				origin2, scale, SpriteEffects.None, z + 0.0002f);
 			// status light color (if not black or clear)
 			if (statusColor.A > 0 && (statusColor.R > 0 || statusColor.G > 0 || statusColor.B > 0)) {
 				srcRect.Y = 72;
 				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, statusColor * alpha, 0f,
-					origin2, scale, SpriteEffects.None, z + 0.002f);
+					origin2, scale, SpriteEffects.None, z + 0.0002f);
 			}
 
 			// draw hat, if one is found in the last slot
 			var hat = inventory[GetActualCapacity() - 1] as Hat;
-			if (hat != null) drawHat(spriteBatch, hat, position3, z + 0.002f, alpha);
+			if (hat != null) drawHat(spriteBatch, hat, position3, z + 0.0002f, alpha);
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int xNonTile, int yNonTile, float layerDepth, float alpha = 1) {
