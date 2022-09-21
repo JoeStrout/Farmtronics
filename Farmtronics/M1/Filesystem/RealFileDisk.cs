@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace Farmtronics.M1 {
+namespace Farmtronics.M1.Filesystem {
 	class RealFileDisk : Disk {
 
 		public bool readOnly;       // if true, this disk is write protected
@@ -98,7 +98,7 @@ namespace Farmtronics.M1 {
 			ModEntry.instance.Monitor.Log($"GetFileSystemInfos returned {infos.Length} infos");
 			*/
 
-			var result = new Disk.FileInfo();
+			var result = new FileInfo();
 			result.isDirectory = (attr & FileAttributes.Directory) > 0;
 			if (result.isDirectory) {
 				var info = new System.IO.DirectoryInfo(filePath);

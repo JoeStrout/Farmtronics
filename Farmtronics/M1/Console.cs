@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Farmtronics.M1.GUI;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -11,17 +12,6 @@ namespace Farmtronics.M1 {
 	class Console : IClickableMenu, IKeyboardSubscriber {
 		public new const int width = 800;	// total width/height including the frame
 		public new const int height = 640;
-
-		public const int kBackspace = 8;
-		public const int kFwdDelete = 127;
-		public const int kLeftArrow = 17;
-		public const int kRightArrow = 18;
-		public const int kUpArrow = 19;
-		public const int kDownArrow = 20;
-		public const int kTab = 9;
-		public const int kControlA = 1;
-		public const int kControlC = 3;
-		public const int kControlE = 5;
 
 		public bool drawFrame = true;
 
@@ -89,11 +79,11 @@ namespace Farmtronics.M1 {
 			history = new List<string>();
 
 			keyWatchers = new List<KeyWatcher>() {
-				new KeyWatcher(SButton.Left, (char)kLeftArrow),
-				new KeyWatcher(SButton.Right, (char)kRightArrow),
-				new KeyWatcher(SButton.Down, (char)kDownArrow),
-				new KeyWatcher(SButton.Up, (char)kUpArrow),
-				new KeyWatcher(SButton.Delete, (char)kFwdDelete)
+				new KeyWatcher(SButton.Left, (char)Key.LeftArrow),
+				new KeyWatcher(SButton.Right, (char)Key.RightArrow),
+				new KeyWatcher(SButton.Down, (char)Key.DownArrow),
+				new KeyWatcher(SButton.Up, (char)Key.UpArrow),
+				new KeyWatcher(SButton.Delete, (char)Key.FwdDelete)
 			};
 
 			whiteTex = new Texture2D(Game1.graphics.GraphicsDevice, 1, 1);
@@ -169,7 +159,7 @@ namespace Farmtronics.M1 {
 			if (control && key >= Keys.A && key <= Keys.Z) {
 				//ModEntry.instance.Monitor.Log($"Handling control-{key}");
 				if (key == Keys.C && owner.allowControlCBreak) owner.Break();
-				else HandleKey((char)(kControlA + (int)key - (int)Keys.A));
+				else HandleKey((char)(Key.ControlA + (int)key - (int)Keys.A));
 			} else {
 				//ModEntry.instance.Monitor.Log("Not a control key press: {control}, {key}");
 			}
@@ -191,7 +181,7 @@ namespace Farmtronics.M1 {
 			//ModEntry.instance.Monitor.Log($"RecieveCommandInput({command}, int {(int)command})");
 			switch (command) {
 			case '\b':		// backspace
-				HandleKey((char)kBackspace);
+				HandleKey((char)Key.Backspace);
 				break;
 			case '\r':		// return/enter
 				HandleKey('\n');
@@ -221,62 +211,83 @@ namespace Farmtronics.M1 {
 			bool control = inp.IsDown(SButton.LeftControl) || inp.IsDown(SButton.RightControl);
 			bool alt = inp.IsDown(SButton.LeftAlt) || inp.IsDown(SButton.RightAlt);
 			bool byWord = control || alt;
-			if (keyInt != kTab) ClearAutocomplete();
-			if (keyInt == 3 || keyInt == 10 || keyInt == 13) {
+			int stop;
+			if (keyInt != (int)Key.Tab) ClearAutocomplete();
+			switch (keyInt) {
+			case 3:
+			case 10:
+			case 13:
 				CommitInput();
-			} else if ((keyInt == kLeftArrow)) {
+				break;
+			
+			case (int)Key.LeftArrow:
 				inputIndex = PrevInputStop(inputIndex, byWord);
-			} else if (keyInt == kRightArrow) {
+				break;
+			
+			case (int)Key.RightArrow:
 				inputIndex = NextInputStop(inputIndex, byWord);
-			} else if (keyInt == kControlA) {
+				break;
+			
+			case (int)Key.ControlA:
 				inputIndex = 0;
-			} else if (keyInt == kControlE) {
+				break;
+			
+			case (int)Key.ControlE:
 				inputIndex = inputBuf.Length;
-			} else if (keyInt == kBackspace) {
-				int stop = PrevInputStop(inputIndex, byWord);
+				break;
+			
+			case (int)Key.Backspace:
+				stop = PrevInputStop(inputIndex, byWord);
 				if (stop < inputIndex) {
 					inputBuf = inputBuf.Substring(0, stop) + inputBuf.Mid(inputIndex);
 					int delCount = inputIndex - stop;
-					for (int i=0; i<delCount; i++) display.Backup();
+					for (int i = 0; i < delCount; i++) display.Backup();
 					display.Print(inputBuf.Substring(stop));
-					for (int i=0; i<delCount; i++) display.Put(' ');
+					for (int i = 0; i < delCount; i++) display.Put(' ');
 					inputIndex = stop;
 					//if (onInputChanged != null) onInputChanged.Invoke(inputBuf);
 				}
-			} else if (keyInt == kFwdDelete) {
-				int stop = NextInputStop(inputIndex, byWord);
+				break;
+			
+			case (int)Key.FwdDelete:
+				stop = NextInputStop(inputIndex, byWord);
 				if (stop > inputIndex) {
 					inputBuf = inputBuf.Substring(0, inputIndex) + inputBuf.Mid(stop);
 					display.Print(inputBuf.Substring(inputIndex));
-					for (int i=0; i<stop-inputIndex; i++) display.Put(' ');
+					for (int i = 0; i < stop - inputIndex; i++) display.Put(' ');
 					//if (onInputChanged != null) onInputChanged.Invoke(inputBuf);
 				}
-			} else if (keyInt == kUpArrow) {
-				if (historyIndex <= 0) {
-					// No can do
-				} else {
+				break;
+			
+			case (int)Key.UpArrow:
+				if (historyIndex > 0) {
 					historyIndex--;
 					ReplaceInput(history[historyIndex]);
 				}
-			} else if (keyInt == kDownArrow) {
-				if (historyIndex >= history.Count) {
-					// No can do				
-				} else {
+				break;
+			
+			case (int)Key.DownArrow:
+				if (historyIndex < history.Count) {
 					historyIndex++;
 					ReplaceInput(historyIndex < history.Count ? history[historyIndex] : "");
 				}
-			} else if (keyInt == kTab) {
+				break;
+			
+			case (int)Key.Tab:
 				if (curSuggestion != null) {
 					inputBuf += curSuggestion;
 					inputIndex += curSuggestion.Length;
 					display.Print(curSuggestion);
 				}
-			} else {
+				break;
+			
+			default:
 				if (string.IsNullOrEmpty(inputBuf)) inputBuf = keyChar.ToString();
 				else inputBuf = inputBuf.Substring(0, inputIndex) + keyChar.ToString() + inputBuf.Substring(inputIndex);
 				display.Print(inputBuf.Substring(inputIndex));
-				inputIndex++;			
+				inputIndex++;
 				//if (onInputChanged != null) onInputChanged.Invoke(inputBuf);
+				break;
 			}
 		
 			if (inInputMode) SetCursorForInput();

@@ -11,6 +11,8 @@ using Miniscript;
 using Microsoft.Xna.Framework;
 using Farmtronics.Bot;
 using Farmtronics.Utils;
+using Farmtronics.M1.Filesystem;
+using Farmtronics.M1.GUI;
 
 namespace Farmtronics.M1 {
 	class Shell {

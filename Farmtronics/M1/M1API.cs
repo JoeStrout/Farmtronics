@@ -12,6 +12,8 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
 using Farmtronics.Utils;
+using Farmtronics.M1.Filesystem;
+using Farmtronics.M1.GUI;
 
 namespace Farmtronics.M1 {
 	static class M1API  {
@@ -593,7 +595,7 @@ namespace Farmtronics.M1 {
 				string err;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
-				Disk.FileInfo info = FileUtils.GetInfo(path);
+				FileInfo info = FileUtils.GetInfo(path);
 				if (info == null) return Intrinsic.Result.Null;
 				var result = new ValMap();
 				result["path"] = new ValString(path);
@@ -1382,7 +1384,7 @@ namespace Farmtronics.M1 {
 			f.AddParam("x", ValNumber.zero);
 			f.AddParam("y", ValNumber.zero);
 			f.code = (context, partialResult) => {
-				TextDisplay.Cell cell = ReferencedCell(context);
+				Cell cell = ReferencedCell(context);
 				if (cell == null) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(new ValString(cell.character.ToString()));
 			};
@@ -1450,7 +1452,7 @@ namespace Farmtronics.M1 {
 			f.AddParam("x", ValNumber.zero);
 			f.AddParam("y", ValNumber.zero);
 			f.code = (context, partialResult) => {
-				TextDisplay.Cell cell = ReferencedCell(context);
+				Cell cell = ReferencedCell(context);
 				if (cell == null) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(new ValString(cell.foreColor.ToHexString()));
 			};
@@ -1518,7 +1520,7 @@ namespace Farmtronics.M1 {
 			f.AddParam("x", ValNumber.zero);
 			f.AddParam("y", ValNumber.zero);
 			f.code = (context, partialResult) => {
-				TextDisplay.Cell cell = ReferencedCell(context);
+				Cell cell = ReferencedCell(context);
 				if (cell == null) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(new ValString(cell.backColor.ToHexString()));
 			};
@@ -1713,7 +1715,7 @@ namespace Farmtronics.M1 {
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		static TextDisplay.Cell ReferencedCell(TAC.Context context, out TextDisplay disp) {
+		static Cell ReferencedCell(TAC.Context context, out TextDisplay disp) {
 			Shell sh = context.interpreter.hostData as Shell;
 			disp = sh.textDisplay;
 			int x = context.GetLocalInt("x");
@@ -1721,7 +1723,7 @@ namespace Farmtronics.M1 {
 			return disp.Get(y, x);		
 		}
 
-		static TextDisplay.Cell ReferencedCell(TAC.Context context) {
+		static Cell ReferencedCell(TAC.Context context) {
 			TextDisplay disp;
 			return ReferencedCell(context, out disp);
 		}

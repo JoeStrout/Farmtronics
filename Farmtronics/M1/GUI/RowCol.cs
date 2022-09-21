@@ -1,4 +1,4 @@
-﻿namespace Farmtronics.M1 {
+﻿namespace Farmtronics.M1.GUI {
 	struct RowCol {
 		public int row;
 		public int col;

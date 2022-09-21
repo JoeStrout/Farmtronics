@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Farmtronics.M1;
+using Farmtronics.M1.Filesystem;
+using M1FileInfo = Farmtronics.M1.Filesystem.FileInfo;
 
 namespace Farmtronics.Utils {
 	static class FileUtils {
@@ -37,7 +38,7 @@ namespace Farmtronics.Utils {
 			return disk.Exists(path);
 		}
 
-		public static Disk.FileInfo GetInfo(string path) {
+		public static M1FileInfo GetInfo(string path) {
 			Disk disk = GetDisk(ref path);
 			if (disk == null) return null;
 			return disk.GetFileInfo(path);
