@@ -8,7 +8,7 @@ namespace Farmtronics {
 		public static Texture2D BotSprites    {get; private set;}
 		public static Texture2D ScreenOverlay {get; private set;}
 		public static Texture2D FontAtlas     {get; private set;}
-		public static string[] 	FontList      {get; private set;}
+		public static string[]  FontList      {get; private set;}
 		
 		
 		public static void Initialize(IModHelper helper) {
