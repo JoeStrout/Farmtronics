@@ -63,6 +63,7 @@ namespace Farmtronics.Bot {
 		// Assign common values
 		private void Initialize() {
 			Name = I18n.Bot_Name();
+			DisplayName = I18n.Bot_Name();
 			Type = "Crafting";
 			Category = StardewValley.Object.BigCraftableCategory;
 			ParentSheetIndex = ItemID;
@@ -95,6 +96,7 @@ namespace Farmtronics.Bot {
 			if (location == null) location = Game1.player.currentLocation;
 			farmer = new BotFarmer() {
 				Name = Name,
+				displayName = DisplayName,
 				Speed = 2,
 				MaxStamina = Farmer.startingStamina,
 				Stamina = Farmer.startingStamina,
@@ -452,9 +454,7 @@ namespace Farmtronics.Bot {
 
 		public void MoveForward() {
 			// make sure the terrain in that direction isn't blocked
-			farmer.setMovingInFacingDirection();
 			Vector2 newTile = farmer.nextPositionTile().ToVector2();
-			farmer.Halt();
 			Vector2 moveVector = newTile - farmer.getTileLocation();
 			ModEntry.instance.Monitor.Log($"Moving from {TileLocation} to {newTile} with speed: {farmer.getMovementSpeed()}");
 			var location = farmer.currentLocation;

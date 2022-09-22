@@ -1,6 +1,7 @@
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using StardewValley;
+using xTile.Dimensions;
 
 namespace Farmtronics.Bot
 {
@@ -43,6 +44,13 @@ namespace Farmtronics.Bot
 		public override void SetMovingLeft(bool b) {
 			if (!b) Halt();
 			else moveLeft = true;
+		}
+		
+		public new Location nextPositionTile() {
+			setMovingInFacingDirection();
+			var newTile = base.nextPositionTile();
+			Halt();
+			return newTile;
 		}
 	}
 }
