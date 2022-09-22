@@ -100,7 +100,8 @@ namespace Farmtronics.Bot {
 				Stamina = Farmer.startingStamina,
 				Position = tileLocation.GetAbsolutePosition(),
 				currentLocation = location,
-				Items = Farmer.initialTools()
+				Items = Farmer.initialTools(),
+				MaxItems = 12
 			};
 			ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Postion: {farmer.Position} Location: {farmer.currentLocation}");
 			ModEntry.instance.Monitor.Log($"Items: {farmer.Items.Count}/{farmer.MaxItems}");
@@ -153,7 +154,7 @@ namespace Farmtronics.Bot {
 			Vector2 placementTile = new Vector2(x, y).GetTilePosition();
 			// Create a new bot.
 			var bot = new BotObject(placementTile, location);
-			Game1.player.currentLocation.overlayObjects[placementTile] = bot;
+			Game1.player.currentLocation.setObject(placementTile, bot);
 			bot.shakeTimer = 50;
 
 			// Copy other data from this item to bot.
@@ -178,8 +179,8 @@ namespace Farmtronics.Bot {
 		// the square in front of the bot.
 		public void UseTool() {
 			if (farmer == null || inventory == null || farmer.CurrentTool == null) return;
-			ModEntry.instance.Monitor.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {farmer.GetToolLocation(true)}");
 			Vector2 toolLocation = farmer.GetToolLocation(true);
+			ModEntry.instance.Monitor.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {toolLocation}");
 			float oldStamina = farmer.stamina;
 			if (farmer.CurrentTool is not MeleeWeapon)
 			{
@@ -225,7 +226,7 @@ namespace Farmtronics.Bot {
 
 		public bool AddItemToInventory(Item item) {
 			// Returns false if the whole item stack can't be added:
-			if (Utility.canItemBeAddedToThisInventoryList(item, inventory, inventory.Count)) {
+			if (Utility.canItemBeAddedToThisInventoryList(item, farmer.Items, farmer.MaxItems)) {
 				if (item is Tool) {
 					// Without this special case, taking a tool will fill
                     // the bot's inventory with it for some reason
@@ -236,11 +237,11 @@ namespace Farmtronics.Bot {
 						}
 					}
 				}
-				//ModEntry.instance.Monitor.Log("Adding item");
-				Utility.addItemToThisInventoryList(item, inventory, inventory.Count);
+				ModEntry.instance.Monitor.Log("Adding item");
+				Utility.addItemToThisInventoryList(item, farmer.Items, farmer.MaxItems);
 				return true;
 			} else {
-				//ModEntry.instance.Monitor.Log("Can't add item");
+				ModEntry.instance.Monitor.Log("Can't add item");
 				return false;
 			}
 		}
@@ -354,12 +355,14 @@ namespace Farmtronics.Bot {
 			if (farmer == null) return false;
 			Vector2 tileLocation = farmer.GetToolLocation(true);
 
-			StardewValley.Object obj;
-			if (farmer.currentLocation.objects.TryGetValue(tileLocation, out obj)) {
+			if (farmer.currentLocation.isObjectAt(tileLocation.GetIntX(), tileLocation.GetIntY())) {
+				StardewValley.Object obj = farmer.currentLocation.getObjectAt(tileLocation.GetIntX(), tileLocation.GetIntY());
+				ModEntry.instance.Monitor.Log($"Taking item from slot {slotNumber} of {obj.Name}");
 				IList<Item> sourceItems = null;
 				if (obj is Chest chest) sourceItems = chest.items;
 				else if (obj is BotObject bot) sourceItems = bot.inventory;
-				if (sourceItems != null && sourceItems[slotNumber] != null && AddItemToInventory(sourceItems[slotNumber])) {
+				else ModEntry.instance.Monitor.Log($"Couldn't take any items from this object.");
+				if (sourceItems != null && slotNumber < sourceItems.Count && sourceItems[slotNumber] != null && AddItemToInventory(sourceItems[slotNumber])) {
 					ModEntry.instance.Monitor.Log($"Taking {sourceItems[slotNumber].DisplayName} from container");
 					Utility.removeItemFromInventory(slotNumber, sourceItems);
 					return true;
@@ -396,8 +399,8 @@ namespace Farmtronics.Bot {
 			}
 
 			// check the Object layer for machines etc
-			StardewValley.Object obj;
-			if (farmer.currentLocation.objects.TryGetValue(tileLocation.ToVector2(), out obj)) {
+			if (farmer.currentLocation.isObjectAt(tileLocation.X, tileLocation.Y)) {
+				StardewValley.Object obj = farmer.currentLocation.getObjectAt(tileLocation.X, tileLocation.Y);
 				// Perform the object drop in
 				// This method is patched by mods like PFM to get custom machines working,
                 // so we get compatibility with that by default.
@@ -610,7 +613,7 @@ namespace Farmtronics.Bot {
 				Game1.currentLocation.debris.Add(deb);
 				//ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
-				Game1.currentLocation.overlayObjects.Remove(farmer.getTileLocation());
+				Game1.currentLocation.removeObject(farmer.getTileLocation(), true);
 				if (shell != null) shell.interpreter.Stop();
 				BotManager.instances.Remove(this);
 				return false;
@@ -669,14 +672,8 @@ namespace Farmtronics.Bot {
 			}
 
 			// draw hat, if one is found in the last slot
-			var hat = inventory.Count >= GetActualCapacity() - 1 ? inventory[GetActualCapacity() - 1] as Hat : null;
-			if (hat != null) drawHat(spriteBatch, hat, position3, z + 0.0002f, alpha);
-		}
-
-		public override void draw(SpriteBatch spriteBatch, int xNonTile, int yNonTile, float layerDepth, float alpha = 1) {
-			//ModEntry.instance.print($"draw 2 at {xNonTile},{yNonTile}, {layerDepth}, {alpha}");
-			base.draw(spriteBatch, xNonTile, yNonTile, layerDepth, alpha);
-
+			if (farmer != null && farmer.MaxItems - 1 < farmer.Items.Count && farmer.Items[farmer.MaxItems -1] is Hat)
+				drawHat(spriteBatch, farmer.Items[farmer.MaxItems - 1] as Hat, position3, z + 0.0002f, alpha);
 		}
 
 		/// <summary>
