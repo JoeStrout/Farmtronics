@@ -20,9 +20,7 @@ namespace Farmtronics.Bot {
 		}
 
 		public static void UpdateAll(GameTime gameTime) {
-			bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
 			for (int i = instances.Count - 1; i >= 0; i--) {
-				if (debug) ModEntry.instance.Monitor.Log($"Updating {i}/{instances.Count}: {instances[i].Name}");
 				instances[i].Update(gameTime);
 			}
 		}
@@ -205,7 +203,7 @@ namespace Farmtronics.Bot {
 				var chest = items[i] as Chest;
 				if (chest == null) continue;
 				if (!chest.modData.HasModData<ModData>() || !chest.modData.GetModData<ModData>().IsBot) continue;
-				BotObject bot = new BotObject(null);
+				BotObject bot = new BotObject();
 				bot.Stack = chest.Stack;
 				items[i] = bot;
 				// Note: we assume that chests in an item list are just items,

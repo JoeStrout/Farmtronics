@@ -1,6 +1,7 @@
 ﻿using System;
 using Farmtronics.Bot;
 using Farmtronics.M1;
+using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -63,7 +64,7 @@ namespace Farmtronics
 				// Create a bot.
 				Vector2 pos = Game1.player.position;
 				pos.X -= 64;
-				Vector2 tilePos = new Vector2((int)(pos.X / 64), (int)(pos.Y / 64));
+				Vector2 tilePos = pos.GetTilePosition();
 				var bot = new BotObject(tilePos);
 
 				//Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
@@ -86,7 +87,7 @@ namespace Farmtronics
 					this.Monitor.Log($"Mail in mailbox: {msg}");
 					if (msg == "FarmtronicsFirstBotMail") {
 						this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-						Game1.player.recoveredItem = new BotObject(null);
+						Game1.player.recoveredItem = new BotObject();
 						break;
 					}
 				}
@@ -103,7 +104,7 @@ namespace Farmtronics
 						this.Monitor.Log($"Shop item {index}: {item} with {item.Name}");
 						if (item.Name == "Catalogue" || (index>0 && shop.forSale[index-1].Name == "Flooring")) break;
 					}
-					var botForSale = new BotObject(null);
+					var botForSale = new BotObject();
 					shop.forSale.Insert(index, botForSale);
 					shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });	// sale price and available stock
 				}
@@ -148,7 +149,7 @@ namespace Farmtronics
 				this.Monitor.Log($"Mail in mailbox: {msg}");
 				if (msg == "FarmtronicsFirstBotMail") {
 					this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-					Game1.player.recoveredItem = new BotObject(null);
+					Game1.player.recoveredItem = new BotObject();
 					break;
 				}
 			}
@@ -189,7 +190,7 @@ namespace Farmtronics
                         this.Monitor.Log($"mail in mailbox: {msg}");
                         if (msg == "FarmtronicsFirstBotMail") {
                             this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-                            Game1.player.recoveredItem = new BotObject(null);
+                            Game1.player.recoveredItem = new BotObject();
                             break;
                         }
                     }

@@ -6,12 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Farmtronics.M1;
+using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
+using xTile.Dimensions;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace Farmtronics.Bot {
 	class BotObject : StardewValley.Object {
@@ -19,6 +22,11 @@ namespace Farmtronics.Bot {
 		// The wiki recommends not to do that: https://stardewvalleywiki.com/Modding:Items#Define_a_custom_item
 		// LookupAnything suggests that everything is fine in game.
 		const int ItemID = 0xB07;
+
+		// We need a Farmer to be able to use tools.  So, we're going to
+		// create our own invisible Farmer instance and store it here:
+		BotFarmer farmer;
+		Vector2 Position { get => farmer.Position; }   // our current position, in pixels
 
 		public IList<Item> inventory { get { return farmer == null ? null : farmer.Items; } }
 		public Color screenColor {
@@ -29,7 +37,7 @@ namespace Farmtronics.Bot {
 		}
 		public Color statusColor = Color.Yellow;
 		public Shell shell { get; private set; }
-		public bool isUsingTool { get { return toolUseFrame > 0; } }
+		public bool isUsingTool { get { return farmer.UsingTool? farmer.UsingTool : scytheUseFrame > 0; } }
 		public int energy { get { return farmer == null ? 0 : (int)farmer.Stamina; } }
 
 		public GameLocation currentLocation {
@@ -49,17 +57,9 @@ namespace Farmtronics.Bot {
 		// [XmlIgnore]
 		// public readonly NetMutex mutex = new NetMutex();
 
-		// We need a Farmer to be able to use tools.  So, we're going to
-		// create our own invisible Farmer instance and store it here:
-		Farmer farmer;
+		private int scytheUseFrame = 0;       // > 0 when using the scythe
+		private float scytheOldStamina = -1;
 
-		Vector2 position;   // our current position, in pixels
-		Vector2 targetPos;  // position we're moving to, in pixels
-
-		const float speed = 64;     // pixels/sec
-
-		int toolUseFrame = 0;       // > 0 when using a tool
-		
 		// Assign common values
 		private void Initialize() {
 			Name = I18n.Bot_Name();
@@ -71,60 +71,39 @@ namespace Farmtronics.Bot {
 		}
 
 		// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
-		public BotObject(Farmer farmer) {
+		public BotObject() {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
-			Initialize();			
-			this.farmer = farmer;
+			Initialize();
 
-			// In most cases we get the Farmer from some other bot (which is about to be destroyed).
-			// But if not given one, better create one now.
-			if (farmer == null) {
-				CreateFarmer(Game1.player.getTileLocation(), Game1.currentLocation);
-			} else {
-				Name = farmer.Name;
-			}
+			CreateFarmer(tileLocation, null);
 
 			// NOTE: this constructor is used for bots that are not in the world
 			// (but are in inventory, mail attachment, etc.).  So we do not add
 			// to the instances list.
 		}
 
-		public BotObject(Vector2 tileLocation, GameLocation location = null, Farmer farmer = null) : base(tileLocation, ItemID) {
+		public BotObject(Vector2 tileLocation, GameLocation location = null) : base(tileLocation, ItemID) {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
-
 			Initialize();
-			this.farmer = farmer;
-			
-			if (location == null) {
-				location = Game1.player.currentLocation;
-				//ModEntry.instance.Monitor.Log($"Location is null; fallback to {location.Name}");
-			}
 
-			if (farmer == null) {
-				CreateFarmer(tileLocation, location);
-			} else {
-				Name = farmer.Name;
-			}
-
-			NotePosition();
+			CreateFarmer(tileLocation, location);
 
 			BotManager.instances.Add(this);
 		}
 
 		void CreateFarmer(Vector2 tileLocation, GameLocation location) {
-			List<Item> initialTools = new List<Item>
-			{
-				new Hoe(),
-				new Axe(),
-				new Pickaxe(),
-				new MeleeWeapon(47),  // (scythe)
-	            new WateringCan()
+			if (location == null) location = Game1.player.currentLocation;
+			farmer = new BotFarmer() {
+				Name = Name,
+				Speed = 2,
+				MaxStamina = Farmer.startingStamina,
+				Stamina = Farmer.startingStamina,
+				Position = tileLocation.GetAbsolutePosition(),
+				currentLocation = location,
+				Items = Farmer.initialTools()
 			};
-
-			farmer = new Farmer(new FarmerSprite(Path.Combine("Characters", "Farmer", "farmer_base")),
-				tileLocation * 64, 2,
-				Name, initialTools, isMale: true);
-			farmer.currentLocation = location;
+			ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Postion: {farmer.Position} Location: {farmer.currentLocation}");
+			ModEntry.instance.Monitor.Log($"Items: {farmer.Items.Count}/{farmer.MaxItems}");
 		}
 
 		//----------------------------------------------------------------------
@@ -157,18 +136,10 @@ namespace Farmtronics.Bot {
 			//ModEntry.instance.Monitor.Log($"after ApplyModData, name=[{name}]");
 		}
 
-		public override void dropItem(GameLocation location, Vector2 origin, Vector2 destination) {
-			//ModEntry.instance.Monitor.Log($"Bot.dropItem({location}, {origin}, {destination}");
-			base.dropItem(location, origin, destination);
-		}
-
 		public override bool performDropDownAction(Farmer who) {
-			//ModEntry.instance.Monitor.Log($"Bot.performDropDownAction({who.Name})");
+			ModEntry.instance.Monitor.Log($"Bot.performDropDownAction({who.Name})");
 			base.performDropDownAction(who);
-
-			// Keep our farmer positioned wherever this object is
-			farmer.currentLocation = Game1.player.currentLocation;
-			farmer.setTileLocation(TileLocation);
+			
 			return false;   // OK to set down (add to Objects list in the tile)
 		}
 
@@ -179,9 +150,9 @@ namespace Farmtronics.Bot {
 		/// </summary>
 		public override bool placementAction(GameLocation location, int x, int y, Farmer who = null) {
 			//ModEntry.instance.Monitor.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
-			Vector2 placementTile = new Vector2(x / 64, y / 64);
-			// Create a new bot, copying the farmer (including inventory) from this one.
-			var bot = new BotObject(placementTile, location, farmer);
+			Vector2 placementTile = new Vector2(x, y).GetTilePosition();
+			// Create a new bot.
+			var bot = new BotObject(placementTile, location);
 			Game1.player.currentLocation.overlayObjects[placementTile] = bot;
 			bot.shakeTimer = 50;
 
@@ -189,7 +160,6 @@ namespace Farmtronics.Bot {
 			SetModData(modData);
 			bot.ApplyModData(modData.GetModData<ModData>());
 			bot.farmer.currentLocation = location;
-			bot.NotePosition();
 
 			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
@@ -204,39 +174,34 @@ namespace Farmtronics.Bot {
 			return true;
 		}
 
-
-		public void NotePosition() {
-			position = targetPos = TileLocation * 64f;
-			farmer.setTileLocation(TileLocation);
-		}
-
 		// Apply the currently-selected item as a tool (or weapon) on
 		// the square in front of the bot.
 		public void UseTool() {
-			if (farmer == null || inventory == null) return;
-			Tool tool = inventory[currentToolIndex] as Tool;
-			if (tool == null) return;
-			int useX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
-			int useY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
-			tool.beginUsing(currentLocation, useX, useY, farmer);
-
-			farmer.setTileLocation(TileLocation);
-			Farmer.showToolSwipeEffect(farmer);
-
-			// Count how many frames into the swipe effect we are.
-			// We'll actually apply the tool effect later, in Update.
-			toolUseFrame = 1;
+			if (farmer == null || inventory == null || farmer.CurrentTool == null) return;
+			ModEntry.instance.Monitor.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {farmer.GetToolLocation(true)}");
+			Vector2 toolLocation = farmer.GetToolLocation(true);
+			float oldStamina = farmer.stamina;
+			if (farmer.CurrentTool is not MeleeWeapon)
+			{
+				farmer.CurrentTool.DoFunction(farmer.currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), 1, farmer);
+				farmer.checkForExhaustion(oldStamina);
+			} else {
+				// Special case for using the Scythe
+				farmer.CurrentTool.beginUsing(currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), farmer);
+				Farmer.showToolSwipeEffect(farmer);
+				scytheOldStamina = oldStamina;
+				// Count how many frames into the swipe effect we are.
+				// We'll actually apply the tool effect later, in Update.
+				scytheUseFrame = 1;
+			}
 		}
 
 		// Attempt to harvest the crop in front of the bot.
 		public bool Harvest() {
 			if (farmer == null) return false;
-			farmer.setTileLocation(TileLocation);
 
 			GameLocation loc = this.currentLocation;
-			int aheadX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
-			int aheadY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
-			Vector2 tileLocation = new Vector2(aheadX / 64, aheadY / 64);
+			Vector2 tileLocation = farmer.GetToolLocation(true);
 
 			TerrainFeature feature = null;
 			StardewValley.Object obj = null;
@@ -387,11 +352,7 @@ namespace Farmtronics.Bot {
 
 		public bool TakeItem(int slotNumber, int amount = -1) {
 			if (farmer == null) return false;
-			farmer.setTileLocation(TileLocation);
-
-			int placeX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
-			int placeY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
-			Vector2 tileLocation = new Vector2(placeX / 64, placeY / 64);
+			Vector2 tileLocation = farmer.GetToolLocation(true);
 
 			StardewValley.Object obj;
 			if (farmer.currentLocation.objects.TryGetValue(tileLocation, out obj)) {
@@ -414,20 +375,19 @@ namespace Farmtronics.Bot {
 		// or machine/container ahead of the robot.  Return the number
 		// successfully placed.
 		public int PlaceItem() {
-			var item = inventory[currentToolIndex];
+			var item = farmer.CurrentItem;
 			if (item == null) {
 				ModEntry.instance.Monitor.Log($"No item equipped in slot {currentToolIndex}");
 				return 0;
 			}
 			ModEntry.instance.Monitor.Log($"Placing {item.DisplayName} from slot {currentToolIndex}");
-			int placeX = (int)position.X + 64 * DxForDirection(farmer.FacingDirection);
-			int placeY = (int)position.Y + 64 * DyForDirection(farmer.FacingDirection);
+			Location tileLocation = farmer.GetToolLocation(true).ToLocation();
 
 			// if we can place the item via standard Utility/item methods, do so
 			var itemAsObj = item as StardewValley.Object;
-			if (itemAsObj != null && Utility.playerCanPlaceItemHere(farmer.currentLocation, item, placeX, placeY, farmer)) {
+			if (itemAsObj != null && Utility.playerCanPlaceItemHere(farmer.currentLocation, item, tileLocation.X, tileLocation.Y, farmer)) {
 				//Place it
-				bool result = itemAsObj.placementAction(currentLocation, placeX, placeY, farmer);
+				bool result = itemAsObj.placementAction(currentLocation, tileLocation.X, tileLocation.Y, farmer);
 				ModEntry.instance.Monitor.Log($"placementAction result: {result}");
 				// reduce inventory by one, and clear the inventory if the stack is empty
 				item.Stack--;
@@ -436,9 +396,8 @@ namespace Farmtronics.Bot {
 			}
 
 			// check the Object layer for machines etc
-			Vector2 tileLocation = new Vector2(placeX / 64, placeY / 64);
 			StardewValley.Object obj;
-			if (farmer.currentLocation.objects.TryGetValue(tileLocation, out obj)) {
+			if (farmer.currentLocation.objects.TryGetValue(tileLocation.ToVector2(), out obj)) {
 				// Perform the object drop in
 				// This method is patched by mods like PFM to get custom machines working,
                 // so we get compatibility with that by default.
@@ -488,58 +447,44 @@ namespace Farmtronics.Bot {
 			return 0;
 		}
 
-		public void Move(int dColumn, int dRow) {
-			// Face in the specified direction
-			if (dRow < 0) farmer.faceDirection(0);
-			else if (dRow > 0) farmer.faceDirection(2);
-			else if (dColumn < 0) farmer.faceDirection(3);
-			else if (dColumn > 0) farmer.faceDirection(1);
-
+		public void MoveForward() {
 			// make sure the terrain in that direction isn't blocked
-			Vector2 newTile = farmer.getTileLocation() + new Vector2(dColumn, dRow);
-			var location = currentLocation;
+			farmer.setMovingInFacingDirection();
+			Vector2 newTile = farmer.nextPositionTile().ToVector2();
+			farmer.Halt();
+			Vector2 moveVector = newTile - farmer.getTileLocation();
+			ModEntry.instance.Monitor.Log($"Moving from {TileLocation} to {newTile} with speed: {farmer.getMovementSpeed()}");
+			var location = farmer.currentLocation;
 			{
 				// How to detect walkability in pretty much the same way as other characters:
 				var newBounds = farmer.GetBoundingBox();
-				newBounds.X += dColumn * 64;
-				newBounds.Y += dRow * 64;
+				newBounds.X += moveVector.GetIntX() * Game1.tileSize;
+				newBounds.Y += moveVector.GetIntY() * Game1.tileSize;
 				bool coll = location.isCollidingPosition(newBounds, Game1.viewport, isFarmer: false, 0, glider: false, farmer);
 				if (coll) {
-					//ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
+					ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
 					return;
 				}
 			}
 
-			// start moving
-			targetPos = newTile * 64;
-
 			// Do collision actions (shake the grass, etc.)
 			if (location.terrainFeatures.ContainsKey(newTile)) {
-				//Rectangle posRect = new Rectangle((int)position.X-16, (int)position.Y-24, 32, 48);
 				var feature = location.terrainFeatures[newTile];
 				var posRect = feature.getBoundingBox(newTile);
 				feature.doCollisionAction(posRect, 4, newTile, null, location);
 			}
-		}
-
-		public static int DxForDirection(int direction) {
-			if (direction == 1) return 1;
-			if (direction == 3) return -1;
-			return 0;
-		}
-
-		public static int DyForDirection(int direction) {
-			if (direction == 2) return 1;
-			if (direction == 0) return -1;
-			return 0;
-		}
-
-		public void MoveForward() {
-			Move(DxForDirection(farmer.FacingDirection), DyForDirection(farmer.FacingDirection));
+			
+			// Remove this object from the Objects list at its old position
+			location.overlayObjects.Remove(TileLocation);
+			// Update our tile pos, and add this object to the Objects list at the new position
+			TileLocation = newTile;
+			location.overlayObjects.Add(newTile, this);
+			// Update the invisible farmer
+			farmer.setTileLocation(newTile);
 		}
 
 		public bool IsMoving() {
-			return (position != targetPos);
+			return farmer.isMoving();
 		}
 
 		public void Rotate(int stepsClockwise) {
@@ -547,39 +492,32 @@ namespace Farmtronics.Bot {
 			//ModEntry.instance.Monitor.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
 		}
 
-		void ApplyToolToTile() {
+		void ApplyScytheToTile() {
 			// Actually apply the tool to the tile in front of the bot.
 			// This is a big pain in the neck that is duplicated in many of the Tool subclasses.
 			// Here's how we do it:
 			// First, get the tool to apply, and the tile location to apply it.
 			if (farmer == null || inventory == null) return;
-			Tool tool = inventory[currentToolIndex] as Tool;
-			int tileX = (int)position.X / 64 + DxForDirection(farmer.FacingDirection);
-			int tileY = (int)position.Y / 64 + DyForDirection(farmer.FacingDirection);
-			Vector2 tile = new Vector2(tileX, tileY);
-			var location = currentLocation;
+			Tool tool = farmer.CurrentTool;
+			Vector2 tile = farmer.GetToolLocation(true).GetTilePosition();
+			var location = farmer.currentLocation;
 
-			// If it's not a MeleeWeapon, call the easy method and let SDV handle it.
-			if (tool is not MeleeWeapon) {
-				Game1.toolAnimationDone(farmer);
-				return;
-			}
-
-			// Otherwise, big pain in the neck time.
+			// Big pain in the neck time.
 
 			// Apply it to the location itself.
-			//ModEntry.instance.Monitor.Log($"{name} Performing {tool} action at {tileX},{tileY}");
-			location.performToolAction(tool, tileX, tileY);
+			ModEntry.instance.Monitor.Log($"{name} Performing {tool.Name} action at {tile}");
+			location.performToolAction(tool, tile.GetIntX(), tile.GetIntY());
 
 			// Then, apply it to any terrain feature (grass, weeds, etc.) at this location.
-			if (location.terrainFeatures.ContainsKey(tile) && location.terrainFeatures[tile].performToolAction(tool, 0, tile, location)) {
-				//ModEntry.instance.Monitor.Log($"Performed tool action on the terrain feature {location.terrainFeatures[tile]}; removing it");
+			if (location.terrainFeatures.ContainsKey(tile) && location.terrainFeatures[tile].performToolAction(tool, 1, tile, location)) {
+				ModEntry.instance.Monitor.Log($"Performed tool action on the terrain feature {location.terrainFeatures[tile]}; removing it");
 				location.terrainFeatures.Remove(tile);
 			}
 			if (location.largeTerrainFeatures is not null) {
-				var tileRect = new Rectangle(tileX * 64, tileY * 64, 64, 64);
+				var absoluteTile = tile.GetAbsolutePosition();
+				var tileRect = new Rectangle(absoluteTile.GetIntX(), absoluteTile.GetIntY(), Game1.tileSize, Game1.tileSize);
 				for (int i = location.largeTerrainFeatures.Count - 1; i >= 0; i--) {
-					if (location.largeTerrainFeatures[i].getBoundingBox().Intersects(tileRect) && location.largeTerrainFeatures[i].performToolAction(tool, 0, tile, location)) {
+					if (location.largeTerrainFeatures[i].getBoundingBox().Intersects(tileRect) && location.largeTerrainFeatures[i].performToolAction(tool, 1, tile, location)) {
 						//ModEntry.instance.Monitor.Log($"Performed tool action on the LARGE terrain feature {location.terrainFeatures[tile]}; removing it");
 						location.largeTerrainFeatures.RemoveAt(i);
 					}
@@ -594,19 +532,21 @@ namespace Farmtronics.Bot {
 						var center = farmer.GetBoundingBox().Center;
 						//ModEntry.instance.Monitor.Log($"Performed tool action on the object {obj}; adding debris");
 						location.debris.Add(new Debris(obj.bigCraftable.Value ? (-obj.ParentSheetIndex) : obj.ParentSheetIndex,
-							farmer.GetToolLocation(), new Vector2(center.X, center.Y)));
+							farmer.GetToolLocation(true), new Vector2(center.X, center.Y)));
 					}
 					//ModEntry.instance.Monitor.Log($"Performing {obj} remove action, then removing it from {tile}");
 					obj.performRemoveAction(tile, location);
 					location.Objects.Remove(tile);
 				}
 			}
-
+			
+			farmer.checkForExhaustion(scytheOldStamina);
+			scytheOldStamina = -1;
 		}
 
 		public void Update(GameTime gameTime) {
-			bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
-			if (debug) ModEntry.instance.Monitor.Log($"{Name} updating with farmer in {farmer.currentLocation?.Name}, here is {Game1.currentLocation.Name}, shell is {shell}");
+			// bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
+			// if (debug) ModEntry.instance.Monitor.Log($"{Name} updating with farmer in {farmer.currentLocation?.Name}, here is {Game1.currentLocation.Name}, shell is {shell}");
 
 
 			// Weird things happen if we try to update bots in locations other than
@@ -618,33 +558,14 @@ namespace Farmtronics.Bot {
 				shell.console.update(gameTime);
 				if (farmer.Name != Name) farmer.Name = Name;
 			}
-			if (toolUseFrame > 0) {
-				toolUseFrame++;
-				if (toolUseFrame == 6) ApplyToolToTile();
-				else if (toolUseFrame == 12) toolUseFrame = 0;  // all done!
+			
+			if (scytheUseFrame > 0) {
+				scytheUseFrame++;
+				if (scytheUseFrame == 6) ApplyScytheToTile();
+				else if (scytheUseFrame == 12) scytheUseFrame = 0;  // all done!
 			}
 
-			if (position != targetPos) {
-				// ToDo: make a utility module with MoveTowards in it
-				position.X += MathF.Sign(targetPos.X - position.X);
-				position.Y += MathF.Sign(targetPos.Y - position.Y);
-				Vector2 newTile = new Vector2((int)position.X / 64, (int)position.Y / 64);
-				if (newTile != TileLocation) {
-					// Remove this object from the Objects list at its old position
-					var location = currentLocation;
-					location.overlayObjects.Remove(TileLocation);
-					// Update our tile pos, and add this object to the Objects list at the new position
-					TileLocation = newTile;
-					location.overlayObjects.Add(newTile, this);
-					// Update the invisible farmer
-					farmer.setTileLocation(newTile);
-				}
-				//ModEntry.instance.Monitor.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
-			}
-		}
-
-		protected override string loadDisplayName() {
-			return name;
+			farmer.Update(gameTime, farmer.currentLocation);
 		}
 
 		public override bool checkForAction(Farmer who, bool justCheckingForActivity = false) {
@@ -678,18 +599,18 @@ namespace Farmtronics.Bot {
 		}
 
 		public override bool performToolAction(Tool t, GameLocation location) {
-			//ModEntry.instance.Monitor.Log($"{name} Bot.performToolAction({t}, {location})");
+			ModEntry.instance.Monitor.Log($"{name} Bot.performToolAction({t}, {location})");
 
 			if (t is Pickaxe or Axe or Hoe) {
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
 				var who = t.getLastFarmerToUse();
-				this.performRemoveAction(this.TileLocation, location);
-				Debris deb = new Debris(this.getOne(), who.GetToolLocation(), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
+				this.performRemoveAction(farmer.getTileLocation(), location);
+				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
 				SetModData(deb.item.modData);
 				Game1.currentLocation.debris.Add(deb);
 				//ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
-				Game1.currentLocation.overlayObjects.Remove(this.TileLocation);
+				Game1.currentLocation.overlayObjects.Remove(farmer.getTileLocation());
 				if (shell != null) shell.interpreter.Stop();
 				BotManager.instances.Remove(this);
 				return false;
@@ -707,27 +628,19 @@ namespace Farmtronics.Bot {
 
 		public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1) {
 			//ModEntry.instance.print($"draw 1 at {x},{y}, {alpha}");
-
-			if (alpha < 0.9f) {
-				// Drawing with alpha=0.5 is done when the player is placing the bot down
-				// in the world.  In this case, our internal position doesn't matter;
-				// we want to update that to match the given tile position.
-				position.X = x * 64;
-				position.Y = y * 64;
-				targetPos = position;
-			}
+			var absoluteLocation = new Location(x, y).GetAbsoluteLocation();
 
 			// draw shadow
 			spriteBatch.Draw(Game1.shadowTexture, Game1.GlobalToLocal(Game1.viewport,
-				new Vector2(position.X + 32, position.Y + 51 + 4)),
+				new Vector2(absoluteLocation.X + 32, absoluteLocation.Y + 51 + 4)),
 				Game1.shadowTexture.Bounds, Color.White * alpha, 0f,
 				new Vector2(Game1.shadowTexture.Bounds.Center.X, Game1.shadowTexture.Bounds.Center.Y), 4f,
 				SpriteEffects.None, (float)getBoundingBox(new Vector2(x, y)).Bottom / 15000f);
 
 			// draw sprite
 			Vector2 position3 = Game1.GlobalToLocal(Game1.viewport, new Vector2(
-				position.X + 32 + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0),
-				position.Y + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0)));
+				absoluteLocation.X + 32 + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0),
+				absoluteLocation.Y + ((shakeTimer > 0) ? Game1.random.Next(-1, 2) : 0)));
 			// Note: FacingDirection 0-3 is Up, Right, Down, Left
 			int facing = 2;
 			if (farmer != null) facing = farmer.FacingDirection;
@@ -756,7 +669,7 @@ namespace Farmtronics.Bot {
 			}
 
 			// draw hat, if one is found in the last slot
-			var hat = inventory[GetActualCapacity() - 1] as Hat;
+			var hat = inventory.Count >= GetActualCapacity() - 1 ? inventory[GetActualCapacity() - 1] as Hat : null;
 			if (hat != null) drawHat(spriteBatch, hat, position3, z + 0.0002f, alpha);
 		}
 
@@ -797,22 +710,21 @@ namespace Farmtronics.Bot {
 		public override void drawAsProp(SpriteBatch b) {
 			//ModEntry.instance.Monitor.Log($"Bot.drawAsProp");
 			if (this.isTemporarilyInvisible) return;
-			int x = (int)this.TileLocation.X;
-			int y = (int)this.TileLocation.Y;
+			Vector2 tileLocation = farmer.getTileLocation();
 
 			Vector2 scaleFactor = Vector2.One; // this.PulseIfWorking ? this.getScale() : Vector2.One;
 			scaleFactor *= 4f;
-			Vector2 position = Game1.GlobalToLocal(Game1.viewport, new Vector2(x * 64, y * 64 - 64));
+			Vector2 position = Game1.GlobalToLocal(Game1.viewport, tileLocation.GetAbsolutePosition() - new Vector2(0, - Game1.tileSize));
 			Rectangle srcRect = new Rectangle(16 * 2, 0, 16, 24);
 			b.Draw(destinationRectangle: new Rectangle((int)(position.X - scaleFactor.X / 2f), (int)(position.Y - scaleFactor.Y / 2f),
-				(int)(64f + scaleFactor.X), (int)(128f + scaleFactor.Y / 2f)),
+				(int)(Game1.tileSize + scaleFactor.X), (int)(Game1.tileSize * 2 + scaleFactor.Y / 2f)),
 				texture: Assets.BotSprites,
 				sourceRectangle: srcRect,
 				color: Color.White,
 				rotation: 0f,
 				origin: Vector2.Zero,
 				effects: SpriteEffects.None,
-				layerDepth: Math.Max(0f, (float)((y + 1) * 64 - 1) / 10000f));
+				layerDepth: Math.Max(0f, ((tileLocation.X + 1) * Game1.tileSize - 1) / 10000f));
 		}
 
 		public void drawHat(SpriteBatch spriteBatch, Hat hat, Vector2 position, float layerDepth, float alpha = 1) {
@@ -833,7 +745,7 @@ namespace Farmtronics.Bot {
 		public override Item getOne() {
 			// Create a new Bot from this one, copying the farmer (with inventory etc.)
 			farmer.Name = name;     // (ensures that name copies from old bot to new bot)
-			var ret = new BotObject(farmer);
+			var ret = new BotObject();
 			ret.name = name;
 
 			SetModData(ret.modData);
@@ -846,7 +758,7 @@ namespace Farmtronics.Bot {
 
 
 		public int GetActualCapacity() {
-			return 12;
+			return farmer.MaxItems;
 		}
 
 		/// <summary>
