@@ -486,10 +486,6 @@ namespace Farmtronics.Bot {
 			farmer.setTileLocation(newTile);
 		}
 
-		public bool IsMoving() {
-			return farmer.isMoving();
-		}
-
 		public void Rotate(int stepsClockwise) {
 			farmer.faceDirection((farmer.FacingDirection + 4 + stepsClockwise) % 4);
 			//ModEntry.instance.Monitor.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");

@@ -338,15 +338,9 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				if (partialResult == null) {
-					// Just starting our move; tell the bot and return partial result
-					sh.bot.MoveForward();
-					return new Intrinsic.Result(null, false);
-				} else {
-					// Continue until bot stops moving
-					if (sh.bot.IsMoving()) return partialResult;
-					return Intrinsic.Result.Null;
-				}
+				// Move the bot
+				sh.bot.MoveForward();
+				return Intrinsic.Result.Null;
 			};
 			botModule["forward"] = f.GetFunc();
 
