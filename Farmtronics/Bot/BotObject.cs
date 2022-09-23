@@ -476,10 +476,10 @@ namespace Farmtronics.Bot {
 			}
 			
 			// Remove this object from the Objects list at its old position
-			location.overlayObjects.Remove(TileLocation);
+			location.removeObject(TileLocation, false);
 			// Update our tile pos, and add this object to the Objects list at the new position
 			TileLocation = newTile;
-			location.overlayObjects.Add(newTile, this);
+			location.setObject(newTile, this);
 			// Update the invisible farmer
 			farmer.setTileLocation(newTile);
 		}
