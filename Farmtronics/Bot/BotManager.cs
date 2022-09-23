@@ -29,9 +29,6 @@ namespace Farmtronics.Bot {
 			instances.Clear();
 		}
 		
-		
-		// Kept for compatibility
-		
 		//----------------------------------------------------------------------
 		// Conversion of bots to chests (before saving)
 		//----------------------------------------------------------------------
