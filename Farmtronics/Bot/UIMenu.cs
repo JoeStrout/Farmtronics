@@ -127,6 +127,10 @@ namespace Farmtronics.Bot {
 				// No closing the menu while holding an item (issue #26)
 				return;
             }
+			else if (key == Keys.Escape && bot.shell.console.InputInProgress()) {
+				// About to close the menu - remove all null values from inventory
+				while (bot.inventory.Remove(null)) { }
+			}
 			bot.shell.console.receiveKeyPress(key);
 			if (key == Keys.Delete && heldItem != null && heldItem.canBeTrashed()) {
 				Utility.trashItem(heldItem);
