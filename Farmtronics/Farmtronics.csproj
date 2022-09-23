@@ -11,8 +11,8 @@
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.0.1" />
     <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <ProjectReference Include="..\Miniscript\MiniScript-cs\Miniscript.csproj" />
+    <PackageReference Include="Miniscript" Version="1.0.0" />
   </ItemGroup>
 </Project>
