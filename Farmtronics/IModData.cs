@@ -1,4 +1,0 @@
-namespace Farmtronics
-{
-	interface IModData {	}
-}

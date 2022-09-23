@@ -61,10 +61,10 @@ namespace Farmtronics.Bot {
 			var chest = new Chest();
 			chest.Stack = bot.Stack;
 
-			bot.SetModData(chest.modData);
+			bot.SetModData(ref chest.modData);
 			// Remove "energy" from the data, since this method happens at night, and
 			// we actually want our bots to wake up refreshed.
-			chest.modData.Remove(ModData.ENERGY);
+			chest.modData.Remove(ModEntry.GetModDataKey(ModData.ENERGY));
 
 			var inventory = bot.inventory;
 			if (inventory != null) {
@@ -168,7 +168,7 @@ namespace Farmtronics.Bot {
 				int inChestCount = ConvertChestsInListToBots(chest.items);
 				//if (inChestCount > 0) ModEntry.instance.Monitor.Log($"Converted {inChestCount} chests stored in a chest into bots");
 
-				if (!chest.modData.HasModData<ModData>() || !chest.modData.GetModData<ModData>().IsBot) continue;
+				if (!ModData.TryGetModData(chest.modData, out ModData modData) || !modData.IsBot) continue;
 				targetTileLocs.Add(tileLoc);
 			}
 			foreach (Vector2 tileLoc in targetTileLocs) {
@@ -179,7 +179,8 @@ namespace Farmtronics.Bot {
 				inLocation.overlayObjects.Add(tileLoc, bot);    // add bot to "overlayObjects"
 
 				// Apply mod data EXCEPT for energy; we want energy restored after a night
-				bot.ApplyModData(chest.modData.GetModData<ModData>(), includingEnergy: false);
+				if (!ModData.TryGetModData(chest.modData, out ModData botModData)) continue;
+				bot.ApplyModData(botModData, includingEnergy: false);
 
 				for (int i = 0; i < chest.items.Count && i < bot.inventory.Count; i++) {
 					//ModEntry.instance.Monitor.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
@@ -202,7 +203,7 @@ namespace Farmtronics.Bot {
 			for (int i = 0; i < items.Count; i++) {
 				var chest = items[i] as Chest;
 				if (chest == null) continue;
-				if (!chest.modData.HasModData<ModData>() || !chest.modData.GetModData<ModData>().IsBot) continue;
+				if (!ModData.TryGetModData(chest.modData, out ModData modData) || !modData.IsBot) continue;
 				BotObject bot = new BotObject();
 				bot.Stack = chest.Stack;
 				items[i] = bot;

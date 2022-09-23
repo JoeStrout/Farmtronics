@@ -34,11 +34,10 @@ namespace Farmtronics.Bot {
 		public Shell shell { get; private set; }
 		public bool isUsingTool { get { return farmer.UsingTool? farmer.UsingTool : scytheUseFrame > 0; } }
 		public int energy { get { return (int)farmer.Stamina; } }
-
 		public GameLocation currentLocation { get => farmer.currentLocation; set => farmer.currentLocation = value; }
 		public int facingDirection { get => farmer.FacingDirection; }
-		public int currentToolIndex { 
-			get => farmer.CurrentToolIndex; 
+		public int currentToolIndex {
+			get => farmer.CurrentToolIndex;
 			set {
 				if (value >= 0 && value < inventory.Count) {
 					farmer.CurrentToolIndex = value;
@@ -107,16 +106,17 @@ namespace Farmtronics.Bot {
 		//----------------------------------------------------------------------
 
 		/// <summary>
-		/// Fill in the given ModDataDictionary with values from this bot,
+		/// Fill the ModDataDictionary with values from this bot,
 		/// so they can be saved and restored later.
 		/// </summary>
-		internal void SetModData(ModDataDictionary d) {
-			d.SetModData<ModData>(new() {
+		internal void SetModData(ref ModDataDictionary data) {
+			new ModData() {
 				IsBot = true,
-				Name = name,
+				ModVersion = ModEntry.instance.ModManifest.Version,
+				Name = Name,
 				Energy = energy,
 				FacingDirection = facingDirection
-			});
+			}.Save(ref data);
 		}
 
 		/// <summary>
@@ -124,11 +124,17 @@ namespace Farmtronics.Bot {
 		/// configuring name, energy, etc.
 		/// </summary>
 		internal void ApplyModData(ModData d, bool includingEnergy = true) {
-			if (string.IsNullOrEmpty(d.Name)) d.Name = "Bot";
-			Name = d.Name;
+			if (!string.IsNullOrEmpty(d.Name)) Name = d.Name;
 			if (includingEnergy) farmer.Stamina = d.Energy;
 			farmer.faceDirection(d.FacingDirection);
 			//ModEntry.instance.Monitor.Log($"after ApplyModData, name=[{name}]");
+		}
+		
+		internal void ApplyModData(bool includingEnergy = true) {
+			if (!ModData.TryGetModData(modData, out ModData botModData)) return;
+			// Name = botModData.Name;
+			if (includingEnergy) farmer.Stamina = botModData.Energy;
+			farmer.FacingDirection = botModData.FacingDirection;
 		}
 
 		public override bool performDropDownAction(Farmer who) {
@@ -152,8 +158,8 @@ namespace Farmtronics.Bot {
 			bot.shakeTimer = 50;
 
 			// Copy other data from this item to bot.
-			SetModData(modData);
-			bot.ApplyModData(modData.GetModData<ModData>());
+			SetModData(ref bot.modData);
+			bot.ApplyModData();
 			bot.farmer.currentLocation = location;
 
 			// But have the placed bot face the same direction as the farmer placing it.
@@ -597,7 +603,7 @@ namespace Farmtronics.Bot {
 				var who = t.getLastFarmerToUse();
 				this.performRemoveAction(farmer.getTileLocation(), location);
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
-				SetModData(deb.item.modData);
+				SetModData(ref deb.item.modData);
 				Game1.currentLocation.debris.Add(deb);
 				//ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
@@ -733,7 +739,7 @@ namespace Farmtronics.Bot {
 			var ret = new BotObject();
 			ret.name = name;
 
-			SetModData(ret.modData);
+			SetModData(ref ret.modData);
 
 			ret.Stack = 1;
 			ret.Price = this.Price;
