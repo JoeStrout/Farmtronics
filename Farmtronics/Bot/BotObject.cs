@@ -75,7 +75,7 @@ namespace Farmtronics.Bot {
 				Items = Farmer.initialTools(),
 				MaxItems = 12
 			};
-			ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Postion: {farmer.Position} Location: {farmer.currentLocation}");
+			ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Position: {farmer.Position} Location: {farmer.currentLocation}");
 			ModEntry.instance.Monitor.Log($"Items: {farmer.Items.Count}/{farmer.MaxItems}");
 		}
 
