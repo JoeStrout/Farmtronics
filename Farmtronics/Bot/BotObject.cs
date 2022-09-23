@@ -139,6 +139,15 @@ namespace Farmtronics.Bot {
 			farmer.FacingDirection = botModData.FacingDirection;
 		}
 
+		private bool IsEmptyWithoutInitialTools() {
+			ModEntry.instance.Monitor.Log($"isEmptyWithoutInitialTools: items: {farmer.Items.Count}");
+			if (farmer.Items.Count > Farmer.initialTools().Count) return false;
+			var copyItems = new List<Item>(farmer.Items);
+			Farmer.removeInitialTools(copyItems);
+			ModEntry.instance.Monitor.Log($"isEmptyWithoutInitialTools: without initial tools: {copyItems.Count}");
+			return copyItems.Count == 0;
+		}
+		
 		public override bool performDropDownAction(Farmer who) {
 			ModEntry.instance.Monitor.Log($"Bot.performDropDownAction({who.Name})");
 			base.performDropDownAction(who);
@@ -599,17 +608,25 @@ namespace Farmtronics.Bot {
 
 		public override bool performToolAction(Tool t, GameLocation location) {
 			ModEntry.instance.Monitor.Log($"{name} Bot.performToolAction({t}, {location})");
-
+			
+			// NOTE: If a player holds left click it will eventually trigger a toolAction with a pickaxe
+			// 		 This could be checked like this: t != t.getLastFarmerToUse().CurrentTool
 			if (t is Pickaxe or Axe or Hoe) {
+				if (!IsEmptyWithoutInitialTools()) {
+					// Maybe create a small shake animation? (see Chest.cs performToolAction() -> shakeTimer)
+					location.playSound("hammer");
+					return false;
+				}
+				
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
 				var who = t.getLastFarmerToUse();
 				this.performRemoveAction(farmer.getTileLocation(), location);
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
 				SetModData(ref deb.item.modData);
-				Game1.currentLocation.debris.Add(deb);
+				location.debris.Add(deb);
 				//ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
-				Game1.currentLocation.removeObject(farmer.getTileLocation(), true);
+				location.removeObject(farmer.getTileLocation(), true);
 				if (shell != null) shell.interpreter.Stop();
 				BotManager.instances.Remove(this);
 				return false;
