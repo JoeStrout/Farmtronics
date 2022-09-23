@@ -26,6 +26,7 @@ namespace Farmtronics.Bot {
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
 		BotFarmer farmer;
+		public string BotName { get; internal set; }
 
 		public IList<Item> inventory { get { return farmer.Items; } }
 		public Color screenColor { get => shell != null ? shell.console.backColor : Color.Black; }
@@ -55,6 +56,7 @@ namespace Farmtronics.Bot {
 		private void Initialize() {
 			Name = I18n.Bot_Name();
 			DisplayName = I18n.Bot_Name();
+			BotName = I18n.Bot_Name();
 			Type = "Crafting";
 			Category = StardewValley.Object.BigCraftableCategory;
 			ParentSheetIndex = ItemID;
@@ -113,7 +115,7 @@ namespace Farmtronics.Bot {
 			new ModData() {
 				IsBot = true,
 				ModVersion = ModEntry.instance.ModManifest.Version,
-				Name = Name,
+				Name = BotName,
 				Energy = energy,
 				FacingDirection = facingDirection
 			}.Save(ref data);
@@ -124,7 +126,7 @@ namespace Farmtronics.Bot {
 		/// configuring name, energy, etc.
 		/// </summary>
 		internal void ApplyModData(ModData d, bool includingEnergy = true) {
-			if (!string.IsNullOrEmpty(d.Name)) Name = d.Name;
+			if (!string.IsNullOrEmpty(d.Name)) BotName = d.Name;
 			if (includingEnergy) farmer.Stamina = d.Energy;
 			farmer.faceDirection(d.FacingDirection);
 			//ModEntry.instance.Monitor.Log($"after ApplyModData, name=[{name}]");
@@ -132,7 +134,7 @@ namespace Farmtronics.Bot {
 		
 		internal void ApplyModData(bool includingEnergy = true) {
 			if (!ModData.TryGetModData(modData, out ModData botModData)) return;
-			// Name = botModData.Name;
+			BotName = botModData.Name;
 			if (includingEnergy) farmer.Stamina = botModData.Energy;
 			farmer.FacingDirection = botModData.FacingDirection;
 		}

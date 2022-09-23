@@ -303,7 +303,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				return new Intrinsic.Result(new ValString(sh.bot.Name));
+				return new Intrinsic.Result(new ValString(sh.bot.BotName));
 			};
 			botModule["name"] = f.GetFunc();
 
@@ -441,7 +441,7 @@ namespace Farmtronics.M1 {
 				//ModEntry.instance.Monitor.Log($"botModule {key} = {value}");
 				if (keyStr == "name") {
 					string name = value.ToString();
-					if (!string.IsNullOrEmpty(name)) Shell.runningInstance.bot.Name = name;
+					if (!string.IsNullOrEmpty(name)) Shell.runningInstance.bot.BotName = name;
 					return true;
 				} else if (keyStr == "statusColor") {
 					Shell.runningInstance.bot.statusColor = value.ToString().ToColor();
