@@ -1651,7 +1651,7 @@ namespace Farmtronics.M1 {
 					Shell sh = context.interpreter.hostData as Shell;
 					string name;
 					if (sh.bot == null) name = "Home Computer";
-					else name = sh.bot.name;
+					else name = sh.bot.BotName;
 					TextDisplay disp = sh.textDisplay;
 					Game1.chatBox.addMessage(name + ": " + msg, disp.textColor);
 					return Intrinsic.Result.Null;
