@@ -214,9 +214,9 @@ namespace Farmtronics.M1 {
 			int stop;
 			if (keyInt != (int)Key.Tab) ClearAutocomplete();
 			switch (keyInt) {
-			case 3:
+			case (int)Key.ControlC:
 			case 10:
-			case 13:
+			case (int)Key.Enter:
 				CommitInput();
 				break;
 			
