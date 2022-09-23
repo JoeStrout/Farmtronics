@@ -26,29 +26,21 @@ namespace Farmtronics.Bot {
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
 		BotFarmer farmer;
-		Vector2 Position { get => farmer.Position; }   // our current position, in pixels
 
-		public IList<Item> inventory { get { return farmer == null ? null : farmer.Items; } }
-		public Color screenColor {
-			get {
-				if (shell == null) return Color.Black;
-				return shell.console.backColor;
-			}
-		}
+		public IList<Item> inventory { get { return farmer.Items; } }
+		public Color screenColor { get => shell != null ? shell.console.backColor : Color.Black; }
+		
 		public Color statusColor = Color.Yellow;
 		public Shell shell { get; private set; }
 		public bool isUsingTool { get { return farmer.UsingTool? farmer.UsingTool : scytheUseFrame > 0; } }
-		public int energy { get { return farmer == null ? 0 : (int)farmer.Stamina; } }
+		public int energy { get { return (int)farmer.Stamina; } }
 
-		public GameLocation currentLocation {
-			get { return farmer.currentLocation; }
-			set { farmer.currentLocation = value; }
-		}
-		public int facingDirection { get { return farmer == null ? 2 : farmer.FacingDirection; } }
-		public int currentToolIndex {
-			get { return farmer.CurrentToolIndex; }
+		public GameLocation currentLocation { get => farmer.currentLocation; set => farmer.currentLocation = value; }
+		public int facingDirection { get => farmer.FacingDirection; }
+		public int currentToolIndex { 
+			get => farmer.CurrentToolIndex; 
 			set {
-				if (farmer != null && value >= 0 && value < inventory.Count) {
+				if (value >= 0 && value < inventory.Count) {
 					farmer.CurrentToolIndex = value;
 				}
 			}
@@ -71,6 +63,23 @@ namespace Farmtronics.Bot {
 			CanBeSetDown = true;
 		}
 
+		private void CreateFarmer(Vector2 tileLocation, GameLocation location) {
+			if (location == null) location = Game1.player.currentLocation;
+			farmer = new BotFarmer() {
+				Name = Name,
+				displayName = DisplayName,
+				Speed = 2,
+				MaxStamina = Farmer.startingStamina,
+				Stamina = Farmer.startingStamina,
+				Position = tileLocation.GetAbsolutePosition(),
+				currentLocation = location,
+				Items = Farmer.initialTools(),
+				MaxItems = 12
+			};
+			ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Postion: {farmer.Position} Location: {farmer.currentLocation}");
+			ModEntry.instance.Monitor.Log($"Items: {farmer.Items.Count}/{farmer.MaxItems}");
+		}
+
 		// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
 		public BotObject() {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
@@ -90,23 +99,6 @@ namespace Farmtronics.Bot {
 			CreateFarmer(tileLocation, location);
 
 			BotManager.instances.Add(this);
-		}
-
-		void CreateFarmer(Vector2 tileLocation, GameLocation location) {
-			if (location == null) location = Game1.player.currentLocation;
-			farmer = new BotFarmer() {
-				Name = Name,
-				displayName = DisplayName,
-				Speed = 2,
-				MaxStamina = Farmer.startingStamina,
-				Stamina = Farmer.startingStamina,
-				Position = tileLocation.GetAbsolutePosition(),
-				currentLocation = location,
-				Items = Farmer.initialTools(),
-				MaxItems = 12
-			};
-			ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Postion: {farmer.Position} Location: {farmer.currentLocation}");
-			ModEntry.instance.Monitor.Log($"Items: {farmer.Items.Count}/{farmer.MaxItems}");
 		}
 
 		//----------------------------------------------------------------------

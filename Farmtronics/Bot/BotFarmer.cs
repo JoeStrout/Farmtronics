@@ -5,7 +5,7 @@ using xTile.Dimensions;
 
 namespace Farmtronics.Bot
 {
-	class BotFarmer : Farmer {		
+	class BotFarmer : Farmer {
 		internal Vector2 Destination = Vector2.Zero;
 		
 		// TODO: Figure out if this is needed

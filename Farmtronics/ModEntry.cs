@@ -13,19 +13,24 @@ using StardewValley.Menus;
 namespace Farmtronics
 {
 	public class ModEntry : Mod {
+		private static string MOD_ID;
 		public static ModEntry instance;
 
 		Shell shell;
 		uint prevTicks;
+		
+		public static string GetModDataKey(string key) {
+			return $"{MOD_ID}/{key}";
+		}
 
 		public override void Entry(IModHelper helper) {
 			instance = this;
+			MOD_ID = ModManifest.UniqueID;
 			I18n.Init(helper.Translation);
-			ModDataExtensions.UniqueID = ModManifest.UniqueID;
 			
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
-			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
+			helper.Events.GameLoop.UpdateTicking += this.UpdateTicking;
 #if DEBUG
 			// HACK not needed:
 			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
