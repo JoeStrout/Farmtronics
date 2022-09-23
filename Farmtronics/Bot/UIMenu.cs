@@ -30,8 +30,7 @@ namespace Farmtronics.Bot {
 		static Vector2 preferredPosition;
 		static Vector2 lastGameviewSize;
 
-		public UIMenu(BotObject bot)
-		: base(null, okButton: true, trashCan: true) {
+		public UIMenu(BotObject bot) : base(okButton: true, trashCan: true) {
 			//print($"Created BotUIMenu for {bot.Name}. PositionOnScreen:{xPositionOnScreen},{yPositionOnScreen}; viewport:{Game1.uiViewport.Width}, {Game1.uiViewport.Height}, shell {bot.shell}");
 
 			this.bot = bot;
@@ -57,10 +56,16 @@ namespace Farmtronics.Bot {
 			//print($"playerInvHeight:{playerInvHeight}, consoleTop:{consoleTop} (={Game1.uiViewport.Height/2}-{totalHeight/2}), new yPositionOnScreen:{totalHeight - playerInvHeight - yPositionForInventory}");
 
 			movePosition(0, playerInvYDelta);	// (adjust position of player UI)
+			
+			// Inventory indices have to exist, since InventoryMenu exclusively uses them and can't assign items otherwise.
+			for (int i = bot.inventory.Count; i < bot.GetActualCapacity(); i++)
+			{
+				bot.inventory.Add(null);
+			}
 
 			botInventoryMenu = new InventoryMenu(Game1.uiViewport.Width/2 - widthOfTopStuff/2, consoleTop, playerInventory: false, bot.inventory,
-				capacity:bot.GetActualCapacity(), rows:6);
-			botInventoryMenu.onAddItem = onAddItem;
+				capacity: bot.GetActualCapacity(), rows: 6);
+			botInventoryMenu.onAddItem += onAddItem;
 
 			trashCan.myID = 106;
 			botInventoryMenu.populateClickableComponentList();
@@ -69,7 +74,7 @@ namespace Farmtronics.Bot {
 					botInventoryMenu.inventory[k].myID += 53910;
 					botInventoryMenu.inventory[k].upNeighborID += 53910;
 					botInventoryMenu.inventory[k].rightNeighborID += 53910;
-					botInventoryMenu.inventory[k].downNeighborID = -7777;
+					botInventoryMenu.inventory[k].downNeighborID = ClickableComponent.CUSTOM_SNAP_BEHAVIOR;
 					botInventoryMenu.inventory[k].leftNeighborID += 53910;
 					botInventoryMenu.inventory[k].fullyImmutable = true;
 					if (k % (botInventoryMenu.capacity / botInventoryMenu.rows) == 0) {
@@ -148,6 +153,9 @@ namespace Farmtronics.Bot {
 		public override void receiveRightClick(int x, int y, bool playSound = true) {
 			//ModEntry.instance.Monitor.Log($"Bot.receiveRightClick({x}, {y}, {playSound})");
 			base.receiveRightClick(x, y, playSound);
+			heldItem = botInventoryMenu.rightClick(x, y, heldItem, playSound);
+
+			//ModEntry.instance.Monitor.Log($"after calling botInventoryMenu.rightClick, heldItem = {heldItem}");
 		}
 
 		// Invoked by InventoryMenu.leftClick when an item is dropped in an inventory slot.
@@ -172,6 +180,7 @@ namespace Farmtronics.Bot {
 		/// Return whether the given screen position is in our draggable area.
 		/// </summary>
 		bool inDragArea(int x, int y) {
+			// ModEntry.instance.Monitor.Log($"inDragArea: x={x} y={y}, in botInventoryBounds: {botInventoryBounds().Contains(x, y)}, in consoleBounds: {consoleBounds().Contains(x, y)}");
 			if (botInventoryBounds().Contains(x,y)) return false;
 			if (consoleBounds().Contains(x,y)) return false;
 
