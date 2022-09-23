@@ -23,13 +23,13 @@ namespace Farmtronics.Bot {
 			if (!data.TryGetValue(ModEntry.GetModDataKey(MOD_VERSION), out string modVer)) return false;
 			if (!SemanticVersion.TryParse(modVer, out ISemanticVersion modVersion)) return false;
 			if (!data.TryGetValue(ModEntry.GetModDataKey(NAME), out string name)) return false;
-			if (!data.TryGetValue(ModEntry.GetModDataKey(ENERGY), out string energy)) return false;
 			if (!data.TryGetValue(ModEntry.GetModDataKey(FACING), out string facing)) return false;
+			
+			if (data.TryGetValue(ModEntry.GetModDataKey(ENERGY), out string energy)) modData.Energy = int.Parse(energy);
 			
 			modData.IsBot			= int.Parse(isBot) == 1;
 			modData.ModVersion 		= modVersion;
 			modData.Name			= name;
-			modData.Energy			= int.Parse(energy);
 			modData.FacingDirection = int.Parse(facing);
 			
 			return true;
@@ -38,11 +38,11 @@ namespace Farmtronics.Bot {
 		public void Save(ref ModDataDictionary data) {
 			Dictionary<string, string> saveData = new Dictionary<string, string>();
 			
-			saveData.Add(IS_BOT, IsBot ? "1" : "0");
-			saveData.Add(MOD_VERSION, ModVersion.ToString());
-			saveData.Add(NAME, Name);
-			saveData.Add(ENERGY, Energy.ToString());
-			saveData.Add(FACING, FacingDirection.ToString());
+			saveData.Add(ModEntry.GetModDataKey(IS_BOT), IsBot ? "1" : "0");
+			saveData.Add(ModEntry.GetModDataKey(MOD_VERSION), ModVersion.ToString());
+			saveData.Add(ModEntry.GetModDataKey(NAME), Name);
+			saveData.Add(ModEntry.GetModDataKey(ENERGY), Energy.ToString());
+			saveData.Add(ModEntry.GetModDataKey(FACING), FacingDirection.ToString());
 			
 			data.Set(saveData);
 		}

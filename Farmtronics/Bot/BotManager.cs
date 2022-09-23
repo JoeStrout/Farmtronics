@@ -68,11 +68,7 @@ namespace Farmtronics.Bot {
 
 			var inventory = bot.inventory;
 			if (inventory != null) {
-				if (chest.items.Count < inventory.Count) chest.items.Set(inventory);
-				for (int i = 0; i < chest.items.Count && i < inventory.Count; i++) {
-					//chest.items[i] = inventory[i];
-					//ModEntry.instance.Monitor.Log($"Moved {chest.items[i]} in slot {i} from bot to chest");
-				}
+				if (chest.GetActualCapacity() >= bot.GetActualCapacity()) chest.items.CopyFrom(inventory);
 				int convertedItems = ConvertBotsInListToChests(chest.items);
 				//if (convertedItems > 0) ModEntry.instance.Monitor.Log($"Converted {convertedItems} bots inside a bot");
 				inventory.Clear();
@@ -175,17 +171,21 @@ namespace Farmtronics.Bot {
 				var chest = inLocation.objects[tileLoc] as Chest;
 
 				BotObject bot = new BotObject(tileLoc, inLocation);
-				inLocation.objects.Remove(tileLoc);             // remove chest from "objects"
-				inLocation.overlayObjects.Add(tileLoc, bot);    // add bot to "overlayObjects"
+				inLocation.removeObject(tileLoc, false);             // remove chest from "objects"
+				inLocation.setObject(tileLoc, bot);    // add bot to "overlayObjects"
 
 				// Apply mod data EXCEPT for energy; we want energy restored after a night
 				if (!ModData.TryGetModData(chest.modData, out ModData botModData)) continue;
 				bot.ApplyModData(botModData, includingEnergy: false);
 
-				for (int i = 0; i < chest.items.Count && i < bot.inventory.Count; i++) {
-					//ModEntry.instance.Monitor.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
-					bot.inventory[i] = chest.items[i];
+				if (chest.items.Count <= bot.GetActualCapacity()) {
+					bot.inventory.Clear();
+					for (int i = 0; i < chest.items.Count && i < bot.GetActualCapacity(); i++) {
+						ModEntry.instance.Monitor.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
+						bot.inventory.Add(chest.items[i]);
+					}
 				}
+				
 				chest.items.Clear();
 
 				count++;
