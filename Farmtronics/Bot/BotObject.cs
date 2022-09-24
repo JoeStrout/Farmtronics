@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -213,23 +213,41 @@ namespace Farmtronics.Bot {
 			if (farmer == null) return false;
 
 			GameLocation loc = this.currentLocation;
-			Vector2 tileLocation = farmer.GetToolLocation(true);
+			Vector2 absoluteLocation = farmer.GetToolLocation(true);
+			Vector2 tileLocation = absoluteLocation.GetTilePosition();
+			
+			ModEntry.instance.Monitor.Log($"Harvest start: {tileLocation}");
 
-			TerrainFeature feature = null;
-			StardewValley.Object obj = null;
-
-			if (loc.terrainFeatures.TryGetValue(tileLocation, out feature)) {
+			if (loc.isTerrainFeatureAt(absoluteLocation.GetIntX(), absoluteLocation.GetIntY())) {
 				// If we can get a terrain feature, then have it do the "use" action,
 				// by temporarily setting the bot farmer to be the Game1 player.
+				ModEntry.instance.Monitor.Log("Harvesting: TerrainFeature");
+				
 				var origPlayer = Game1.player;
 				Game1.player = farmer;
-				bool result = feature.performUseAction(tileLocation, loc);
+				bool result = loc.terrainFeatures[tileLocation].performUseAction(tileLocation, loc);
 				Game1.player = origPlayer;
 				return result;
-			} else if (loc.objects.TryGetValue(tileLocation, out obj)) {
+			} else if (loc.isObjectAtTile(tileLocation.GetIntX(), tileLocation.GetIntY())) {
+				ModEntry.instance.Monitor.Log("Harvesting: Tile");
 				// If we have an object in that location, harvest from it
 				// via a helper method.
-				return doBotHarvestFromObject(obj);
+				return doBotHarvestFromObject(loc.getObjectAtTile(tileLocation.GetIntX(), tileLocation.GetIntY()));
+			} else if (loc.isCropAtTile(tileLocation.GetIntX(), tileLocation.GetIntY())) {
+				var dirtObj = loc.terrainFeatures[tileLocation] as HoeDirt;
+				ModEntry.instance.Monitor.Log($"Harvesting: Crop [ready = {dirtObj.readyForHarvest()}]");
+				
+				if (dirtObj.readyForHarvest()) {
+					// this starts the animation and sound
+					farmer.CurrentTool.beginUsing(farmer.currentLocation, tileLocation.GetIntX(), tileLocation.GetIntY(), farmer);
+					// See StardewValley.TerrainFeatures.HoeDirt.cs performToolAction()
+					if (farmer.CurrentTool is MeleeWeapon && (farmer.CurrentTool as MeleeWeapon).isScythe() && dirtObj.crop.harvestMethod == 1) {
+						if (dirtObj.crop.harvest(tileLocation.GetIntX(), tileLocation.GetIntY(), dirtObj)) {
+							dirtObj.destroyCrop(tileLocation, true, farmer.currentLocation);
+							return true;
+						}	
+					}
+				}
 			}
 
 			return false;
