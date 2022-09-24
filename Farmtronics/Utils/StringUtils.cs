@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -223,6 +224,14 @@ namespace Farmtronics.Utils
 			}
 			sb.Append(str.Substring(previousIndex));
 
+			return sb.ToString();
+		}
+		
+		public static string FirstToLower(this string str) {
+			if (str.Length == 0) return str;
+			
+			StringBuilder sb = new(str);
+			sb[0] = str[0].ToString().ToLower()[0];
 			return sb.ToString();
 		}
 

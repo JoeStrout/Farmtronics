@@ -1,4 +1,4 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -113,14 +113,17 @@ namespace Farmtronics.Bot {
 		/// Fill the ModDataDictionary with values from this bot,
 		/// so they can be saved and restored later.
 		/// </summary>
-		internal void SetModData(ref ModDataDictionary data) {
-			new ModData() {
+		internal void SetModData(ref ModDataDictionary data, bool includingEnergy = true) {
+			ModData botData = new() {
 				IsBot = true,
 				ModVersion = ModEntry.instance.ModManifest.Version,
 				Name = BotName,
 				Energy = energy,
-				FacingDirection = facingDirection
-			}.Save(ref data);
+				Facing = facingDirection
+			};
+			botData.Save(ref data);
+			
+			if (!includingEnergy) botData.RemoveEnergy(ref data);
 		}
 
 		/// <summary>
@@ -130,7 +133,7 @@ namespace Farmtronics.Bot {
 		internal void ApplyModData(ModData d, bool includingEnergy = true) {
 			if (!string.IsNullOrEmpty(d.Name)) BotName = d.Name;
 			if (includingEnergy) farmer.Stamina = d.Energy;
-			farmer.faceDirection(d.FacingDirection);
+			farmer.faceDirection(d.Facing);
 			//ModEntry.instance.Monitor.Log($"after ApplyModData, name=[{name}]");
 		}
 		
@@ -138,7 +141,7 @@ namespace Farmtronics.Bot {
 			if (!ModData.TryGetModData(modData, out ModData botModData)) return;
 			BotName = botModData.Name;
 			if (includingEnergy) farmer.Stamina = botModData.Energy;
-			farmer.FacingDirection = botModData.FacingDirection;
+			farmer.FacingDirection = botModData.Facing;
 		}
 
 		private bool IsEmptyWithoutInitialTools() {

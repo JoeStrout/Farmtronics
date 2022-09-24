@@ -58,10 +58,9 @@ namespace Farmtronics.Bot {
 			var chest = new Chest();
 			chest.Stack = bot.Stack;
 
-			bot.SetModData(ref chest.modData);
 			// Remove "energy" from the data, since this method happens at night, and
 			// we actually want our bots to wake up refreshed.
-			chest.modData.Remove(ModEntry.GetModDataKey(ModData.ENERGY));
+			bot.SetModData(ref chest.modData, false);
 
 			var inventory = bot.inventory;
 			if (inventory != null) {
