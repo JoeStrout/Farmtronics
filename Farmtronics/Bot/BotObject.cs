@@ -1,4 +1,4 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -67,6 +67,7 @@ namespace Farmtronics.Bot {
 		private void CreateFarmer(Vector2 tileLocation, GameLocation location) {
 			if (location == null) location = Game1.player.currentLocation;
 			farmer = new BotFarmer() {
+				UniqueMultiplayerID = ModEntry.instance.Helper.Multiplayer.GetNewID(),
 				Name = Name,
 				displayName = DisplayName,
 				Speed = 2,
@@ -100,6 +101,7 @@ namespace Farmtronics.Bot {
 			CreateFarmer(tileLocation, location);
 
 			BotManager.instances.Add(this);
+			// Game1.otherFarmers.Add(farmer.UniqueMultiplayerID, farmer);
 		}
 
 		//----------------------------------------------------------------------
@@ -171,13 +173,13 @@ namespace Farmtronics.Bot {
 			// Copy other data from this item to bot.
 			SetModData(ref bot.modData);
 			bot.ApplyModData();
-			bot.farmer.currentLocation = location;
 
 			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
 
 			// Add the new bot (which is in the world) to our instances list.
 			// Remove the old item, if it happens to be in there (though it probably isn't).
+			// Game1.otherFarmers.Remove(farmer.UniqueMultiplayerID);
 			BotManager.instances.Remove(this);
 			if (!BotManager.instances.Contains(bot)) BotManager.instances.Add(bot);
 			//ModEntry.instance.Monitor.Log($"Added {bot.Name} to instances; now have {instances.Count}");
@@ -646,6 +648,7 @@ namespace Farmtronics.Bot {
 				// Remove, stop, and destroy this bot
 				location.removeObject(farmer.getTileLocation(), true);
 				if (shell != null) shell.interpreter.Stop();
+				// Game1.otherFarmers.Remove(farmer.UniqueMultiplayerID);
 				BotManager.instances.Remove(this);
 				return false;
 			}
