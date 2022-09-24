@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -243,7 +243,7 @@ namespace Farmtronics.Bot {
 					// this starts the animation and sound
 					farmer.CurrentTool.beginUsing(farmer.currentLocation, tileLocation.GetIntX(), tileLocation.GetIntY(), farmer);
 					// See StardewValley.TerrainFeatures.HoeDirt.cs performToolAction()
-					if (farmer.CurrentTool is MeleeWeapon && (farmer.CurrentTool as MeleeWeapon).isScythe() && dirtObj.crop.harvestMethod == 1) {
+					if (farmer.CurrentTool is MeleeWeapon && (farmer.CurrentTool as MeleeWeapon).isScythe() && dirtObj.crop.harvestMethod.Value == 1) {
 						if (dirtObj.crop.harvest(tileLocation.GetIntX(), tileLocation.GetIntY(), dirtObj)) {
 							dirtObj.destroyCrop(tileLocation, true, farmer.currentLocation);
 							return true;
