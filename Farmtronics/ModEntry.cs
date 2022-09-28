@@ -28,6 +28,8 @@ namespace Farmtronics
 			MOD_ID = ModManifest.UniqueID;
 			I18n.Init(helper.Translation);
 			
+			helper.Events.Multiplayer.PeerContextReceived += this.OnPeerContextReceived;
+			helper.Events.Multiplayer.PeerConnected += this.OnPeerConnected;
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += this.UpdateTicking;
@@ -46,6 +48,16 @@ namespace Farmtronics
 			Monitor.Log($"read {Assets.FontList.Length} lines from fontList, starting with {Assets.FontList[0]}");
 		}
 
+
+		private void OnPeerContextReceived(object sender, PeerContextReceivedEventArgs e) {
+			// This prevents a XML serialization error
+			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests();
+		}
+
+		private void OnPeerConnected(object sender, PeerConnectedEventArgs e) {
+			// At this point we can restore everything again
+			if (Context.IsMainPlayer) BotManager.ConvertChestsToBots();
+		}
 
 		private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e) {
 			BotManager.ClearAll();
