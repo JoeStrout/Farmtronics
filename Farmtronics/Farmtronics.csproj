@@ -5,6 +5,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <ReleaseVersion>1.2.0</ReleaseVersion>
     <ModFolderName>Farmtronics</ModFolderName>
+    <BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
