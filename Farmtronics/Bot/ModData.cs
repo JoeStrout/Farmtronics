@@ -15,17 +15,21 @@ namespace Farmtronics.Bot {
 		public static bool TryGetModData(ModDataDictionary data, out ModData modData) {
 			modData = new ModData();
 			if (!data.TryGetValue(ModEntry.GetModDataKey(nameof(IsBot).FirstToLower()), out string isBot)) return false;
-			if (!data.TryGetValue(ModEntry.GetModDataKey(nameof(ModVersion).FirstToLower()), out string modVer)) return false;
-			if (!SemanticVersion.TryParse(modVer, out ISemanticVersion modVersion)) return false;
 			if (!data.TryGetValue(ModEntry.GetModDataKey(nameof(Name).FirstToLower()), out string name)) return false;
 			if (!data.TryGetValue(ModEntry.GetModDataKey(nameof(Facing).FirstToLower()), out string facing)) return false;
+
+			// TODO: This is a new modData key, we need to make sure we are compatible with older versions.
+			if (data.TryGetValue(ModEntry.GetModDataKey(nameof(ModVersion).FirstToLower()), out string modVer) && SemanticVersion.TryParse(modVer, out ISemanticVersion modVersion)) {
+				modData.ModVersion = modVersion;
+			} else {
+				modData.ModVersion = new SemanticVersion(1, 2, 0);
+			}
 			
 			if (data.TryGetValue(ModEntry.GetModDataKey(nameof(Energy).FirstToLower()), out string energy)) modData.Energy = int.Parse(energy);
 			
 			modData.IsBot			= int.Parse(isBot) == 1;
-			modData.ModVersion 		= modVersion;
 			modData.Name			= name;
-			modData.Facing = int.Parse(facing);
+			modData.Facing 			= int.Parse(facing);
 			
 			return true;
 		}
