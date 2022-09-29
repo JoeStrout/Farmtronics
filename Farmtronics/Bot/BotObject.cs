@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -187,6 +187,8 @@ namespace Farmtronics.Bot {
 
 			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
+			// Make sure the bot is owned by the farmer placing it.
+			bot.owner.Value = who.UniqueMultiplayerID;
 
 			// Add the new bot (which is in the world) to our instances list.
 			// Remove the old item, if it happens to be in there (though it probably isn't).
@@ -786,15 +788,9 @@ namespace Farmtronics.Bot {
 		/// </summary>
 		/// <returns></returns>
 		public override Item getOne() {
-			// Create a new Bot from this one, copying the farmer (with inventory etc.)
-			farmer.Name = name;     // (ensures that name copies from old bot to new bot)
+			// Create a new Bot from this one, copying the modData and owner
 			var ret = new BotObject();
-			ret.name = name;
-
 			SetModData(ref ret.modData);
-
-			ret.Stack = 1;
-			ret.Price = this.Price;
 			ret._GetOneFrom(this);
 			return ret;
 		}

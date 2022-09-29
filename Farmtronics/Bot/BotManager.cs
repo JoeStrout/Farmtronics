@@ -56,6 +56,8 @@ namespace Farmtronics.Bot {
 
 		static Chest ConvertBotToChest(BotObject bot) {
 			var chest = new Chest();
+			ModEntry.instance.Monitor.Log($"Converting bot [owned by: {bot.owner.Value}] to chest.");
+			chest.owner.Value = bot.owner.Value;
 			chest.Stack = bot.Stack;
 
 			// Remove "energy" from the data, since this method happens at night, and
@@ -113,9 +115,9 @@ namespace Farmtronics.Bot {
 			}
 			foreach (var tileLoc in targetTileLocs) {
 				//ModEntry.instance.Monitor.Log($"Found bot in {inLocation.Name} at {tileLoc}; converting");
-				var chest = ConvertBotToChest(inLocation.objects[tileLoc] as BotObject);
-				inLocation.objects.Remove(tileLoc);
-				inLocation.objects.Add(tileLoc, chest);
+				var chest = ConvertBotToChest(inLocation.getObjectAtTile(tileLoc.GetIntX(), tileLoc.GetIntY()) as BotObject);
+				inLocation.removeObject(tileLoc, false);
+				inLocation.setObject(tileLoc, chest);
 				countInLoc++;
 			}
 			//if (countInLoc > 0) ModEntry.instance.Monitor.Log($"Converted {countInLoc} bots in {inLocation.Name}");
@@ -137,6 +139,33 @@ namespace Farmtronics.Bot {
 			// Convert chests in the player's inventory.
 			int count = ConvertChestsInListToBots(Game1.player.Items);
 			//ModEntry.instance.Monitor.Log($"Converted {count} chests to bots in player inventory");
+		}
+
+		static BotObject ConvertChestToBot(Chest chest, Vector2 tileLocation = default, GameLocation location = null) {
+			BotObject bot;
+			if (tileLocation != Vector2.Zero && location != null) {
+				bot = new BotObject(tileLocation, location);
+			} else {
+				bot = new BotObject();	
+			}
+			ModEntry.instance.Monitor.Log($"Converting chest [owned by: {chest.owner.Value}] to bot.");
+			bot.owner.Value = chest.owner.Value;
+
+			if (!ModData.TryGetModData(chest.modData, out ModData botModData)) return null;
+			// Apply mod data EXCEPT for energy; we want energy restored after a night
+			bot.ApplyModData(botModData, false);
+
+			if (chest.items.Count <= bot.GetActualCapacity()) {
+				bot.inventory.Clear();
+				for (int i = 0; i < chest.items.Count && i < bot.GetActualCapacity(); i++) {
+					ModEntry.instance.Monitor.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
+					bot.inventory.Add(chest.items[i]);
+				}
+			}
+			
+			chest.items.Clear();
+			
+			return bot;
 		}
 
 		/// <summary>
@@ -165,24 +194,10 @@ namespace Farmtronics.Bot {
 			}
 			foreach (Vector2 tileLoc in targetTileLocs) {
 				var chest = inLocation.objects[tileLoc] as Chest;
-
-				BotObject bot = new BotObject(tileLoc, inLocation);
-				inLocation.removeObject(tileLoc, false);             // remove chest from "objects"
-				inLocation.setObject(tileLoc, bot);    // add bot to "overlayObjects"
-
-				// Apply mod data EXCEPT for energy; we want energy restored after a night
-				if (!ModData.TryGetModData(chest.modData, out ModData botModData)) continue;
-				bot.ApplyModData(botModData, includingEnergy: false);
-
-				if (chest.items.Count <= bot.GetActualCapacity()) {
-					bot.inventory.Clear();
-					for (int i = 0; i < chest.items.Count && i < bot.GetActualCapacity(); i++) {
-						ModEntry.instance.Monitor.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
-						bot.inventory.Add(chest.items[i]);
-					}
-				}
+				var bot = ConvertChestToBot(chest, tileLoc, inLocation);
 				
-				chest.items.Clear();
+				inLocation.removeObject(tileLoc, false);             // remove chest from "objects"
+				inLocation.setObject(tileLoc, bot);    // add bot to "objects"
 
 				count++;
 				//ModEntry.instance.Monitor.Log($"Converted {chest} to {bot} at {tileLoc} of {inLocation}");
@@ -200,8 +215,7 @@ namespace Farmtronics.Bot {
 				var chest = items[i] as Chest;
 				if (chest == null) continue;
 				if (!ModData.TryGetModData(chest.modData, out ModData modData) || !modData.IsBot) continue;
-				BotObject bot = new BotObject();
-				bot.Stack = chest.Stack;
+				BotObject bot = ConvertChestToBot(chest);
 				items[i] = bot;
 				// Note: we assume that chests in an item list are just items,
 				// and can't themselves contain other stuff.

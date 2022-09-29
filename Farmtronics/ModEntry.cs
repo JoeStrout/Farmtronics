@@ -83,6 +83,7 @@ namespace Farmtronics
 				pos.X -= 64;
 				Vector2 tilePos = pos.GetTilePosition();
 				var bot = new BotObject(tilePos);
+				bot.owner.Value = Game1.player.UniqueMultiplayerID;
 
 				//Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
 				Game1.player.currentLocation.overlayObjects[tilePos] = bot;
@@ -104,7 +105,9 @@ namespace Farmtronics
 					this.Monitor.Log($"Mail in mailbox: {msg}");
 					if (msg == "FarmtronicsFirstBotMail") {
 						this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-						Game1.player.recoveredItem = new BotObject();
+						var bot = new BotObject();
+						bot.owner.Value = Game1.player.UniqueMultiplayerID;
+						Game1.player.recoveredItem = bot;
 						break;
 					}
 				}
@@ -122,6 +125,7 @@ namespace Farmtronics
 						if (item.Name == "Catalogue" || (index>0 && shop.forSale[index-1].Name == "Flooring")) break;
 					}
 					var botForSale = new BotObject();
+					botForSale.owner.Value = Game1.player.UniqueMultiplayerID;
 					shop.forSale.Insert(index, botForSale);
 					shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });	// sale price and available stock
 				}
@@ -166,7 +170,9 @@ namespace Farmtronics
 				this.Monitor.Log($"Mail in mailbox: {msg}");
 				if (msg == "FarmtronicsFirstBotMail") {
 					this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-					Game1.player.recoveredItem = new BotObject();
+					var bot = new BotObject();
+					bot.owner.Value = Game1.player.UniqueMultiplayerID;
+					Game1.player.recoveredItem = bot;
 					break;
 				}
 			}
@@ -207,7 +213,9 @@ namespace Farmtronics
                         this.Monitor.Log($"mail in mailbox: {msg}");
                         if (msg == "FarmtronicsFirstBotMail") {
                             this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-                            Game1.player.recoveredItem = new BotObject();
+							var bot = new BotObject();
+							bot.owner.Value = Game1.player.UniqueMultiplayerID;
+                            Game1.player.recoveredItem = bot;
                             break;
                         }
                     }
