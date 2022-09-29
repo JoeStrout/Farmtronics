@@ -711,8 +711,9 @@ namespace Farmtronics.Bot {
 			}
 
 			// draw hat, if one is found in the last slot
-			if (farmer != null && farmer.MaxItems - 1 < farmer.numberOfItemsInInventory() && farmer.Items[farmer.MaxItems -1] is Hat)
+			if (farmer != null && farmer.MaxItems - 1 < farmer.Items.Count && farmer.Items[farmer.MaxItems -1] is Hat) {
 				drawHat(spriteBatch, farmer.Items[farmer.MaxItems - 1] as Hat, position3, z + 0.0002f, alpha);
+			}
 		}
 
 		/// <summary>
