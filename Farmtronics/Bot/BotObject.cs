@@ -78,8 +78,10 @@ namespace Farmtronics.Bot {
 				Items = Farmer.initialTools(),
 				MaxItems = 12
 			};
+			// NOTE: Make sure to not use farmer.Items.Count to get the actual number of items in the inventory
+			//		 Only UIMenu needs to use 'Count' to fill the remaining slots with null
 			ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Position: {farmer.Position} Location: {farmer.currentLocation}");
-			ModEntry.instance.Monitor.Log($"Items: {farmer.Items.Count}/{farmer.MaxItems}");
+			ModEntry.instance.Monitor.Log($"Items: {farmer.numberOfItemsInInventory()}/{farmer.MaxItems}");
 		}
 
 		// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
@@ -145,8 +147,8 @@ namespace Farmtronics.Bot {
 		}
 
 		private bool IsEmptyWithoutInitialTools() {
-			ModEntry.instance.Monitor.Log($"isEmptyWithoutInitialTools: items: {farmer.Items.Count}");
-			if (farmer.Items.Count > Farmer.initialTools().Count) return false;
+			ModEntry.instance.Monitor.Log($"isEmptyWithoutInitialTools: items: {farmer.numberOfItemsInInventory()}");
+			if (farmer.numberOfItemsInInventory() > Farmer.initialTools().Count) return false;
 			var copyItems = new List<Item>(farmer.Items);
 			Farmer.removeInitialTools(copyItems);
 			ModEntry.instance.Monitor.Log($"isEmptyWithoutInitialTools: without initial tools: {copyItems.Count}");
@@ -709,7 +711,7 @@ namespace Farmtronics.Bot {
 			}
 
 			// draw hat, if one is found in the last slot
-			if (farmer != null && farmer.MaxItems - 1 < farmer.Items.Count && farmer.Items[farmer.MaxItems -1] is Hat)
+			if (farmer != null && farmer.MaxItems - 1 < farmer.numberOfItemsInInventory() && farmer.Items[farmer.MaxItems -1] is Hat)
 				drawHat(spriteBatch, farmer.Items[farmer.MaxItems - 1] as Hat, position3, z + 0.0002f, alpha);
 		}
 
