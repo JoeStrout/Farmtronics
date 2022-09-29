@@ -1,4 +1,4 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Farmtronics.M1;
+using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -36,7 +37,7 @@ namespace Farmtronics.Bot {
 		public bool isUsingTool { get { return farmer.UsingTool? farmer.UsingTool : scytheUseFrame > 0; } }
 		public int energy { get { return (int)farmer.Stamina; } }
 		public GameLocation currentLocation { get => farmer.currentLocation; set => farmer.currentLocation = value; }
-		public int facingDirection { get => farmer.FacingDirection; }
+		public int facingDirection { get => farmer.FacingDirection; set => farmer.FacingDirection = value; }
 		public int currentToolIndex {
 			get => farmer.CurrentToolIndex;
 			set {
@@ -191,10 +192,7 @@ namespace Farmtronics.Bot {
 			bot.owner.Value = who.UniqueMultiplayerID;
 
 			// Add the new bot (which is in the world) to our instances list.
-			// Remove the old item, if it happens to be in there (though it probably isn't).
-			// Game1.otherFarmers.Remove(farmer.UniqueMultiplayerID);
-			BotManager.instances.Remove(this);
-			if (!BotManager.instances.Contains(bot)) BotManager.instances.Add(bot);
+			BotManager.instances.Add(bot);
 			//ModEntry.instance.Monitor.Log($"Added {bot.Name} to instances; now have {instances.Count}");
 
 			location.playSound("hammer");
@@ -208,8 +206,7 @@ namespace Farmtronics.Bot {
 			Vector2 toolLocation = farmer.GetToolLocation(true);
 			ModEntry.instance.Monitor.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {toolLocation}");
 			float oldStamina = farmer.stamina;
-			if (farmer.CurrentTool is not MeleeWeapon)
-			{
+			if (farmer.CurrentTool is not MeleeWeapon) {
 				farmer.CurrentTool.DoFunction(farmer.currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), 1, farmer);
 				farmer.checkForExhaustion(oldStamina);
 			} else {
@@ -530,6 +527,7 @@ namespace Farmtronics.Bot {
 
 		public void Rotate(int stepsClockwise) {
 			farmer.faceDirection((farmer.FacingDirection + 4 + stepsClockwise) % 4);
+			BotRotationUpdate.Send(this);
 			//ModEntry.instance.Monitor.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
 		}
 
@@ -641,18 +639,19 @@ namespace Farmtronics.Bot {
 
 		public override bool performToolAction(Tool t, GameLocation location) {
 			ModEntry.instance.Monitor.Log($"{name} Bot.performToolAction({t}, {location})");
+			var who = t.getLastFarmerToUse();
+			if (!who.IsLocalPlayer) return false;
 			
 			// NOTE: If a player holds left click it will eventually trigger a toolAction with a pickaxe
 			// 		 This could be checked like this: t != t.getLastFarmerToUse().CurrentTool
 			if (t is Pickaxe or Axe or Hoe) {
 				if (!IsEmptyWithoutInitialTools()) {
-					// Maybe create a small shake animation? (see Chest.cs performToolAction() -> shakeTimer)
+					// TODO: Maybe create a small shake animation? (see Chest.cs performToolAction() -> shakeTimer)
 					location.playSound("hammer");
 					return false;
 				}
 				
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
-				var who = t.getLastFarmerToUse();
 				this.performRemoveAction(farmer.getTileLocation(), location);
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
 				SetModData(ref deb.item.modData);

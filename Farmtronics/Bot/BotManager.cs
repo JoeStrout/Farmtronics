@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Objects;
@@ -6,7 +7,7 @@ using StardewValley.Objects;
 namespace Farmtronics.Bot {
 	class BotManager {
 		// Instances of bots which need updating, i.e., ones that actually exist in the world.
-		internal static List<BotObject> instances = new List<BotObject>();
+		internal static List<BotObject> instances = new();
 
 		/// <summary>
 		/// Initializes each bot instance.

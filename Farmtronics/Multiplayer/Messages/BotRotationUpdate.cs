@@ -29,6 +29,7 @@ namespace Farmtronics.Multiplayer.Messages {
 			ModEntry.instance.Monitor.Log("Applying rotation update to bot");
 			GameLocation location = ModEntry.instance.Helper.Multiplayer.GetActiveLocations().Where(location => location.Name == LocationName).Single();
 			var bot = location.getObjectAtTile(TileLocation.GetIntX(), TileLocation.GetIntY()) as BotObject;
+			if (bot == null) return;
 			bot.facingDirection = FacingDirection;
 		}
 	}

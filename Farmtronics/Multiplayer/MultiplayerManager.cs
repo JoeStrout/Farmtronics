@@ -25,6 +25,8 @@ namespace Farmtronics.Multiplayer {
 		}
 		
 		public static void SendMessage(BaseMessage message) {
+			if (!Context.IsMultiplayer) return;
+			
 			switch(message) {
 			case BotRotationUpdate rotationUpdate:
 				ModEntry.instance.Helper.Multiplayer.SendMessage(rotationUpdate, nameof(BotRotationUpdate), modIDs: new[] { ModEntry.instance.ModManifest.UniqueID });	
