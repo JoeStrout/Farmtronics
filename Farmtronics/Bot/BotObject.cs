@@ -155,6 +155,7 @@ namespace Farmtronics.Bot {
 			ModEntry.instance.Monitor.Log($"isEmptyWithoutInitialTools: items: {farmer.numberOfItemsInInventory()}");
 			if (farmer.numberOfItemsInInventory() > Farmer.initialTools().Count) return false;
 			var copyItems = new List<Item>(farmer.Items);
+			while (copyItems.Contains(null)) { copyItems.Remove(null); }
 			Farmer.removeInitialTools(copyItems);
 			ModEntry.instance.Monitor.Log($"isEmptyWithoutInitialTools: without initial tools: {copyItems.Count}");
 			return copyItems.Count == 0;
