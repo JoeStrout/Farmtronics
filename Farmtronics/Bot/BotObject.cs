@@ -78,8 +78,13 @@ namespace Farmtronics.Bot {
 				Items = Farmer.initialTools(),
 				MaxItems = 12
 			};
+			
+			// Inventory indices have to exist, since InventoryMenu exclusively uses them and can't assign items otherwise.
+			for (int i = farmer.Items.Count; i < GetActualCapacity(); i++) {
+				farmer.Items.Add(null);
+			}
+			
 			// NOTE: Make sure to not use farmer.Items.Count to get the actual number of items in the inventory
-			//		 Only UIMenu needs to use 'Count' to fill the remaining slots with null
 			ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Position: {farmer.Position} Location: {farmer.currentLocation}");
 			ModEntry.instance.Monitor.Log($"Items: {farmer.numberOfItemsInInventory()}/{farmer.MaxItems}");
 		}
