@@ -142,7 +142,6 @@ namespace Farmtronics.Bot {
 			// Create a new bot.
 			var bot = new BotObject(placementTile, location);
 			Game1.player.currentLocation.setObject(placementTile, bot);
-			bot.shakeTimer = 50;
 
 			// Copy other data from this item to bot.
 			bot.modData.SetFromSerialization(this.modData);
