@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -657,7 +657,7 @@ namespace Farmtronics.Bot {
 			// 		 This could be checked like this: t != t.getLastFarmerToUse().CurrentTool
 			if (t is Pickaxe or Axe or Hoe) {
 				if (!IsEmptyWithoutInitialTools()) {
-					shakeTimer = 25;
+					shakeTimer = 10;
 					location.playSound("hammer");
 					return false;
 				}
