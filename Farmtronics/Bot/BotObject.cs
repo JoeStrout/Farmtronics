@@ -594,6 +594,9 @@ namespace Farmtronics.Bot {
 			//	ModEntry.instance.Monitor.Log("Failed to get mutex lock :(");
 			//});
 
+			// TODO: Maybe show a message about the owner of this bot instead?
+			if (who.UniqueMultiplayerID != owner.Value) return false;
+			
 			// For now, just dewit:
 			Game1.playSound("bigSelect");
 			Game1.player.Halt();
