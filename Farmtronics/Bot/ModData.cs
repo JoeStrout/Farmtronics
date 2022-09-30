@@ -31,9 +31,9 @@ namespace Farmtronics.Bot {
 			if (ModVersion == null) ModVersion = new SemanticVersion(1, 2, 0);
 			if (Name == null) Name = I18n.Bot_Name();
 			
-			bot.BotName = Name;
-			bot.facingDirection = Facing;
-			if (applyEnergy) bot.energy = Energy;
+			if (bot.BotName != Name) bot.BotName = Name;
+			if (bot.facingDirection != Facing) bot.facingDirection = Facing;
+			if (applyEnergy && bot.energy != Energy) bot.energy = Energy;
 		}
 		
 		private Dictionary<string, string> GetModData() {
@@ -54,7 +54,7 @@ namespace Farmtronics.Bot {
 		
 		public ModData(BotObject bot) {
 			this.bot = bot;
-			this.Load();
+			this.Load(false);
 		}
 		
 		public void Save() {
