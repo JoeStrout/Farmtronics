@@ -302,8 +302,8 @@ namespace Farmtronics.M1 {
 			var globals = interpreter.vm.globalContext;
 			if (globals.variables == null) globals.variables = new ValMap();
 			if (bot != null) {
-				curStatusColor = new ValString(bot.statusColor.ToHexString());
-				curScreenColor = new ValString(bot.screenColor.ToHexString());
+				curStatusColor = new ValString(bot.StatusColor.ToHexString());
+				curScreenColor = new ValString(bot.ScreenColor.ToHexString());
 				globals.variables["statusColor"] = curStatusColor;
 				globals.variables["screenColor"] = curScreenColor;
 				globals.variables.assignOverride = (key, value) => {
@@ -311,7 +311,7 @@ namespace Farmtronics.M1 {
 					if (keyStr == "_") return false;
 					//ModEntry.instance.Monitor.Log($"global {key} = {value}");
 					if (keyStr == "statusColor") {		// DEPRECATED: now in bot module
-						bot.statusColor = value.ToString().ToColor();
+						bot.StatusColor = value.ToString().ToColor();
 					} else if (keyStr == "screenColor") {
 						console.backColor = value.ToString().ToColor();
 					}

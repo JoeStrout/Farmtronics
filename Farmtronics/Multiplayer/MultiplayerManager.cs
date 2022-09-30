@@ -14,9 +14,13 @@ namespace Farmtronics.Multiplayer {
 			if (e.FromModID != ModEntry.instance.ModManifest.UniqueID) return;
 			
 			switch (e.Type) {
-			case nameof(BotRotationUpdate):
-				BotRotationUpdate rotationUpdate = e.ReadAs<BotRotationUpdate>();
-				rotationUpdate.Apply();
+			case nameof(BotScreenColorUpdate):
+				BotScreenColorUpdate screenColorUpdate = e.ReadAs<BotScreenColorUpdate>();
+				screenColorUpdate.Apply();
+				return;
+			case nameof(BotStatusColorUpdate):
+				BotStatusColorUpdate statusColorUpdate = e.ReadAs<BotStatusColorUpdate>();
+				statusColorUpdate.Apply();
 				return;
 			default:
 				ModEntry.instance.Monitor.Log($"Couldn't receive message of type: {e.Type}", LogLevel.Error);
@@ -28,8 +32,11 @@ namespace Farmtronics.Multiplayer {
 			if (!Context.IsMultiplayer) return;
 			
 			switch(message) {
-			case BotRotationUpdate rotationUpdate:
-				ModEntry.instance.Helper.Multiplayer.SendMessage(rotationUpdate, nameof(BotRotationUpdate), modIDs: new[] { ModEntry.instance.ModManifest.UniqueID });	
+			case BotScreenColorUpdate screenColorUpdate:
+				ModEntry.instance.Helper.Multiplayer.SendMessage(screenColorUpdate, nameof(BotScreenColorUpdate), modIDs: new[] { ModEntry.instance.ModManifest.UniqueID });
+				return;
+			case BotStatusColorUpdate statusColorUpdate:
+				ModEntry.instance.Helper.Multiplayer.SendMessage(statusColorUpdate, nameof(BotStatusColorUpdate), modIDs: new[] { ModEntry.instance.ModManifest.UniqueID });
 				return;
 			default:
 				ModEntry.instance.Monitor.Log("Couldn't send message of unknown type.", LogLevel.Error);

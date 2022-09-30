@@ -1,4 +1,4 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Farmtronics.M1;
+using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -32,9 +33,33 @@ namespace Farmtronics.Bot {
 		internal readonly ModData data;
 
 		public IList<Item> inventory { get { return farmer.Items; } }
-		public Color screenColor { get => shell != null ? shell.console.backColor : Color.Black; }
+		private Color screenColor = Color.Black;
+		public Color ScreenColor {
+			get {
+				if (shell != null && screenColor != shell.console.backColor) {
+					screenColor = shell.console.backColor;
+
+					if (screenColor != Color.Transparent && BotManager.instances.Contains(this)) {
+						BotScreenColorUpdate.Send(this);
+					}
+				}
+				return screenColor;	
+			}
+			internal set {
+				screenColor = value;
+			}
+		}
 		
-		public Color statusColor = Color.Yellow;
+		private Color statusColor = Color.Yellow;
+		public Color StatusColor {
+			get => statusColor;
+			internal set {
+				if (statusColor != Color.Transparent && BotManager.instances.Contains(this)) {
+					BotStatusColorUpdate.Send(this);
+				}
+				statusColor = value;
+			}
+		}
 		public Shell shell { get; private set; }
 		public bool isUsingTool { get { return farmer.UsingTool? farmer.UsingTool : scytheUseFrame > 0; } }
 		public float energy { get => farmer.Stamina; set => farmer.Stamina = value; }
@@ -49,11 +74,9 @@ namespace Farmtronics.Bot {
 			}
 		}
 
-		// [XmlIgnore]
-		// public readonly NetMutex mutex = new NetMutex();
-
 		private int scytheUseFrame = 0;       // > 0 when using the scythe
 		private float scytheOldStamina = -1;
+		private int hasMovedTimer;
 
 		// Assign common values
 		private void Initialize() {
@@ -490,6 +513,7 @@ namespace Farmtronics.Bot {
 			location.setObject(newTile, this);
 			// Update the invisible farmer
 			farmer.setTileLocation(newTile);
+			hasMovedTimer = 3;
 		}
 
 		public void Rotate(int stepsClockwise) {
@@ -563,7 +587,6 @@ namespace Farmtronics.Bot {
 
 			if (shell != null) {
 				shell.console.update(gameTime);
-				if (farmer.Name != Name) farmer.Name = Name;
 			}
 			
 			if (scytheUseFrame > 0) {
@@ -612,6 +635,14 @@ namespace Farmtronics.Bot {
 			// ModEntry.instance.Monitor.Log($"UpdateWhenCurrentLocation: {time} {environment}");
 			if (shakeTimer > 0) shakeTimer--;
 			
+			if (hasMovedTimer > 0) {
+				hasMovedTimer--;
+				if (hasMovedTimer == 0) {
+					BotScreenColorUpdate.Send(this);
+					BotStatusColorUpdate.Send(this);
+				}
+			}
+			
 			data.Load(false);
 		}
 
@@ -619,6 +650,8 @@ namespace Farmtronics.Bot {
 			ModEntry.instance.Monitor.Log($"{name} Bot.performToolAction({t}, {location})");
 			var who = t.getLastFarmerToUse();
 			if (!who.IsLocalPlayer) return false;
+
+			ModEntry.instance.Monitor.Log($"Bot.performToolAction: Checking tool");
 			
 			// NOTE: If a player holds left click it will eventually trigger a toolAction with a pickaxe
 			// 		 This could be checked like this: t != t.getLastFarmerToUse().CurrentTool
@@ -679,9 +712,9 @@ namespace Farmtronics.Bot {
 			spriteBatch.Draw(Assets.BotSprites, position3, srcRect, Color.White * alpha, 0f,
 				origin2, scale, SpriteEffects.None, z);
 			// screen color (if not black or clear)
-			if (screenColor.A > 0 && (screenColor.R > 0 || screenColor.G > 0 || screenColor.B > 0)) {
+			if (ScreenColor.A > 0 && (ScreenColor.R > 0 || ScreenColor.G > 0 || ScreenColor.B > 0)) {
 				srcRect.Y = 24;
-				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, screenColor * alpha, 0f,
+				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, ScreenColor * alpha, 0f,
 					origin2, scale, SpriteEffects.None, z + 0.0001f);
 			}
 			// screen shine overlay
@@ -689,9 +722,9 @@ namespace Farmtronics.Bot {
 			spriteBatch.Draw(Assets.BotSprites, position3, srcRect, Color.White * alpha, 0f,
 				origin2, scale, SpriteEffects.None, z + 0.0002f);
 			// status light color (if not black or clear)
-			if (statusColor.A > 0 && (statusColor.R > 0 || statusColor.G > 0 || statusColor.B > 0)) {
+			if (StatusColor.A > 0 && (StatusColor.R > 0 || StatusColor.G > 0 || StatusColor.B > 0)) {
 				srcRect.Y = 72;
-				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, statusColor * alpha, 0f,
+				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, StatusColor * alpha, 0f,
 					origin2, scale, SpriteEffects.None, z + 0.0002f);
 			}
 

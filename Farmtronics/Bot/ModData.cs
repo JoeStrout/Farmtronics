@@ -48,10 +48,6 @@ namespace Farmtronics.Bot {
 			return saveData;
 		}
 		
-		public ModData() {
-			
-		}
-		
 		public ModData(BotObject bot) {
 			this.bot = bot;
 			this.Load(false);
@@ -73,15 +69,11 @@ namespace Farmtronics.Bot {
 				data.Remove((ModEntry.GetModDataKey(nameof(Energy).FirstToLower())));
 		}
 		
-		public void RemoveEnergy() {
-			if (bot == null) return;
-			
+		public void RemoveEnergy() {			
 			RemoveEnergy(ref bot.modData);
 		}
 		
 		public void Update() {
-			if (bot == null) return;
-
 			Name   = bot.BotName;
 			Energy = bot.energy;
 			Facing = bot.facingDirection;

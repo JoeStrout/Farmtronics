@@ -5,32 +5,32 @@ using Microsoft.Xna.Framework;
 using StardewValley;
 
 namespace Farmtronics.Multiplayer.Messages {
-	class BotRotationUpdate : BaseMessage {
+	class BotScreenColorUpdate : BaseMessage {
 		public string LocationName { get; set; }
 		public Vector2 TileLocation { get; set; }
-		public int FacingDirection { get; set; }
+		public Color ScreenColor { get; set; }
 
 		public static void Send(BotObject bot) {
-			var update = new BotRotationUpdate(bot);
+			var update = new BotScreenColorUpdate(bot);
 			update.Send();
 		}
 		
-		public BotRotationUpdate() {
+		public BotScreenColorUpdate() {
 			
 		}
 		
-		public BotRotationUpdate(BotObject bot) {
+		public BotScreenColorUpdate(BotObject bot) {
 			LocationName = bot.currentLocation.Name;
 			TileLocation = bot.TileLocation;
-			FacingDirection = bot.facingDirection;
+			ScreenColor = bot.ScreenColor;
 		}
 		
-		public override void Apply() {			
-			ModEntry.instance.Monitor.Log("Applying rotation update to bot");
+		public override void Apply() {
+			ModEntry.instance.Monitor.Log($"Applying screen color update: {ScreenColor}");
 			GameLocation location = ModEntry.instance.Helper.Multiplayer.GetActiveLocations().Where(location => location.Name == LocationName).Single();
 			var bot = location.getObjectAtTile(TileLocation.GetIntX(), TileLocation.GetIntY()) as BotObject;
 			if (bot == null) return;
-			bot.facingDirection = FacingDirection;
+			bot.ScreenColor = ScreenColor;
 		}
 	}
 }
