@@ -14,26 +14,11 @@ namespace Farmtronics.Bot {
 		public float			Energy	   { get; internal set; }
 		public int 				Facing	   { get; internal set; }
 		
-		public static bool TryGetModData(ModDataDictionary data, out ModData modData) {
-			modData = new ModData();
-			if (!data.TryGetValue(ModEntry.GetModDataKey(nameof(IsBot).FirstToLower()), out string isBot)) return false;
-			if (!data.TryGetValue(ModEntry.GetModDataKey(nameof(Name).FirstToLower()), out string name)) return false;
-			if (!data.TryGetValue(ModEntry.GetModDataKey(nameof(Facing).FirstToLower()), out string facing)) return false;
-
-			// TODO: This is a new modData key, we need to make sure we are compatible with older versions.
-			if (data.TryGetValue(ModEntry.GetModDataKey(nameof(ModVersion).FirstToLower()), out string modVer) && SemanticVersion.TryParse(modVer, out ISemanticVersion modVersion)) {
-				modData.ModVersion = modVersion;
-			} else {
-				modData.ModVersion = new SemanticVersion(1, 2, 0);
+		public static bool IsBotData(ModDataDictionary data) {
+			if (data.TryGetValue(ModEntry.GetModDataKey(nameof(IsBot).FirstToLower()), out string isBot)) {
+				return int.Parse(isBot) == 1;
 			}
-			
-			if (data.TryGetValue(ModEntry.GetModDataKey(nameof(Energy).FirstToLower()), out string energy)) modData.Energy = float.Parse(energy);
-			
-			modData.IsBot			= int.Parse(isBot) == 1;
-			modData.Name			= name;
-			modData.Facing 			= int.Parse(facing);
-			
-			return true;
+			return false;
 		}
 		
 		internal void Load(bool applyEnergy = true) {

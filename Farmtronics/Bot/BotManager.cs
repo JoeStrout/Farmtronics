@@ -193,7 +193,7 @@ namespace Farmtronics.Bot {
 				int inChestCount = ConvertChestsInListToBots(chest.items);
 				//if (inChestCount > 0) ModEntry.instance.Monitor.Log($"Converted {inChestCount} chests stored in a chest into bots");
 
-				if (!ModData.TryGetModData(chest.modData, out ModData modData) || !modData.IsBot) continue;
+				if (!ModData.IsBotData(chest.modData)) continue;
 				targetTileLocs.Add(tileLoc);
 			}
 			foreach (Vector2 tileLoc in targetTileLocs) {
@@ -218,7 +218,7 @@ namespace Farmtronics.Bot {
 			for (int i = 0; i < items.Count; i++) {
 				var chest = items[i] as Chest;
 				if (chest == null) continue;
-				if (!ModData.TryGetModData(chest.modData, out ModData modData) || !modData.IsBot) continue;
+				if (!ModData.IsBotData(chest.modData)) continue;
 				BotObject bot = ConvertChestToBot(chest);
 				items[i] = bot;
 				// Note: we assume that chests in an item list are just items,
