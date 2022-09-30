@@ -798,21 +798,6 @@ namespace Farmtronics.Bot {
 		}
 
 		public override bool canBeGivenAsGift() {
-			if (!Context.IsMultiplayer) return false;
-
-			// For some reason this doesn't work
-			// return Utility.getNumberOfCharactersInRadius(Game1.player.currentLocation, Game1.player.getTileLocationPoint(), 2) == 0;
-
-			// Make sure we are not gifting this item to a NPC
-			// NOTE: This currently doesn't work 100% of the time,
-			// 		 since it's possible to gift the bot to a NPC if another player is also in your radius
-			Vector2[] surroundingTiles = Utility.getSurroundingTileLocationsArray(Game1.player.getTileLocation());
-			if (Game1.otherFarmers.Values.Where(farmer => farmer.currentLocation == Game1.player.currentLocation && surroundingTiles.Contains(farmer.getTileLocation())).Count() == 0) return false;
-			
-			Vector2 mouseTile = Utility.PointToVector2(Game1.getMousePosition()).GetTilePosition();
-			if (Game1.player.currentLocation.isFarmerCollidingWithAnyCharacter() || Game1.player.currentLocation.isCharacterAtTile(mouseTile) != null) return false;
-			
-			// ModEntry.instance.Monitor.Log("CanBeGivenAsGift: No NPCs near player found.");
 			return true;
 		}
 
