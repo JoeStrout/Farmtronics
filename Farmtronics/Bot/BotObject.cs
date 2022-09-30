@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Farmtronics.M1;
-using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -28,6 +27,7 @@ namespace Farmtronics.Bot {
 		// create our own invisible Farmer instance and store it here:
 		BotFarmer farmer;
 		public string BotName { get; internal set; }
+		internal readonly ModData data;
 
 		public IList<Item> inventory { get { return farmer.Items; } }
 		public Color screenColor { get => shell != null ? shell.console.backColor : Color.Black; }
@@ -35,7 +35,7 @@ namespace Farmtronics.Bot {
 		public Color statusColor = Color.Yellow;
 		public Shell shell { get; private set; }
 		public bool isUsingTool { get { return farmer.UsingTool? farmer.UsingTool : scytheUseFrame > 0; } }
-		public int energy { get { return (int)farmer.Stamina; } }
+		public float energy { get => farmer.Stamina; set => farmer.Stamina = value; }
 		public GameLocation currentLocation { get => farmer.currentLocation; set => farmer.currentLocation = value; }
 		public int facingDirection { get => farmer.FacingDirection; set => farmer.FacingDirection = value; }
 		public int currentToolIndex {
@@ -96,6 +96,7 @@ namespace Farmtronics.Bot {
 			Initialize();
 
 			CreateFarmer(tileLocation, null);
+			data = new ModData(this);
 
 			// NOTE: this constructor is used for bots that are not in the world
 			// (but are in inventory, mail attachment, etc.).  So we do not add
@@ -107,49 +108,10 @@ namespace Farmtronics.Bot {
 			Initialize();
 
 			CreateFarmer(tileLocation, location);
+			data = new ModData(this);
 
 			BotManager.instances.Add(this);
 			// Game1.otherFarmers.Add(farmer.UniqueMultiplayerID, farmer);
-		}
-
-		//----------------------------------------------------------------------
-		// Storage/retrieval of bot data in a modData dictionary, and
-		// inventory transfer from bot to bot (object to item, etc.).
-		//----------------------------------------------------------------------
-
-		/// <summary>
-		/// Fill the ModDataDictionary with values from this bot,
-		/// so they can be saved and restored later.
-		/// </summary>
-		internal void SetModData(ref ModDataDictionary data, bool includingEnergy = true) {
-			ModData botData = new() {
-				IsBot = true,
-				ModVersion = ModEntry.instance.ModManifest.Version,
-				Name = BotName,
-				Energy = energy,
-				Facing = facingDirection
-			};
-			botData.Save(ref data);
-			
-			if (!includingEnergy) botData.RemoveEnergy(ref data);
-		}
-
-		/// <summary>
-		/// Apply the values in the given ModDataDictionary to this bot,
-		/// configuring name, energy, etc.
-		/// </summary>
-		internal void ApplyModData(ModData d, bool includingEnergy = true) {
-			if (!string.IsNullOrEmpty(d.Name)) BotName = d.Name;
-			if (includingEnergy) farmer.Stamina = d.Energy;
-			farmer.faceDirection(d.Facing);
-			//ModEntry.instance.Monitor.Log($"after ApplyModData, name=[{name}]");
-		}
-		
-		internal void ApplyModData(bool includingEnergy = true) {
-			if (!ModData.TryGetModData(modData, out ModData botModData)) return;
-			BotName = botModData.Name;
-			if (includingEnergy) farmer.Stamina = botModData.Energy;
-			farmer.FacingDirection = botModData.Facing;
 		}
 
 		private bool IsEmptyWithoutInitialTools() {
@@ -175,7 +137,7 @@ namespace Farmtronics.Bot {
 		/// to create a new Bot instance that matches its data.
 		/// </summary>
 		public override bool placementAction(GameLocation location, int x, int y, Farmer who = null) {
-			//ModEntry.instance.Monitor.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
+			ModEntry.instance.Monitor.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
 			Vector2 placementTile = new Vector2(x, y).GetTilePosition();
 			// Create a new bot.
 			var bot = new BotObject(placementTile, location);
@@ -183,13 +145,16 @@ namespace Farmtronics.Bot {
 			bot.shakeTimer = 50;
 
 			// Copy other data from this item to bot.
-			SetModData(ref bot.modData);
-			bot.ApplyModData();
+			bot.modData.SetFromSerialization(this.modData);
+			bot.data.Load();
 
 			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
 			// Make sure the bot is owned by the farmer placing it.
 			bot.owner.Value = who.UniqueMultiplayerID;
+			
+			// Save new facingDirection
+			bot.data.Update();
 
 			// Add the new bot (which is in the world) to our instances list.
 			BotManager.instances.Add(bot);
@@ -209,6 +174,7 @@ namespace Farmtronics.Bot {
 			if (farmer.CurrentTool is not MeleeWeapon) {
 				farmer.CurrentTool.DoFunction(farmer.currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), 1, farmer);
 				farmer.checkForExhaustion(oldStamina);
+				data.Update();
 			} else {
 				// Special case for using the Scythe
 				farmer.CurrentTool.beginUsing(currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), farmer);
@@ -527,7 +493,7 @@ namespace Farmtronics.Bot {
 
 		public void Rotate(int stepsClockwise) {
 			farmer.faceDirection((farmer.FacingDirection + 4 + stepsClockwise) % 4);
-			BotRotationUpdate.Send(this);
+			data.Update();
 			//ModEntry.instance.Monitor.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
 		}
 
@@ -580,6 +546,7 @@ namespace Farmtronics.Bot {
 			}
 			
 			farmer.checkForExhaustion(scytheOldStamina);
+			data.Update();
 			scytheOldStamina = -1;
 		}
 
@@ -637,6 +604,11 @@ namespace Farmtronics.Bot {
 			return true;
 		}
 
+		public override void updateWhenCurrentLocation(GameTime time, GameLocation environment) {
+			// ModEntry.instance.Monitor.Log($"UpdateWhenCurrentLocation: {time} {environment}");
+			data.Load(false);
+		}
+
 		public override bool performToolAction(Tool t, GameLocation location) {
 			ModEntry.instance.Monitor.Log($"{name} Bot.performToolAction({t}, {location})");
 			var who = t.getLastFarmerToUse();
@@ -654,7 +626,7 @@ namespace Farmtronics.Bot {
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
 				this.performRemoveAction(farmer.getTileLocation(), location);
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
-				SetModData(ref deb.item.modData);
+				data.Save(ref deb.item.modData);
 				location.debris.Add(deb);
 				//ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
@@ -789,7 +761,7 @@ namespace Farmtronics.Bot {
 		public override Item getOne() {
 			// Create a new Bot from this one, copying the modData and owner
 			var ret = new BotObject();
-			SetModData(ref ret.modData);
+			data.Save(ref ret.modData);
 			ret._GetOneFrom(this);
 			return ret;
 		}

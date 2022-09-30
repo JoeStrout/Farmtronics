@@ -35,16 +35,19 @@ namespace Farmtronics.Bot {
 		//----------------------------------------------------------------------
 
 		// Convert all bots everywhere into vanilla chests, with appropriate metadata.
-		public static void ConvertBotsToChests() {
+		public static void ConvertBotsToChests(bool saving) {
 			//ModEntry.instance.Monitor.Log("Bot.ConvertBotsToChests");
 			//ModEntry.instance.Monitor.Log($"NOTE: Game1.player.recoveredItem = {Game1.player.recoveredItem}");
 			int count = 0;
+			
+			// Prevent issues with an open menu while converting bots to chests
+			if (!saving && Game1.activeClickableMenu is UIMenu) Game1.exitActiveMenu();
 
 			// New approach: search all game locations.
-			count += ConvertBotsInMapToChests();
+			count += ConvertBotsInMapToChests(saving: saving);
 
 			// Also convert the player's inventory.
-			int playerBotCount = ConvertBotsInListToChests(Game1.player.Items);
+			int playerBotCount = ConvertBotsInListToChests(Game1.player.Items, saving);
 			//ModEntry.instance.Monitor.Log($"Converted {playerBotCount} bots in player inventory");
 			count += playerBotCount;
 
@@ -55,15 +58,16 @@ namespace Farmtronics.Bot {
 			//ModEntry.instance.Monitor.Log($"Total bots converted to chests: {count}");
 		}
 
-		static Chest ConvertBotToChest(BotObject bot) {
+		static Chest ConvertBotToChest(BotObject bot, bool saving = true) {
 			var chest = new Chest();
 			ModEntry.instance.Monitor.Log($"Converting bot [owned by: {bot.owner.Value}] to chest.");
 			chest.owner.Value = bot.owner.Value;
 			chest.Stack = bot.Stack;
 
+			bot.data.Save(ref chest.modData);
 			// Remove "energy" from the data, since this method happens at night, and
 			// we actually want our bots to wake up refreshed.
-			bot.SetModData(ref chest.modData, false);
+			if (saving) bot.data.RemoveEnergy(ref chest.modData);
 
 			var inventory = bot.inventory;
 			if (inventory != null) {
@@ -80,12 +84,12 @@ namespace Farmtronics.Bot {
 		/// Convert all bots in the given item list into chests with the appropriate metadata.
 		/// </summary>
 		/// <param name="items">Item list to search in</param>
-		static int ConvertBotsInListToChests(IList<Item> items) {
+		static int ConvertBotsInListToChests(IList<Item> items, bool saving = true) {
 			int count = 0;
 			for (int i = 0; i < items.Count; i++) {
 				BotObject bot = items[i] as BotObject;
 				if (bot == null) continue;
-				items[i] = ConvertBotToChest(bot);
+				items[i] = ConvertBotToChest(bot, saving);
 				//ModEntry.instance.Monitor.Log($"Converted list item {i} to {items[i]} of stack {items[i].Stack}");
 				count++;
 			}
@@ -96,11 +100,11 @@ namespace Farmtronics.Bot {
 		/// Convert all the bots in a map (or all maps) into chests with the appropriate metadata.
 		/// </summary>
 		/// <param name="inLocation">Location to search in, or if null, search all locations</param>
-		public static int ConvertBotsInMapToChests(GameLocation inLocation = null) {
+		public static int ConvertBotsInMapToChests(GameLocation inLocation = null, bool saving = true) {
 			if (inLocation == null) {
 				int totalCount = 0;
 				foreach (var loc in Game1.locations) {
-					totalCount += ConvertBotsInMapToChests(loc);
+					totalCount += ConvertBotsInMapToChests(loc, saving);
 				}
 				return totalCount;
 			}
@@ -111,12 +115,12 @@ namespace Farmtronics.Bot {
 				if (kv.Value is BotObject) targetTileLocs.Add(kv.Key);
 				if (kv.Value is Chest chest) {
 					//ModEntry.instance.Monitor.Log($"Found a chest in {inLocation.Name} at {kv.Key}");
-					countInLoc += ConvertBotsInListToChests(chest.items);
+					countInLoc += ConvertBotsInListToChests(chest.items, saving);
 				}
 			}
 			foreach (var tileLoc in targetTileLocs) {
 				//ModEntry.instance.Monitor.Log($"Found bot in {inLocation.Name} at {tileLoc}; converting");
-				var chest = ConvertBotToChest(inLocation.getObjectAtTile(tileLoc.GetIntX(), tileLoc.GetIntY()) as BotObject);
+				var chest = ConvertBotToChest(inLocation.getObjectAtTile(tileLoc.GetIntX(), tileLoc.GetIntY()) as BotObject, saving);
 				inLocation.removeObject(tileLoc, false);
 				inLocation.setObject(tileLoc, chest);
 				countInLoc++;
@@ -152,9 +156,8 @@ namespace Farmtronics.Bot {
 			ModEntry.instance.Monitor.Log($"Converting chest [owned by: {chest.owner.Value}] to bot.");
 			bot.owner.Value = chest.owner.Value;
 
-			if (!ModData.TryGetModData(chest.modData, out ModData botModData)) return null;
-			// Apply mod data EXCEPT for energy; we want energy restored after a night
-			bot.ApplyModData(botModData, false);
+			bot.modData.SetFromSerialization(chest.modData);
+			bot.data.Load();
 
 			if (chest.items.Count <= bot.GetActualCapacity()) {
 				bot.inventory.Clear();

@@ -54,7 +54,7 @@ namespace Farmtronics
 
 		private void OnPeerContextReceived(object sender, PeerContextReceivedEventArgs e) {
 			// This prevents a XML serialization error
-			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests();
+			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests(false);
 		}
 
 		private void OnPeerConnected(object sender, PeerConnectedEventArgs e) {
@@ -154,7 +154,7 @@ namespace Farmtronics
 		}
 
 		public void OnSaving(object sender, SavingEventArgs args) {
-			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests();
+			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests(true);
 		}
 
 		public void OnSaved(object sender, SavedEventArgs args) {
