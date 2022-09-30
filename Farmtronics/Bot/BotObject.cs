@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -610,6 +610,8 @@ namespace Farmtronics.Bot {
 
 		public override void updateWhenCurrentLocation(GameTime time, GameLocation environment) {
 			// ModEntry.instance.Monitor.Log($"UpdateWhenCurrentLocation: {time} {environment}");
+			if (shakeTimer > 0) shakeTimer--;
+			
 			data.Load(false);
 		}
 
@@ -622,7 +624,7 @@ namespace Farmtronics.Bot {
 			// 		 This could be checked like this: t != t.getLastFarmerToUse().CurrentTool
 			if (t is Pickaxe or Axe or Hoe) {
 				if (!IsEmptyWithoutInitialTools()) {
-					// TODO: Maybe create a small shake animation? (see Chest.cs performToolAction() -> shakeTimer)
+					shakeTimer = 25;
 					location.playSound("hammer");
 					return false;
 				}
