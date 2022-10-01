@@ -9,7 +9,7 @@ namespace Farmtronics.Bot {
 		private readonly BotObject bot;
 		
 		// mod data keys, used for saving/loading extra data with the game save:
-		public bool 			IsBot		{ get; internal set; }
+		public bool 			IsBot		{ get; internal set; } = true;
 		public ISemanticVersion ModVersion	{ get; internal set; }
 		public string 			Name		{ get; internal set; }
 		public float			Energy		{ get; internal set; }
@@ -67,6 +67,7 @@ namespace Farmtronics.Bot {
 		public ModData(BotObject bot) {
 			this.bot = bot;
 			this.Load(false);
+			this.Save(false);
 		}
 
 		public void Save(ref ModDataDictionary data, bool isSaving) {

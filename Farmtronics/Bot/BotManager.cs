@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
+using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Objects;
 
@@ -8,6 +10,24 @@ namespace Farmtronics.Bot {
 	class BotManager {
 		// Instances of bots which need updating, i.e., ones that actually exist in the world.
 		internal static List<BotObject> instances = new();
+		// Instances of bots which couldn't be located before (happens when a new player connects to the world)
+		// NOTE: 'OnDayStarted' triggers on connect for the new player, but it's still to early to find the bots on the map.
+		internal static List<AddBotInstance> lostInstances = new();
+		
+		public static void FindLostInstances(object sender, OneSecondUpdateTickingEventArgs args) {
+			if (lostInstances.Count == 0) return;
+			
+			var findInstances = new List<AddBotInstance>(lostInstances);
+			
+			foreach (var addInstance in findInstances)
+			{
+				addInstance.Apply();
+			}
+			
+			if (lostInstances.Count == 0) {
+				ModEntry.instance.Helper.Events.GameLoop.OneSecondUpdateTicking -= FindLostInstances;
+			}
+		}
 
 		/// <summary>
 		/// Initializes each bot instance.
@@ -15,6 +35,11 @@ namespace Farmtronics.Bot {
 		/// Effectively starts up the bots.
 		/// </summary>
 		public static void InitShellAll() {
+			if (lostInstances.Count > 0) {
+				ModEntry.instance.Helper.Events.GameLoop.OneSecondUpdateTicking += FindLostInstances;
+			}
+			
+			ModEntry.instance.Monitor.Log($"Initializing {instances.Count} bots!");
 			foreach (var instance in instances) {
 				instance.InitShell();
 			}
@@ -54,7 +79,6 @@ namespace Farmtronics.Bot {
 			// And watch out for a recoveredItem (mail attachment).
 			if (Game1.player.recoveredItem is BotObject) Game1.player.recoveredItem = null;
 
-			instances.Clear();
 			//ModEntry.instance.Monitor.Log($"Total bots converted to chests: {count}");
 		}
 
@@ -200,11 +224,14 @@ namespace Farmtronics.Bot {
 				targetTileLocs.Add(tileLoc);
 			}
 			foreach (Vector2 tileLoc in targetTileLocs) {
-				var chest = inLocation.objects[tileLoc] as Chest;
+				var chest = inLocation.getObjectAtTile(tileLoc.GetIntX(), tileLoc.GetIntY()) as Chest;
 				var bot = ConvertChestToBot(chest, tileLoc, inLocation);
 				
 				inLocation.removeObject(tileLoc, false);             // remove chest from "objects"
 				inLocation.setObject(tileLoc, bot);    // add bot to "objects"
+
+				if (bot.owner.Value == Game1.player.UniqueMultiplayerID) BotManager.instances.Add(bot);
+				else AddBotInstance.Send(bot);
 
 				count++;
 				//ModEntry.instance.Monitor.Log($"Converted {chest} to {bot} at {tileLoc} of {inLocation}");

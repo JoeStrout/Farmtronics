@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using Farmtronics.Bot;
 using Farmtronics.M1;
+using Farmtronics.Multiplayer;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -30,7 +31,9 @@ namespace Farmtronics
 			
 			helper.Events.Multiplayer.PeerContextReceived += this.OnPeerContextReceived;
 			helper.Events.Multiplayer.PeerConnected += this.OnPeerConnected;
+			helper.Events.Multiplayer.PeerContextReceived += MultiplayerManager.OnPeerContextReceived;
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
+			helper.Events.Multiplayer.ModMessageReceived += MultiplayerManager.OnModMessageReceived;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += this.UpdateTicking;
 #if DEBUG
@@ -52,14 +55,13 @@ namespace Farmtronics
 		private void OnPeerContextReceived(object sender, PeerContextReceivedEventArgs e) {
 			// This prevents a XML serialization error
 			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests(false);
+			BotManager.ClearAll();
 		}
 
 		private void OnPeerConnected(object sender, PeerConnectedEventArgs e) {
 			// At this point we can restore everything again
-			if (Context.IsMainPlayer) {
-				BotManager.ConvertChestsToBots();
-				BotManager.InitShellAll();
-			}
+			if (Context.IsMainPlayer) BotManager.ConvertChestsToBots();
+			BotManager.InitShellAll();
 		}
 
 		private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e) {
@@ -90,6 +92,7 @@ namespace Farmtronics
 
 				//Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
 				Game1.player.currentLocation.setObject(tilePos, bot);
+				BotManager.instances.Add(bot);
 				break;
 			
 			case SButton.PageDown:
@@ -155,6 +158,7 @@ namespace Farmtronics
 
 		public void OnSaving(object sender, SavingEventArgs args) {
 			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests(true);
+			BotManager.ClearAll();
 		}
 
 		public void OnSaved(object sender, SavedEventArgs args) {

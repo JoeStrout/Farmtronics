@@ -1,4 +1,4 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -105,8 +105,6 @@ namespace Farmtronics.Bot {
 
 			CreateFarmer(tileLocation, location);
 			data = new ModData(this);
-
-			BotManager.instances.Add(this);
 		}
 
 		private bool IsEmptyWithoutInitialTools() {
