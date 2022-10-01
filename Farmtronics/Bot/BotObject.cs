@@ -107,7 +107,6 @@ namespace Farmtronics.Bot {
 			data = new ModData(this);
 
 			BotManager.instances.Add(this);
-			// Game1.otherFarmers.Add(farmer.UniqueMultiplayerID, farmer);
 		}
 
 		private bool IsEmptyWithoutInitialTools() {
@@ -611,7 +610,11 @@ namespace Farmtronics.Bot {
 		public override bool performToolAction(Tool t, GameLocation location) {
 			ModEntry.instance.Monitor.Log($"{name} Bot.performToolAction({t}, {location})");
 			var who = t.getLastFarmerToUse();
-			if (!who.IsLocalPlayer) return false;
+			if (who.UniqueMultiplayerID != owner.Value) {
+				shakeTimer = 20;
+				location.playSound("hammer");
+				return false;
+			}
 
 			ModEntry.instance.Monitor.Log($"Bot.performToolAction: Checking tool");
 			
@@ -629,11 +632,10 @@ namespace Farmtronics.Bot {
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
 				data.Save(ref deb.item.modData, true);
 				location.debris.Add(deb);
-				//ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
+				ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
 				location.removeObject(farmer.getTileLocation(), true);
 				if (shell != null) shell.interpreter.Stop();
-				// Game1.otherFarmers.Remove(farmer.UniqueMultiplayerID);
 				BotManager.instances.Remove(this);
 				return false;
 			}
