@@ -6,13 +6,13 @@ the user.
 
 using System.Collections.Generic;
 using System.IO;
-using StardewModdingAPI;
-using Miniscript;
-using Microsoft.Xna.Framework;
 using Farmtronics.Bot;
-using Farmtronics.Utils;
 using Farmtronics.M1.Filesystem;
 using Farmtronics.M1.GUI;
+using Farmtronics.Utils;
+using Microsoft.Xna.Framework;
+using Miniscript;
+using StardewModdingAPI;
 
 namespace Farmtronics.M1 {
 	class Shell {
@@ -302,8 +302,8 @@ namespace Farmtronics.M1 {
 			var globals = interpreter.vm.globalContext;
 			if (globals.variables == null) globals.variables = new ValMap();
 			if (bot != null) {
-				curStatusColor = new ValString(bot.StatusColor.ToHexString());
-				curScreenColor = new ValString(bot.ScreenColor.ToHexString());
+				curStatusColor = new ValString(bot.statusColor.ToHexString());
+				curScreenColor = new ValString(bot.screenColor.ToHexString());
 				globals.variables["statusColor"] = curStatusColor;
 				globals.variables["screenColor"] = curScreenColor;
 				globals.variables.assignOverride = (key, value) => {
@@ -311,10 +311,11 @@ namespace Farmtronics.M1 {
 					if (keyStr == "_") return false;
 					//ModEntry.instance.Monitor.Log($"global {key} = {value}");
 					if (keyStr == "statusColor") {		// DEPRECATED: now in bot module
-						bot.StatusColor = value.ToString().ToColor();
+						bot.statusColor = value.ToString().ToColor();
 					} else if (keyStr == "screenColor") {
-						console.backColor = value.ToString().ToColor();
+						bot.screenColor = value.ToString().ToColor();
 					}
+					bot.data.Update();
 					return false;	// allow the assignment
 				};
 			} else {

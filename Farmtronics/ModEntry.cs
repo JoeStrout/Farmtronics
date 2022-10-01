@@ -1,7 +1,6 @@
 ﻿using System;
 using Farmtronics.Bot;
 using Farmtronics.M1;
-using Farmtronics.Multiplayer;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -30,9 +29,7 @@ namespace Farmtronics
 			I18n.Init(helper.Translation);
 			
 			helper.Events.Multiplayer.PeerContextReceived += this.OnPeerContextReceived;
-			helper.Events.Multiplayer.PeerContextReceived += MultiplayerManager.OnPeerContextReceived;
 			helper.Events.Multiplayer.PeerConnected += this.OnPeerConnected;
-			helper.Events.Multiplayer.ModMessageReceived += MultiplayerManager.OnModMessageReceived;
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 			helper.Events.Display.MenuChanged += this.OnMenuChanged;
 			helper.Events.GameLoop.UpdateTicking += this.UpdateTicking;

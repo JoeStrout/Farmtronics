@@ -1,17 +1,14 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Farmtronics.M1;
-using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
@@ -33,33 +30,8 @@ namespace Farmtronics.Bot {
 		internal readonly ModData data;
 
 		public IList<Item> inventory { get { return farmer.Items; } }
-		private Color screenColor = Color.Black;
-		public Color ScreenColor {
-			get {
-				if (shell != null && screenColor != shell.console.backColor) {
-					screenColor = shell.console.backColor;
-
-					if (screenColor != Color.Transparent && BotManager.instances.Contains(this)) {
-						BotScreenColorUpdate.Send(this);
-					}
-				}
-				return screenColor;	
-			}
-			internal set {
-				screenColor = value;
-			}
-		}
-		
-		private Color statusColor = Color.Yellow;
-		public Color StatusColor {
-			get => statusColor;
-			internal set {
-				if (statusColor != Color.Transparent && BotManager.instances.Contains(this)) {
-					BotStatusColorUpdate.Send(this);
-				}
-				statusColor = value;
-			}
-		}
+		public Color screenColor;
+		public Color statusColor;
 		public Shell shell { get; private set; }
 		public bool isUsingTool { get { return farmer.UsingTool? farmer.UsingTool : scytheUseFrame > 0; } }
 		public float energy { get => farmer.Stamina; set => farmer.Stamina = value; }
@@ -76,7 +48,6 @@ namespace Farmtronics.Bot {
 
 		private int scytheUseFrame = 0;       // > 0 when using the scythe
 		private float scytheOldStamina = -1;
-		private int hasMovedTimer;
 
 		// Assign common values
 		private void Initialize() {
@@ -513,7 +484,6 @@ namespace Farmtronics.Bot {
 			location.setObject(newTile, this);
 			// Update the invisible farmer
 			farmer.setTileLocation(newTile);
-			hasMovedTimer = 3;
 		}
 
 		public void Rotate(int stepsClockwise) {
@@ -635,14 +605,6 @@ namespace Farmtronics.Bot {
 			// ModEntry.instance.Monitor.Log($"UpdateWhenCurrentLocation: {time} {environment}");
 			if (shakeTimer > 0) shakeTimer--;
 			
-			if (hasMovedTimer > 0) {
-				hasMovedTimer--;
-				if (hasMovedTimer == 0) {
-					BotScreenColorUpdate.Send(this);
-					BotStatusColorUpdate.Send(this);
-				}
-			}
-			
 			data.Load(false);
 		}
 
@@ -665,7 +627,7 @@ namespace Farmtronics.Bot {
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
 				this.performRemoveAction(farmer.getTileLocation(), location);
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
-				data.Save(ref deb.item.modData);
+				data.Save(ref deb.item.modData, true);
 				location.debris.Add(deb);
 				//ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
@@ -712,9 +674,9 @@ namespace Farmtronics.Bot {
 			spriteBatch.Draw(Assets.BotSprites, position3, srcRect, Color.White * alpha, 0f,
 				origin2, scale, SpriteEffects.None, z);
 			// screen color (if not black or clear)
-			if (ScreenColor.A > 0 && (ScreenColor.R > 0 || ScreenColor.G > 0 || ScreenColor.B > 0)) {
+			if (screenColor.A > 0 && (screenColor.R > 0 || screenColor.G > 0 || screenColor.B > 0)) {
 				srcRect.Y = 24;
-				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, ScreenColor * alpha, 0f,
+				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, screenColor * alpha, 0f,
 					origin2, scale, SpriteEffects.None, z + 0.0001f);
 			}
 			// screen shine overlay
@@ -722,9 +684,9 @@ namespace Farmtronics.Bot {
 			spriteBatch.Draw(Assets.BotSprites, position3, srcRect, Color.White * alpha, 0f,
 				origin2, scale, SpriteEffects.None, z + 0.0002f);
 			// status light color (if not black or clear)
-			if (StatusColor.A > 0 && (StatusColor.R > 0 || StatusColor.G > 0 || StatusColor.B > 0)) {
+			if (statusColor.A > 0 && (statusColor.R > 0 || statusColor.G > 0 || statusColor.B > 0)) {
 				srcRect.Y = 72;
-				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, StatusColor * alpha, 0f,
+				spriteBatch.Draw(Assets.BotSprites, position3, srcRect, statusColor * alpha, 0f,
 					origin2, scale, SpriteEffects.None, z + 0.0002f);
 			}
 
@@ -800,7 +762,7 @@ namespace Farmtronics.Bot {
 		public override Item getOne() {
 			// Create a new Bot from this one, copying the modData and owner
 			var ret = new BotObject();
-			data.Save(ref ret.modData);
+			data.Save(ref ret.modData, true);
 			ret._GetOneFrom(this);
 			return ret;
 		}
