@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Farmtronics.Bot;
 using Farmtronics.M1;
 using Farmtronics.Multiplayer;
@@ -75,6 +75,27 @@ namespace Farmtronics
 			BotManager.UpdateAll(gameTime);
 			prevTicks = e.Ticks;
 		}
+		
+		// NOTE: Only check the mailbox once per day and only when the player warps to the farm
+		//		 This prevents XML serialization errors
+		private void OnPlayerWarped(object sender, WarpedEventArgs args) {
+			if (!args.IsLocalPlayer || args.NewLocation is not Farm) return;
+			
+			// Check whether we have our first-bot letter waiting in the mailbox.
+			// If so, set the item to be "recovered" via the mail:
+			foreach (var msg in Game1.player.mailbox) {
+				this.Monitor.Log($"Mail in mailbox: {msg}");
+				if (msg == "FarmtronicsFirstBotMail") {
+					this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
+					var bot = new BotObject();
+					bot.owner.Value = Game1.player.UniqueMultiplayerID;
+					Game1.player.recoveredItem = bot;
+					break;
+				}
+			}
+			
+			Helper.Events.Player.Warped -= OnPlayerWarped;
+		}
 
 #if DEBUG
 		// HACK used only for early testing/development:
@@ -105,20 +126,6 @@ namespace Farmtronics
 		
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
 			this.Monitor.Log($"Menu opened: {e.NewMenu}");
-			if (e.NewMenu is LetterViewerMenu) {
-				this.Monitor.Log("Hey hey, it's a LetterViewerMenu!");
-				foreach (var msg in Game1.player.mailbox) {
-					this.Monitor.Log($"Mail in mailbox: {msg}");
-					if (msg == "FarmtronicsFirstBotMail") {
-						this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-						var bot = new BotObject();
-						bot.owner.Value = Game1.player.UniqueMultiplayerID;
-						Game1.player.recoveredItem = bot;
-						break;
-					}
-				}
-				return;
-			}
 			if (e.NewMenu is ShopMenu shop) {
 				if (shop.portraitPerson != Game1.getCharacterFromName("Pierre")) return;
 				if (Game1.player.mailReceived.Contains("FarmtronicsFirstBotMail")) {
@@ -170,19 +177,8 @@ namespace Farmtronics
 		}
 
 		public void OnDayStarted(object sender, DayStartedEventArgs args) {
-			this.Monitor.Log($"OnDayStarted");
-			// Check whether we have our first-bot letter waiting in the mailbox.
-			// If so, set the item to be "recovered" via the mail:
-			foreach (var msg in Game1.player.mailbox) {
-				this.Monitor.Log($"Mail in mailbox: {msg}");
-				if (msg == "FarmtronicsFirstBotMail") {
-					this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-					var bot = new BotObject();
-					bot.owner.Value = Game1.player.UniqueMultiplayerID;
-					Game1.player.recoveredItem = bot;
-					break;
-				}
-			}
+			Monitor.Log($"OnDayStarted");
+			Helper.Events.Player.Warped += OnPlayerWarped;
 
 			// Initialize the home computer and all bots for autostart.
 			// This initialization will also cause all startup scripts to run.
