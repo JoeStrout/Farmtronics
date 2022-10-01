@@ -155,6 +155,9 @@ namespace Farmtronics.Bot {
 			}
 			ModEntry.instance.Monitor.Log($"Converting chest [owned by: {chest.owner.Value}] to bot.");
 			bot.owner.Value = chest.owner.Value;
+			
+			// Backwards compatibility
+			if (bot.owner.Value == 0) bot.owner.Value = Game1.player.UniqueMultiplayerID;
 
 			bot.modData.SetFromSerialization(chest.modData);
 			bot.data.Load();
