@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -628,13 +628,12 @@ namespace Farmtronics.Bot {
 				}
 				
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
-				this.performRemoveAction(farmer.getTileLocation(), location);
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
 				data.Save(ref deb.item.modData, true);
 				location.debris.Add(deb);
 				ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
-				location.removeObject(farmer.getTileLocation(), true);
+				location.removeObject(TileLocation, true);
 				if (shell != null) shell.interpreter.Stop();
 				BotManager.instances.Remove(this);
 				return false;
