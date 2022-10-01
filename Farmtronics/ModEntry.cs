@@ -56,7 +56,10 @@ namespace Farmtronics
 
 		private void OnPeerConnected(object sender, PeerConnectedEventArgs e) {
 			// At this point we can restore everything again
-			if (Context.IsMainPlayer) BotManager.ConvertChestsToBots();
+			if (Context.IsMainPlayer) {
+				BotManager.ConvertChestsToBots();
+				BotManager.InitShellAll();
+			}
 		}
 
 		private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e) {
