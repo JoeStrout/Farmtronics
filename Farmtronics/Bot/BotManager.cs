@@ -186,12 +186,10 @@ namespace Farmtronics.Bot {
 			bot.modData.SetFromSerialization(chest.modData);
 			bot.data.Load();
 
-			if (chest.items.Count <= bot.GetActualCapacity()) {
-				bot.inventory.Clear();
-				for (int i = 0; i < chest.items.Count && i < bot.GetActualCapacity(); i++) {
-					ModEntry.instance.Monitor.Log($"Moving {chest.items[i]} from chest to bot in slot {i}");
-					bot.inventory.Add(chest.items[i]);
-				}
+			bot.inventory.Clear();
+			for (int i = 0; i < chest.items.Count && i < bot.GetActualCapacity(); i++) {
+				ModEntry.instance.Monitor.Log($"Moving {chest.items[i].Name} from chest to bot in slot {i}");
+				bot.inventory.Add(chest.items[i]);
 			}
 			
 			chest.items.Clear();
