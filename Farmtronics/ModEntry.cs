@@ -147,6 +147,8 @@ namespace Farmtronics
 			var dlog = e.NewMenu as DialogueBox;
 			if (dlog == null) return;
 			if (!dlog.isQuestion || dlog.responses[0].responseKey != "Weather") return;
+			// Only allow players to use the home computer at their own cabin
+			if (Game1.player.currentLocation.NameOrUniqueName != Game1.player.homeLocation.Value) return;
 
 			// TV menu: insert a new option for the Home Computer
 			Response r = new Response("Farmtronics", I18n.TvChannel_Label());
