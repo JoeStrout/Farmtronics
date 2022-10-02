@@ -6,7 +6,7 @@ using StardewModdingAPI;
 using StardewValley;
 
 namespace Farmtronics.Multiplayer.Messages {
-	class AddBotInstance : BaseMessage {
+	class AddBotInstance : BaseMessage<AddBotInstance> {
 		public string LocationName { get; set; }
 		public Vector2 TileLocation { get; set; }
 

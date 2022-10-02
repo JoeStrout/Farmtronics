@@ -12,6 +12,9 @@ namespace Farmtronics.Multiplayer {
 		public static void OnPeerContextReceived(object sender, PeerContextReceivedEventArgs e) {
 			if (e.Peer.GetMod(ModEntry.instance.ModManifest.UniqueID) == null) {
 				ModEntry.instance.Monitor.Log($"Couldn't find Farmtronics for player {e.Peer.PlayerID}. Make sure the mod is correctly installed.", LogLevel.Error);
+			} else if (e.Peer.IsHost) {
+				ModEntry.instance.Monitor.Log($"Found host player ID: {e.Peer.PlayerID}");
+				hostID = e.Peer.PlayerID;
 			}
 		}
 		
@@ -40,27 +43,20 @@ namespace Farmtronics.Multiplayer {
 				addBotInstance.Apply();
 				return;
 			default:
-				ModEntry.instance.Monitor.Log($"Couldn't receive message of type: {e.Type}", LogLevel.Error);
+				ModEntry.instance.Monitor.Log($"Couldn't receive message of unknown type: {e.Type}", LogLevel.Error);
 				return;
 			}
 		}
 
-		public static void SendMessage(BaseMessage message, long[] playerIDs = null) {
+		public static void SendMessage<T>(T message, long[] playerIDs = null) where T : BaseMessage<T> {
 			if (!Context.IsMultiplayer) return;
 			
-			ModEntry.instance.Monitor.Log($"Sending message: {message}");
-
-			switch (message) {
-			case AddBotInstance addBotInstance:
-				ModEntry.instance.Helper.Multiplayer.SendMessage(addBotInstance, nameof(AddBotInstance), modIDs: new[] { ModEntry.instance.ModManifest.UniqueID }, playerIDs: playerIDs);
-				return;
-			default:
-				ModEntry.instance.Monitor.Log("Couldn't send message of unknown type.", LogLevel.Error);
-				return;
-			}
+			if (playerIDs != null) ModEntry.instance.Monitor.Log($"Sending message: {message} to {string.Join(',', playerIDs)}");
+			else ModEntry.instance.Monitor.Log($"Broadcasting message: {message}");
+			ModEntry.instance.Helper.Multiplayer.SendMessage(message, typeof(T).Name, modIDs: new[] { ModEntry.instance.ModManifest.UniqueID }, playerIDs: playerIDs);
 		}
 		
-		public static void SendMessageToHost(BaseMessage message) {
+		public static void SendMessageToHost<T>(T message) where T : BaseMessage<T> {
 			SendMessage(message, new[] { hostID });
 		}
 	}
