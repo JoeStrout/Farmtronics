@@ -11,17 +11,11 @@ namespace Farmtronics.Multiplayer.Messages {
 		public Vector2 TileLocation { get; set; }
 
 		public static void Send(BotObject bot) {
-			var message = new AddBotInstance(bot);
+			var message = new AddBotInstance() {
+				LocationName = bot.currentLocation.NameOrUniqueName,
+				TileLocation = bot.TileLocation
+			};
 			message.Send(new[] {bot.owner.Value});
-		}
-
-		public AddBotInstance() {
-
-		}
-
-		public AddBotInstance(BotObject bot) {
-			LocationName = bot.currentLocation.NameOrUniqueName;
-			TileLocation = bot.TileLocation;
 		}
 		
 		private BotObject GetBotFromLocation() {
