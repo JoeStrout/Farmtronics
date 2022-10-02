@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Farmtronics.Bot;
 using Farmtronics.M1;
 using Farmtronics.Multiplayer;
@@ -48,6 +48,8 @@ namespace Farmtronics
 			helper.Events.Multiplayer.PeerContextReceived += this.OnPeerContextReceived;
 			helper.Events.Multiplayer.PeerContextReceived += MultiplayerManager.OnPeerContextReceived;
 			helper.Events.Multiplayer.PeerConnected += this.OnPeerConnected;
+			helper.Events.Multiplayer.PeerConnected += MultiplayerManager.OnPeerConnected;
+			helper.Events.Multiplayer.PeerDisconnected += MultiplayerManager.OnPeerDisconnected;
 			
 			Assets.Initialize(helper);
 			Monitor.Log($"Loaded fontAtlas with size {Assets.FontAtlas.Width}x{Assets.FontAtlas.Height}");
@@ -187,6 +189,7 @@ namespace Farmtronics
 		public void OnSaveLoaded(object sender, SaveLoadedEventArgs args) {
 			if (Context.IsMainPlayer) {
 				if (SaveData.IsOldSaveDirPresent()) SaveData.MoveOldSaveDir();
+				MultiplayerManager.hostID = Game1.player.UniqueMultiplayerID;
 				BotManager.ConvertChestsToBots();
 			}
 		}

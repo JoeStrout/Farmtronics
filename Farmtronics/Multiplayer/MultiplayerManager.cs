@@ -1,13 +1,32 @@
+using System.Collections.Generic;
+using Farmtronics.M1.Filesystem;
 using Farmtronics.Multiplayer.Messages;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 
 namespace Farmtronics.Multiplayer {
 	static class MultiplayerManager {
+		internal static long hostID;
+		internal static Dictionary<long, RealFileDisk> remoteDisks = new();
+		
 		public static void OnPeerContextReceived(object sender, PeerContextReceivedEventArgs e) {
 			if (e.Peer.GetMod(ModEntry.instance.ModManifest.UniqueID) == null) {
 				ModEntry.instance.Monitor.Log($"Couldn't find Farmtronics for player {e.Peer.PlayerID}. Make sure the mod is correctly installed.", LogLevel.Error);
 			}
+		}
+		
+		public static void OnPeerConnected(object sender, PeerConnectedEventArgs e) {
+			if (Context.IsMainPlayer) {
+				SaveData.CreateUsrDisk(e.Peer.PlayerID);
+				var disk = new RealFileDisk(SaveData.GetUsrDiskPath(e.Peer.PlayerID));
+				disk.readOnly = false;
+				remoteDisks.Add(e.Peer.PlayerID, disk);
+			}
+			else if (e.Peer.IsHost) hostID = e.Peer.PlayerID;
+		}
+		
+		public static void OnPeerDisconnected(object sender, PeerDisconnectedEventArgs e) {
+			if (Context.IsMainPlayer) remoteDisks.Remove(e.Peer.PlayerID);
 		}
 
 		public static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e) {
@@ -39,6 +58,10 @@ namespace Farmtronics.Multiplayer {
 				ModEntry.instance.Monitor.Log("Couldn't send message of unknown type.", LogLevel.Error);
 				return;
 			}
+		}
+		
+		public static void SendMessageToHost(BaseMessage message) {
+			SendMessage(message, new[] { hostID });
 		}
 	}
 }

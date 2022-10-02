@@ -5,5 +5,9 @@ namespace Farmtronics.Multiplayer {
 		public void Send(long[] playerIDs = null) {
 			MultiplayerManager.SendMessage(this, playerIDs);
 		}
+		
+		public void SendToHost() {
+			MultiplayerManager.SendMessageToHost(this);
+		}
 	}
 }
