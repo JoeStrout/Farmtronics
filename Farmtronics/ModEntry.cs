@@ -29,28 +29,36 @@ namespace Farmtronics
 			MOD_ID = ModManifest.UniqueID;
 			I18n.Init(helper.Translation);
 			
-			helper.Events.Multiplayer.PeerContextReceived += this.OnPeerContextReceived;
-			helper.Events.Multiplayer.PeerConnected += this.OnPeerConnected;
-			helper.Events.Multiplayer.PeerContextReceived += MultiplayerManager.OnPeerContextReceived;
-			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
-			helper.Events.Multiplayer.ModMessageReceived += MultiplayerManager.OnModMessageReceived;
-			helper.Events.Display.MenuChanged += this.OnMenuChanged;
-			helper.Events.GameLoop.UpdateTicking += this.UpdateTicking;
 #if DEBUG
 			// HACK not needed:
 			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
 #endif
+			helper.Events.GameLoop.SaveCreated += this.OnSaveCreated;
+			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
 			helper.Events.GameLoop.Saving += this.OnSaving;
 			helper.Events.GameLoop.Saved += this.OnSaved;
-			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
 			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
+			helper.Events.GameLoop.UpdateTicking += this.UpdateTicking;
+			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
+
+			helper.Events.Display.MenuChanged += this.OnMenuChanged;		
             helper.Events.Content.AssetRequested += this.OnAssetRequested;
+
+			helper.Events.Multiplayer.ModMessageReceived += MultiplayerManager.OnModMessageReceived;
+			helper.Events.Multiplayer.PeerContextReceived += this.OnPeerContextReceived;
+			helper.Events.Multiplayer.PeerContextReceived += MultiplayerManager.OnPeerContextReceived;
+			helper.Events.Multiplayer.PeerConnected += this.OnPeerConnected;
 			
 			Assets.Initialize(helper);
 			Monitor.Log($"Loaded fontAtlas with size {Assets.FontAtlas.Width}x{Assets.FontAtlas.Height}");
 			Monitor.Log($"read {Assets.FontList.Length} lines from fontList, starting with {Assets.FontList[0]}");
 		}
 
+		private void OnSaveCreated(object sender, SaveCreatedEventArgs e) {
+			this.Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
+			SaveData.CreateSaveDataDirs();
+			SaveData.CreateUsrDisk(Game1.player.UniqueMultiplayerID);
+		}
 
 		private void OnPeerContextReceived(object sender, PeerContextReceivedEventArgs e) {
 			// This prevents a XML serialization error
@@ -60,7 +68,10 @@ namespace Farmtronics
 
 		private void OnPeerConnected(object sender, PeerConnectedEventArgs e) {
 			// At this point we can restore everything again
-			if (Context.IsMainPlayer) BotManager.ConvertChestsToBots();
+			if (Context.IsMainPlayer) {
+				SaveData.CreateUsrDisk(e.Peer.PlayerID);
+				BotManager.ConvertChestsToBots();
+			}
 			BotManager.InitShellAll();
 		}
 
@@ -103,7 +114,6 @@ namespace Farmtronics
 			//this.Monitor.Log($"OnButtonPressed: {e.Button}");
 			switch (e.Button) {
 			case SButton.PageUp:
-				this.Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
 				// Create a bot.
 				Vector2 pos = Game1.player.position;
 				pos.X -= 64;
@@ -175,7 +185,10 @@ namespace Farmtronics
 		}
 
 		public void OnSaveLoaded(object sender, SaveLoadedEventArgs args) {
-			if (Context.IsMainPlayer) BotManager.ConvertChestsToBots();
+			if (Context.IsMainPlayer) {
+				if (SaveData.IsOldSaveDirPresent()) SaveData.MoveOldSaveDir();
+				BotManager.ConvertChestsToBots();
+			}
 		}
 
 		public void OnDayStarted(object sender, DayStartedEventArgs args) {
