@@ -188,7 +188,7 @@ namespace Farmtronics.Bot {
 
 			bot.inventory.Clear();
 			for (int i = 0; i < chest.items.Count && i < bot.GetActualCapacity(); i++) {
-				ModEntry.instance.Monitor.Log($"Moving {chest.items[i].Name} from chest to bot in slot {i}");
+				ModEntry.instance.Monitor.Log($"Moving {chest.items[i]?.Name} from chest to bot in slot {i}");
 				bot.inventory.Add(chest.items[i]);
 			}
 			

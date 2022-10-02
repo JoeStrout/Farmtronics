@@ -188,6 +188,7 @@ namespace Farmtronics
 
 		public void OnSaveLoaded(object sender, SaveLoadedEventArgs args) {
 			if (Context.IsMainPlayer) {
+				SaveData.CreateSaveDataDirs();
 				if (SaveData.IsOldSaveDirPresent()) SaveData.MoveOldSaveDir();
 				MultiplayerManager.hostID = Game1.player.UniqueMultiplayerID;
 				BotManager.ConvertChestsToBots();
