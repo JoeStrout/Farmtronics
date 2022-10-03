@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Farmtronics.Bot;
 using Farmtronics.M1;
 using Farmtronics.Multiplayer;
@@ -190,6 +190,7 @@ namespace Farmtronics
 			if (Context.IsMainPlayer) {
 				SaveData.CreateSaveDataDirs();
 				if (SaveData.IsOldSaveDirPresent()) SaveData.MoveOldSaveDir();
+				ModEntry.instance.Monitor.Log($"Setting host player ID: {Game1.player.UniqueMultiplayerID}");
 				MultiplayerManager.hostID = Game1.player.UniqueMultiplayerID;
 				BotManager.ConvertChestsToBots();
 			}
@@ -212,7 +213,7 @@ namespace Farmtronics
 		private void InitComputerShell() {
 			if (shell == null) {
 				shell = new Shell();
-				shell.Init();
+				shell.Init(Game1.player.UniqueMultiplayerID);
 			}
 		}
 

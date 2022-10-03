@@ -779,7 +779,7 @@ namespace Farmtronics.Bot {
 		public void InitShell() {
 			if (shell == null) {
 				shell = new Shell();
-				shell.Init(this);
+				shell.Init(owner.Value, this);
 			}
 		}
 

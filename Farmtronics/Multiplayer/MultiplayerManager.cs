@@ -25,7 +25,6 @@ namespace Farmtronics.Multiplayer {
 				disk.readOnly = false;
 				remoteDisks.Add(e.Peer.PlayerID, disk);
 			}
-			else if (e.Peer.IsHost) hostID = e.Peer.PlayerID;
 		}
 		
 		public static void OnPeerDisconnected(object sender, PeerDisconnectedEventArgs e) {
@@ -54,6 +53,7 @@ namespace Farmtronics.Multiplayer {
 			if (playerIDs != null) ModEntry.instance.Monitor.Log($"Sending message: {message} to {string.Join(',', playerIDs)}");
 			else ModEntry.instance.Monitor.Log($"Broadcasting message: {message}");
 			ModEntry.instance.Helper.Multiplayer.SendMessage(message, typeof(T).Name, modIDs: new[] { ModEntry.instance.ModManifest.UniqueID }, playerIDs: playerIDs);
+			ModEntry.instance.Monitor.Log("Message sent successfully!");
 		}
 		
 		public static void SendMessageToHost<T>(T message) where T : BaseMessage<T> {

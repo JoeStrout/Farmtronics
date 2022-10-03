@@ -53,7 +53,7 @@ namespace Farmtronics.M1 {
 			interpreter.hostData = this;
 		}
 
-		public void Init(BotObject botContext=null) {
+		public void Init(long playerID, BotObject botContext=null) {
 			this.bot = botContext;
 			M1API.Init(this);
 
@@ -80,17 +80,18 @@ namespace Farmtronics.M1 {
 			}
 
 			{
-				var d = new RealFileDisk();
+				var d = new RealFileDisk(Path.Combine(ModEntry.instance.Helper.DirectoryPath, "assets", "sysdisk"));
 				d.readOnly = true;
-				d.Open(Path.Combine(ModEntry.instance.Helper.DirectoryPath, "assets", "sysdisk"));
 				sysDisk = d;
 				FileUtils.disks["sys"] = sysDisk;
 			}
-			if (!string.IsNullOrEmpty(Constants.CurrentSavePath)) {
-				var d = new RealFileDisk();
+			if (Context.IsOnHostComputer) {
+				var d = new RealFileDisk(SaveData.GetUsrDiskPath(playerID));
 				d.readOnly = false;
-				d.Open(Path.Combine(Constants.CurrentSavePath, "usrdisk"));
 				FileUtils.disks["usr"] = d;
+			}
+			else {
+				FileUtils.disks["usr"] = new MemoryFileDisk();
 			}
 
 			// Prepare the env map
