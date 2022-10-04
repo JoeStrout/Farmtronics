@@ -9,6 +9,7 @@ using Farmtronics.M1;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
@@ -605,7 +606,7 @@ namespace Farmtronics.Bot {
 			// ModEntry.instance.Monitor.Log($"UpdateWhenCurrentLocation: {time} {environment}");
 			if (shakeTimer > 0) shakeTimer--;
 			
-			data.Load(false);
+			if (Context.IsMultiplayer && owner.Value != Game1.player.UniqueMultiplayerID) data.Load(false);
 		}
 
 		public override bool performToolAction(Tool t, GameLocation location) {
