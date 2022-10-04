@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
@@ -19,30 +20,33 @@ namespace Farmtronics.Bot {
 		public Color			ScreenColor { get; internal set; } = Color.Transparent;
 		public Color			StatusColor { get; internal set; } = Color.Yellow;
 		
+		private static string GetModDataValue(ModDataDictionary data, string key, string defaultValue = "") {
+			return data.TryGetValue(ModEntry.GetModDataKey(key.FirstToLower()), out string value) ? value : defaultValue;
+		}
+		
+		private static T GetModDataValue<T>(ModDataDictionary data, string key, T defaultValue = default) {
+			return data.TryGetValue(ModEntry.GetModDataKey(key.FirstToLower()), out string value) ? (T)Convert.ChangeType(value, typeof(T)) : defaultValue;
+		}
+		
 		public static bool IsBotData(ModDataDictionary data) {
-			if (data.TryGetValue(ModEntry.GetModDataKey(nameof(IsBot).FirstToLower()), out string isBot)) {
-				return int.Parse(isBot) == 1;
-			}
-			return false;
+			return GetModDataValue<int>(data, nameof(IsBot)) == 1;
 		}
 		
 		internal void Load(bool applyEnergy = true) {
-			if (bot.modData.TryGetValue(ModEntry.GetModDataKey(nameof(IsBot).FirstToLower()), out string isBot)) IsBot = int.Parse(isBot) == 1;
-			if (bot.modData.TryGetValue(ModEntry.GetModDataKey(nameof(ModVersion).FirstToLower()), out string modVer) && SemanticVersion.TryParse(modVer, out ISemanticVersion modVersion)) ModVersion = modVersion;
-			if (bot.modData.TryGetValue(ModEntry.GetModDataKey(nameof(Name).FirstToLower()), out string name)) Name = name;
-			if (bot.modData.TryGetValue(ModEntry.GetModDataKey(nameof(Energy).FirstToLower()), out string energy)) Energy = float.Parse(energy);
-			if (bot.modData.TryGetValue(ModEntry.GetModDataKey(nameof(Facing).FirstToLower()), out string facing)) Facing = int.Parse(facing);
+			IsBot = GetModDataValue<int>(bot.modData, nameof(IsBot)) == 1;
+			ModVersion = new SemanticVersion(GetModDataValue(bot.modData, nameof(ModVersion), "1.2.0"));
+			Name = GetModDataValue(bot.modData, nameof(Name), I18n.Bot_Name());
+			Energy = GetModDataValue<float>(bot.modData, nameof(Energy), Farmer.startingStamina);
+			Facing = GetModDataValue<int>(bot.modData, nameof(Facing));
+			
+			ScreenColor = GetModDataValue(bot.modData, nameof(ScreenColor)).ToColor();
+			StatusColor = GetModDataValue(bot.modData, nameof(StatusColor)).ToColor();
 
-			if (bot.modData.TryGetValue(ModEntry.GetModDataKey(nameof(ScreenColor).FirstToLower()), out string screenColor)) ScreenColor = screenColor.ToColor();
-			if (bot.modData.TryGetValue(ModEntry.GetModDataKey(nameof(StatusColor).FirstToLower()), out string statusColor)) StatusColor = statusColor.ToColor();
-
-			if (ModVersion == null) ModVersion = new SemanticVersion(1, 2, 0);
-			else {
+			ModEntry.instance.Monitor.Log($"ModVersion of modData: {ModVersion}");
+			if (ModVersion.IsOlderThan(ModEntry.instance.ModManifest.Version)) {
 				// NOTE: Do ModData update stuff here
 				ModVersion = ModEntry.instance.ModManifest.Version;
 			}
-			
-			if (Name == null) Name = I18n.Bot_Name();
 
 			if (bot.BotName != Name) bot.BotName = Name;
 			if (bot.facingDirection != Facing) bot.facingDirection = Facing;
@@ -84,8 +88,9 @@ namespace Farmtronics.Bot {
 		}
 		
 		public void RemoveEnergy(ref ModDataDictionary data) {
-			if (data.ContainsKey((ModEntry.GetModDataKey(nameof(Energy).FirstToLower()))))
-				data.Remove((ModEntry.GetModDataKey(nameof(Energy).FirstToLower())));
+			var energyKey = ModEntry.GetModDataKey(nameof(Energy).FirstToLower());
+			if (data.ContainsKey(energyKey))
+				data.Remove(energyKey);
 		}
 		
 		public void RemoveEnergy() {
