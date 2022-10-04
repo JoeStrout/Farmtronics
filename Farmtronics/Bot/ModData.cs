@@ -10,15 +10,15 @@ namespace Farmtronics.Bot {
 		private readonly BotObject bot;
 		
 		// mod data keys, used for saving/loading extra data with the game save:
-		public bool 			IsBot		{ get; internal set; } = true;
+		public bool 			IsBot		{ get; internal set; }
 		public ISemanticVersion ModVersion	{ get; internal set; }
 		public string 			Name		{ get; internal set; }
 		public float			Energy		{ get; internal set; }
 		public int 				Facing		{ get; internal set; }
 
 		// the following mod data keys, won't be saved and are only used for multiplayer synchronization
-		public Color			ScreenColor { get; internal set; } = Color.Transparent;
-		public Color			StatusColor { get; internal set; } = Color.Yellow;
+		public Color			ScreenColor { get; internal set; }
+		public Color			StatusColor { get; internal set; }
 		
 		private static string GetModDataValue(ModDataDictionary data, string key, string defaultValue = "") {
 			return data.TryGetValue(ModEntry.GetModDataKey(key.FirstToLower()), out string value) ? value : defaultValue;
@@ -33,16 +33,23 @@ namespace Farmtronics.Bot {
 		}
 		
 		internal void Load(bool applyEnergy = true) {
-			IsBot = GetModDataValue<int>(bot.modData, nameof(IsBot)) == 1;
-			ModVersion = new SemanticVersion(GetModDataValue(bot.modData, nameof(ModVersion), "1.2.0"));
+			IsBot = GetModDataValue<int>(bot.modData, nameof(IsBot), 1) == 1;
+			ModVersion = new SemanticVersion(GetModDataValue(bot.modData, nameof(ModVersion), ModEntry.instance.ModManifest.Version.ToString()));
 			Name = GetModDataValue(bot.modData, nameof(Name), I18n.Bot_Name());
 			Energy = GetModDataValue<float>(bot.modData, nameof(Energy), Farmer.startingStamina);
 			Facing = GetModDataValue<int>(bot.modData, nameof(Facing));
 			
-			ScreenColor = GetModDataValue(bot.modData, nameof(ScreenColor)).ToColor();
-			StatusColor = GetModDataValue(bot.modData, nameof(StatusColor)).ToColor();
+			ScreenColor = GetModDataValue(bot.modData, nameof(ScreenColor), Color.Transparent.ToHexString()).ToColor();
+			StatusColor = GetModDataValue(bot.modData, nameof(StatusColor), Color.Yellow.ToHexString()).ToColor();
+			
+			ModEntry.instance.Monitor.Log($"IsBot: {IsBot}");
+			ModEntry.instance.Monitor.Log($"ModVersion: {ModVersion}");
+			ModEntry.instance.Monitor.Log($"Name: {Name}");
+			ModEntry.instance.Monitor.Log($"Energy: {Energy}");
+			ModEntry.instance.Monitor.Log($"Facing: {Facing}");
+			ModEntry.instance.Monitor.Log($"ScreenColor: {ScreenColor}");
+			ModEntry.instance.Monitor.Log($"StatusColor: {StatusColor}");
 
-			ModEntry.instance.Monitor.Log($"ModVersion of modData: {ModVersion}");
 			if (ModVersion.IsOlderThan(ModEntry.instance.ModManifest.Version)) {
 				// NOTE: Do ModData update stuff here
 				ModVersion = ModEntry.instance.ModManifest.Version;
