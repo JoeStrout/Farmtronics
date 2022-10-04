@@ -37,6 +37,11 @@ namespace Farmtronics.Bot {
 			if (bot.modData.TryGetValue(ModEntry.GetModDataKey(nameof(StatusColor).FirstToLower()), out string statusColor)) StatusColor = statusColor.ToColor();
 
 			if (ModVersion == null) ModVersion = new SemanticVersion(1, 2, 0);
+			else {
+				// NOTE: Do ModData update stuff here
+				ModVersion = ModEntry.instance.ModManifest.Version;
+			}
+			
 			if (Name == null) Name = I18n.Bot_Name();
 
 			if (bot.BotName != Name) bot.BotName = Name;
