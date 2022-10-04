@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using Farmtronics.M1.Filesystem;
 using M1FileInfo = Farmtronics.M1.Filesystem.FileInfo;
 
@@ -156,5 +158,37 @@ namespace Farmtronics.Utils {
 				return e.Message;
 			}
 		}
-	}	
+		
+		private static MemoryDirectory BuildMemorySubDirectory(RealFileDisk disk, string dirPath, M1FileInfo dirInfo) {
+			MemoryDirectory subDir = new() {
+				DirInfo = dirInfo
+			};
+			foreach (var filename in disk.GetFileNames(dirPath)) {
+				var filePath = Path.Combine(dirPath, filename);
+				var fileInfo = disk.GetFileInfo(filePath);
+				if (fileInfo.isDirectory) {
+					subDir.Subdirectories.Add(filename, BuildMemorySubDirectory(disk, filePath, fileInfo));
+				} else {
+					subDir.Files.Add(filename, Tuple.Create(fileInfo, disk.ReadBinary(filePath)));
+				}
+			}
+			
+			return subDir;
+		}
+		
+		public static MemoryDirectory BuildMemoryDirectory(this RealFileDisk disk) {
+			MemoryDirectory memDir = new();
+			// Get root directory entries
+			foreach (var filename in disk.GetFileNames("")) {
+				var fileInfo = disk.GetFileInfo(filename);
+				if (fileInfo.isDirectory) {
+					memDir.Subdirectories.Add(filename, BuildMemorySubDirectory(disk, filename, fileInfo));
+				} else {
+					memDir.Files.Add(filename, Tuple.Create(fileInfo, disk.ReadBinary(filename)));
+				}
+			}
+			
+			return memDir;
+		}
+	}
 }

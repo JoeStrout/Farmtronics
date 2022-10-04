@@ -1,10 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
+using Farmtronics.Multiplayer.Messages;
 using StardewModdingAPI.Utilities;
 
 namespace Farmtronics.M1.Filesystem {
 	class MemoryFileDisk : Disk {
 		internal MemoryDirectory root;
+		
+		// Request initial data sync
+		public MemoryFileDisk() {
+			new SyncMemoryFileDisk().SendToHost();
+		}
 		
 		public override bool IsWriteable() {
 			return true;
@@ -12,7 +18,7 @@ namespace Farmtronics.M1.Filesystem {
 		
 		public override FileInfo GetFileInfo(string filePath) {
 			if (root == null) return null;
-			
+
 			return root.GetFileInfo(PathUtilities.GetSegments(filePath).ToList());
 		}
 

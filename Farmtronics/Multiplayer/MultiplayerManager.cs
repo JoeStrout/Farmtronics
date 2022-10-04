@@ -41,6 +41,11 @@ namespace Farmtronics.Multiplayer {
 				AddBotInstance addBotInstance = e.ReadAs<AddBotInstance>();
 				addBotInstance.Apply();
 				return;
+			case nameof(SyncMemoryFileDisk):
+				SyncMemoryFileDisk syncMemDisk = e.ReadAs<SyncMemoryFileDisk>();
+				if (Context.IsMainPlayer) syncMemDisk.Apply(e.FromPlayerID);
+				else syncMemDisk.Apply();
+				return;
 			default:
 				ModEntry.instance.Monitor.Log($"Couldn't receive message of unknown type: {e.Type}", LogLevel.Error);
 				return;
