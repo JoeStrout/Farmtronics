@@ -67,6 +67,10 @@ namespace Farmtronics.Multiplayer {
 					updateMemDisk.Apply();
 				}
 				return;
+			case nameof(AddBotChatMessage):
+				AddBotChatMessage addBotChatMessage = e.ReadAs<AddBotChatMessage>();
+				addBotChatMessage.Apply();
+				return;
 			default:
 				ModEntry.instance.Monitor.Log($"Couldn't receive message of unknown type: {e.Type}", LogLevel.Error);
 				return;

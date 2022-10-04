@@ -1,4 +1,4 @@
-/*
+﻿/*
 This static class implements the APIs that extend MiniScript with
 custom intrinsic functions/classes for use on the M-1.
 */
@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Farmtronics.M1.Filesystem;
 using Farmtronics.M1.GUI;
+using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Miniscript;
@@ -1657,7 +1658,7 @@ namespace Farmtronics.M1 {
 					if (sh.bot == null) name = "Home Computer";
 					else name = sh.bot.BotName;
 					TextDisplay disp = sh.textDisplay;
-					Game1.chatBox.addMessage(name + ": " + msg, disp.textColor);
+					AddBotChatMessage.Send(name, msg, disp.textColor);
 					return Intrinsic.Result.Null;
                 };
 				worldInfo["chat"] = f.GetFunc();
