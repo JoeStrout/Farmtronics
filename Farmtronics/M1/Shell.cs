@@ -85,13 +85,15 @@ namespace Farmtronics.M1 {
 				sysDisk = d;
 				FileUtils.disks["sys"] = sysDisk;
 			}
-			if (Context.IsOnHostComputer) {
+			if (Context.IsMainPlayer) {
 				var d = new RealFileDisk(SaveData.GetUsrDiskPath(playerID));
 				d.readOnly = false;
 				FileUtils.disks["usr"] = d;
+				FileUtils.disks["net"] = new SharedRealFileDisk("net", SaveData.NetDiskPath);
 			}
 			else {
-				FileUtils.disks["usr"] = new MemoryFileDisk();
+				FileUtils.disks["usr"] = new MemoryFileDisk("usr");
+				FileUtils.disks["net"] = new MemoryFileDisk("net", true);
 			}
 
 			// Prepare the env map

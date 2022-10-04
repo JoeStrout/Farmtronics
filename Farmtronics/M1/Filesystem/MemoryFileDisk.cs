@@ -6,11 +6,30 @@ using StardewModdingAPI.Utilities;
 
 namespace Farmtronics.M1.Filesystem {
 	class MemoryFileDisk : Disk {
+		internal string diskName;
+		internal bool sharedDisk;
 		internal MemoryDirectory root;
 		
 		// Request initial data sync
-		public MemoryFileDisk() {
-			new SyncMemoryFileDisk().SendToHost();
+		public MemoryFileDisk(string diskName, bool sharedDisk = false) {
+			this.diskName = diskName;
+			this.sharedDisk = sharedDisk;
+			
+			new SyncMemoryFileDisk(){
+				DiskName = diskName
+			}.SendToHost();
+		}
+		
+		private void SendUpdateMessage(MemoryFileDiskAction action, string filePath, byte[] data = null) {
+			var updateMessage = new UpdateMemoryFileDisk() {
+				DiskName = diskName,
+				Action = action,
+				FilePath = filePath,
+				Data = data
+			};
+			
+			if (!sharedDisk) updateMessage.SendToHost();
+			else updateMessage.Send();
 		}
 		
 		public override bool IsWriteable() {
@@ -47,23 +66,15 @@ namespace Farmtronics.M1.Filesystem {
 			
 			root.WriteTextFile(PathUtilities.GetSegments(filePath).ToList(), text);
 			
-			new UpdateMemoryFileDisk() {
-				Action = MemoryFileDiskAction.Write,
-				FilePath = filePath,
-				Data = Encoding.Default.GetBytes(text)
-			}.SendToHost();
+			SendUpdateMessage(MemoryFileDiskAction.Write, filePath, Encoding.Default.GetBytes(text));
 		}
 
 		public override void WriteBinary(string filePath, byte[] data) {
 			if (root == null) return;
 			
 			root.WriteBinaryFile(PathUtilities.GetSegments(filePath).ToList(), data);
-			
-			new UpdateMemoryFileDisk() {
-				Action = MemoryFileDiskAction.Write,
-				FilePath = filePath,
-				Data = data
-			}.SendToHost();
+
+			SendUpdateMessage(MemoryFileDiskAction.Write, filePath, data);
 		}
 
 		public override bool MakeDir(string dirPath, out string errMsg) {
@@ -72,10 +83,7 @@ namespace Farmtronics.M1.Filesystem {
 			
 			var result = root.MakeDir(PathUtilities.GetSegments(dirPath).ToList(), out errMsg);
 			if (result) {
-				new UpdateMemoryFileDisk() {
-					Action = MemoryFileDiskAction.MakeDir,
-					FilePath = dirPath
-				}.SendToHost();
+				SendUpdateMessage(MemoryFileDiskAction.MakeDir, dirPath);
 			}
 			return result;
 		}
@@ -86,10 +94,7 @@ namespace Farmtronics.M1.Filesystem {
 			
 			var result = root.Delete(PathUtilities.GetSegments(filePath).ToList(), out errMsg);			
 			if (result) {
-				new UpdateMemoryFileDisk() {
-					Action = MemoryFileDiskAction.Delete,
-					FilePath = filePath
-				}.SendToHost();
+				SendUpdateMessage(MemoryFileDiskAction.Delete, filePath);
 			}
 			return result;
 		}

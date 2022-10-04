@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Farmtronics.M1.Filesystem;
 using Farmtronics.Multiplayer.Messages;
+using Farmtronics.Utils;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 
@@ -49,7 +50,20 @@ namespace Farmtronics.Multiplayer {
 			case nameof(UpdateMemoryFileDisk):
 				UpdateMemoryFileDisk updateMemDisk = e.ReadAs<UpdateMemoryFileDisk>();
 				if (Context.IsMainPlayer) {
-					if (remoteDisks.ContainsKey(e.FromPlayerID)) updateMemDisk.Disk = remoteDisks[e.FromPlayerID];
+					if (updateMemDisk.DiskName == "usr" && remoteDisks.ContainsKey(e.FromPlayerID)) {
+						updateMemDisk.Disk = remoteDisks[e.FromPlayerID];
+						updateMemDisk.Apply();
+					} else if (updateMemDisk.DiskName != "usr") {
+						var sharedDisk = FileUtils.disks[updateMemDisk.DiskName] as SharedRealFileDisk;
+						if (sharedDisk != null) {
+							sharedDisk.sendUpdate = false;
+							updateMemDisk.Disk = sharedDisk;
+							updateMemDisk.Apply();
+							sharedDisk.sendUpdate = true;
+						}
+					}
+				} else if (updateMemDisk.DiskName != "usr" && FileUtils.disks.ContainsKey(updateMemDisk.DiskName)) {
+					updateMemDisk.Disk = FileUtils.disks[updateMemDisk.DiskName];
 					updateMemDisk.Apply();
 				}
 				return;

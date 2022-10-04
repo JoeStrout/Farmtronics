@@ -3,7 +3,8 @@ using StardewModdingAPI;
 
 namespace Farmtronics.Multiplayer.Messages {
 	internal class UpdateMemoryFileDisk : BaseMessage<UpdateMemoryFileDisk> {
-		internal RealFileDisk Disk { get; set; }
+		internal Disk Disk { get; set; }
+		public string DiskName { get; set; }
 		public string FilePath { get; set; }
 		public MemoryFileDiskAction Action { get; set; }
 		public byte[] Data { get; set; }
