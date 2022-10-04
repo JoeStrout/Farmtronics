@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Farmtronics.M1.Filesystem {
 	class RealFileDisk : Disk {
@@ -8,7 +9,7 @@ namespace Farmtronics.M1.Filesystem {
 
 		string basePath;    // our real (native) base path
 
-		public void Open(string basePath) {
+		public RealFileDisk(string basePath) {
 			this.basePath = Path.GetFullPath(basePath);
 			//ModEntry.instance.Monitor.Log("Set base path to: " + this.basePath);
 			if (!Directory.Exists(this.basePath)) {
@@ -34,30 +35,13 @@ namespace Farmtronics.M1.Filesystem {
 
 		/// <summary>
 		/// Get a list of files in the given directory (which must end in "/").
-		/// If dirPath is null, then returns ALL files on the disk, in all directories,
-		/// with their full paths.  Otherwise, it returns just the names (not paths)
-		/// of files immediately within the given directory.
+		/// Returns just the names (not paths) of files immediately within the
+		/// given directory.
 		/// </summary>
 		public override List<string> GetFileNames(string dirPath) {
 			//ModEntry.instance.Monitor.Log("GetFileNames(" + dirPath + ")");
 			ShowDiskLight(false);
-			var names = new List<string>(Directory.GetFileSystemEntries(NativePath(dirPath)));
-			for (int i = 0; i < names.Count; i++) {
-				names[i] = Path.GetFileName(names[i]);
-			}
-			return names;
-		}
-
-		/// <summary>
-		/// Return whether a file or directory exists at the given path.  If so, also set
-		/// isDirectory to whether it is a directory.
-		/// </summary>
-		public override bool Exists(string filePath, out bool isDirectory) {
-			isDirectory = false;
-			var finfo = GetFileInfo(filePath);
-			if (finfo == null) return false;
-			isDirectory = finfo.isDirectory;
-			return true;
+			return Directory.GetFileSystemEntries(NativePath(dirPath)).Select(entry => Path.GetFileName(entry)).ToList();
 		}
 
 		public override FileInfo GetFileInfo(string filePath) {
@@ -99,7 +83,7 @@ namespace Farmtronics.M1.Filesystem {
 			*/
 
 			var result = new FileInfo();
-			result.isDirectory = (attr & FileAttributes.Directory) > 0;
+			result.isDirectory = attr.HasFlag(FileAttributes.Directory);
 			if (result.isDirectory) {
 				var info = new System.IO.DirectoryInfo(filePath);
 				result.date = info.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss");
@@ -162,7 +146,7 @@ namespace Farmtronics.M1.Filesystem {
 		/// </summary>
 		public override bool MakeDir(string dirPath, out string errMsg) {
 			if (readOnly) {
-				errMsg = "disk not writeable";
+				errMsg = "Disk not writeable";
 				return false;
 			}
 			ShowDiskLight(true);
@@ -182,7 +166,7 @@ namespace Farmtronics.M1.Filesystem {
 		/// </summary>
 		public override bool Delete(string filePath, out string errMsg) {
 			if (readOnly) {
-				errMsg = "disk not writeable";
+				errMsg = "Disk not writeable";
 				return false;
 			}
 			ShowDiskLight(true);

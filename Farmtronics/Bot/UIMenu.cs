@@ -56,12 +56,6 @@ namespace Farmtronics.Bot {
 			//print($"playerInvHeight:{playerInvHeight}, consoleTop:{consoleTop} (={Game1.uiViewport.Height/2}-{totalHeight/2}), new yPositionOnScreen:{totalHeight - playerInvHeight - yPositionForInventory}");
 
 			movePosition(0, playerInvYDelta);	// (adjust position of player UI)
-			
-			// Inventory indices have to exist, since InventoryMenu exclusively uses them and can't assign items otherwise.
-			for (int i = bot.inventory.Count; i < bot.GetActualCapacity(); i++)
-			{
-				bot.inventory.Add(null);
-			}
 
 			botInventoryMenu = new InventoryMenu(Game1.uiViewport.Width/2 - widthOfTopStuff/2, consoleTop, playerInventory: false, bot.inventory,
 				capacity: bot.GetActualCapacity(), rows: 6);

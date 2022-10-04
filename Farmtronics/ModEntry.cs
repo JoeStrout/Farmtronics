@@ -1,6 +1,7 @@
 ﻿using System;
 using Farmtronics.Bot;
 using Farmtronics.M1;
+using Farmtronics.Multiplayer;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -28,27 +29,41 @@ namespace Farmtronics
 			MOD_ID = ModManifest.UniqueID;
 			I18n.Init(helper.Translation);
 			
-			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
-			helper.Events.Display.MenuChanged += this.OnMenuChanged;
-			helper.Events.GameLoop.UpdateTicking += this.UpdateTicking;
 #if DEBUG
 			// HACK not needed:
 			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
 #endif
+			helper.Events.GameLoop.SaveCreated += this.OnSaveCreated;
+			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
 			helper.Events.GameLoop.Saving += this.OnSaving;
 			helper.Events.GameLoop.Saved += this.OnSaved;
-			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
 			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
+			helper.Events.GameLoop.UpdateTicking += this.UpdateTicking;
+			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
+
+			helper.Events.Display.MenuChanged += this.OnMenuChanged;		
             helper.Events.Content.AssetRequested += this.OnAssetRequested;
+
+			helper.Events.Multiplayer.ModMessageReceived += MultiplayerManager.OnModMessageReceived;
+			helper.Events.Multiplayer.PeerContextReceived += MultiplayerManager.OnPeerContextReceived;
+			helper.Events.Multiplayer.PeerConnected += MultiplayerManager.OnPeerConnected;
+			helper.Events.Multiplayer.PeerDisconnected += MultiplayerManager.OnPeerDisconnected;
 			
 			Assets.Initialize(helper);
 			Monitor.Log($"Loaded fontAtlas with size {Assets.FontAtlas.Width}x{Assets.FontAtlas.Height}");
 			Monitor.Log($"read {Assets.FontList.Length} lines from fontList, starting with {Assets.FontList[0]}");
 		}
 
+		private void OnSaveCreated(object sender, SaveCreatedEventArgs e) {
+			this.Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
+			SaveData.CreateSaveDataDirs();
+			SaveData.CreateUsrDisk(Game1.player.UniqueMultiplayerID);
+		}
 
 		private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e) {
 			BotManager.ClearAll();
+			MultiplayerManager.remoteComputer.Clear();
+			MultiplayerManager.remoteDisks.Clear();
 			shell = null;
 		}
 
@@ -58,6 +73,27 @@ namespace Farmtronics
 			BotManager.UpdateAll(gameTime);
 			prevTicks = e.Ticks;
 		}
+		
+		// NOTE: Only check the mailbox once per day and only when the player warps to the farm
+		//		 This prevents XML serialization errors
+		private void OnPlayerWarped(object sender, WarpedEventArgs args) {
+			if (!args.IsLocalPlayer || args.NewLocation is not Farm) return;
+			
+			// Check whether we have our first-bot letter waiting in the mailbox.
+			// If so, set the item to be "recovered" via the mail:
+			foreach (var msg in Game1.player.mailbox) {
+				this.Monitor.Log($"Mail in mailbox: {msg}");
+				if (msg == "FarmtronicsFirstBotMail") {
+					this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
+					var bot = new BotObject();
+					bot.owner.Value = Game1.player.UniqueMultiplayerID;
+					Game1.player.recoveredItem = bot;
+					break;
+				}
+			}
+			
+			Helper.Events.Player.Warped -= OnPlayerWarped;
+		}
 
 #if DEBUG
 		// HACK used only for early testing/development:
@@ -65,15 +101,16 @@ namespace Farmtronics
 			//this.Monitor.Log($"OnButtonPressed: {e.Button}");
 			switch (e.Button) {
 			case SButton.PageUp:
-				this.Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
 				// Create a bot.
 				Vector2 pos = Game1.player.position;
 				pos.X -= 64;
 				Vector2 tilePos = pos.GetTilePosition();
 				var bot = new BotObject(tilePos);
+				bot.owner.Value = Game1.player.UniqueMultiplayerID;
 
 				//Game1.currentLocation.dropObject(bot, pos, Game1.viewport, true, (Farmer)null);
-				Game1.player.currentLocation.overlayObjects[tilePos] = bot;
+				Game1.player.currentLocation.setObject(tilePos, bot);
+				BotManager.instances.Add(bot);
 				break;
 			
 			case SButton.PageDown:
@@ -86,18 +123,6 @@ namespace Farmtronics
 		
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
 			this.Monitor.Log($"Menu opened: {e.NewMenu}");
-			if (e.NewMenu is LetterViewerMenu) {
-				this.Monitor.Log("Hey hey, it's a LetterViewerMenu!");
-				foreach (var msg in Game1.player.mailbox) {
-					this.Monitor.Log($"Mail in mailbox: {msg}");
-					if (msg == "FarmtronicsFirstBotMail") {
-						this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-						Game1.player.recoveredItem = new BotObject();
-						break;
-					}
-				}
-				return;
-			}
 			if (e.NewMenu is ShopMenu shop) {
 				if (shop.portraitPerson != Game1.getCharacterFromName("Pierre")) return;
 				if (Game1.player.mailReceived.Contains("FarmtronicsFirstBotMail")) {
@@ -110,6 +135,7 @@ namespace Farmtronics
 						if (item.Name == "Catalogue" || (index>0 && shop.forSale[index-1].Name == "Flooring")) break;
 					}
 					var botForSale = new BotObject();
+					botForSale.owner.Value = Game1.player.UniqueMultiplayerID;
 					shop.forSale.Insert(index, botForSale);
 					shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });	// sale price and available stock
 				}
@@ -118,6 +144,8 @@ namespace Farmtronics
 			var dlog = e.NewMenu as DialogueBox;
 			if (dlog == null) return;
 			if (!dlog.isQuestion || dlog.responses[0].responseKey != "Weather") return;
+			// Only allow players to use the home computer at their own cabin
+			if (Game1.player.currentLocation.NameOrUniqueName != Game1.player.homeLocation.Value) return;
 
 			// TV menu: insert a new option for the Home Computer
 			Response r = new Response("Farmtronics", I18n.TvChannel_Label());
@@ -135,7 +163,8 @@ namespace Farmtronics
 		}
 
 		public void OnSaving(object sender, SavingEventArgs args) {
-			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests();
+			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests(true);
+			BotManager.ClearAll();
 		}
 
 		public void OnSaved(object sender, SavedEventArgs args) {
@@ -143,25 +172,23 @@ namespace Farmtronics
 		}
 
 		public void OnSaveLoaded(object sender, SaveLoadedEventArgs args) {
-			if (Context.IsMainPlayer) BotManager.ConvertChestsToBots();
+			if (Context.IsMainPlayer) {
+				SaveData.CreateSaveDataDirs();
+				if (SaveData.IsOldSaveDirPresent()) SaveData.MoveOldSaveDir();
+				ModEntry.instance.Monitor.Log($"Setting host player ID: {Game1.player.UniqueMultiplayerID}");
+				MultiplayerManager.hostID = Game1.player.UniqueMultiplayerID;
+				BotManager.ConvertChestsToBots();
+			}
 		}
 
 		public void OnDayStarted(object sender, DayStartedEventArgs args) {
-			this.Monitor.Log($"OnDayStarted");
-			// Check whether we have our first-bot letter waiting in the mailbox.
-			// If so, set the item to be "recovered" via the mail:
-			foreach (var msg in Game1.player.mailbox) {
-				this.Monitor.Log($"Mail in mailbox: {msg}");
-				if (msg == "FarmtronicsFirstBotMail") {
-					this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-					Game1.player.recoveredItem = new BotObject();
-					break;
-				}
-			}
+			Monitor.Log($"OnDayStarted");
+			Helper.Events.Player.Warped += OnPlayerWarped;
 
 			// Initialize the home computer and all bots for autostart.
 			// This initialization will also cause all startup scripts to run.
 			InitComputerShell();
+			if (Context.IsMainPlayer) MultiplayerManager.InitRemoteComputer();
 			BotManager.InitShellAll();
 		}
 
@@ -172,7 +199,7 @@ namespace Farmtronics
 		private void InitComputerShell() {
 			if (shell == null) {
 				shell = new Shell();
-				shell.Init();
+				shell.Init(Game1.player.UniqueMultiplayerID);
 			}
 		}
 
@@ -195,7 +222,9 @@ namespace Farmtronics
                         this.Monitor.Log($"mail in mailbox: {msg}");
                         if (msg == "FarmtronicsFirstBotMail") {
                             this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
-                            Game1.player.recoveredItem = new BotObject();
+							var bot = new BotObject();
+							bot.owner.Value = Game1.player.UniqueMultiplayerID;
+                            Game1.player.recoveredItem = bot;
                             break;
                         }
                     }

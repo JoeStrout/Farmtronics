@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Farmtronics.M1.Filesystem;
 using Farmtronics.M1.GUI;
+using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Miniscript;
@@ -441,10 +442,14 @@ namespace Farmtronics.M1 {
 				//ModEntry.instance.Monitor.Log($"botModule {key} = {value}");
 				if (keyStr == "name") {
 					string name = value.ToString();
-					if (!string.IsNullOrEmpty(name)) Shell.runningInstance.bot.BotName = name;
+					if (!string.IsNullOrEmpty(name)) {
+						Shell.runningInstance.bot.BotName = name;
+						if (Context.IsMultiplayer) Shell.runningInstance.bot.data.Update();
+					}
 					return true;
 				} else if (keyStr == "statusColor") {
 					Shell.runningInstance.bot.statusColor = value.ToString().ToColor();
+					if (Context.IsMultiplayer) Shell.runningInstance.bot.data.Update();
 					return true;
 				} else if (keyStr == "currentToolIndex") {
 					Shell.runningInstance.bot.currentToolIndex = value.IntValue();
@@ -1653,7 +1658,7 @@ namespace Farmtronics.M1 {
 					if (sh.bot == null) name = "Home Computer";
 					else name = sh.bot.BotName;
 					TextDisplay disp = sh.textDisplay;
-					Game1.chatBox.addMessage(name + ": " + msg, disp.textColor);
+					AddBotChatMessage.Send(name, msg, disp.textColor);
 					return Intrinsic.Result.Null;
                 };
 				worldInfo["chat"] = f.GetFunc();
