@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Farmtronics.Multiplayer;
 using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
@@ -10,6 +11,8 @@ namespace Farmtronics.Bot {
 	class BotManager {
 		// Instances of bots which need updating, i.e., ones that actually exist in the world.
 		internal static List<BotObject> instances = new();
+		// Host needs to run instances of other players while they aren't connected
+		internal static Dictionary<long, List<BotObject>> remoteInstances = new();
 		// Instances of bots which couldn't be located before (happens when a new player connects to the world)
 		// NOTE: 'OnDayStarted' triggers on connect for the new player, but it's still to early to find the bots on the map.
 		internal static List<AddBotInstance> lostInstances = new();
@@ -43,16 +46,48 @@ namespace Farmtronics.Bot {
 			foreach (var instance in instances) {
 				instance.InitShell();
 			}
+			
+			foreach (var playerBots in remoteInstances.Values) {
+				foreach (var bot in playerBots) {
+					bot.InitShell();
+				}
+			}
 		}
 
 		public static void UpdateAll(GameTime gameTime) {
 			for (int i = instances.Count - 1; i >= 0; i--) {
 				instances[i].Update(gameTime);
 			}
+			foreach (var remoteBots in remoteInstances.Values)
+			{
+				foreach (var bot in remoteBots) {
+					bot.Update(gameTime);
+				}
+			}
 		}
 
 		public static void ClearAll() {
 			instances.Clear();
+			remoteInstances.Clear();
+		}
+
+		public static List<BotObject> GetPlayerBotsInMap(long playerID, GameLocation inLocation = null) {
+			List<BotObject> playerBots = new();
+			if (inLocation == null) {
+				foreach (var loc in Game1.locations) {
+					playerBots.AddRange(GetPlayerBotsInMap(playerID, loc));
+				}
+				return playerBots;
+			}
+
+			foreach (var kv in inLocation.objects.Pairs) {
+				if (kv.Value is BotObject && kv.Value.owner.Value == playerID) {
+					playerBots.Add(kv.Value as BotObject);
+				}
+				
+			}
+			
+			return playerBots;
 		}
 		
 		//----------------------------------------------------------------------
@@ -229,7 +264,12 @@ namespace Farmtronics.Bot {
 				inLocation.setObject(tileLoc, bot);    // add bot to "objects"
 
 				if (bot.owner.Value == Game1.player.UniqueMultiplayerID) BotManager.instances.Add(bot);
-				else AddBotInstance.Send(bot);
+				else if (ModEntry.instance.Helper.Multiplayer.GetConnectedPlayer(bot.owner.Value) != null) AddBotInstance.Send(bot);
+				else {
+					ModEntry.instance.Monitor.Log($"Adding bot to remote instances for playerID: {bot.owner.Value}");
+					if (!BotManager.remoteInstances.ContainsKey(bot.owner.Value)) BotManager.remoteInstances.Add(bot.owner.Value, new());
+					BotManager.remoteInstances[bot.owner.Value].Add(bot);
+				}
 
 				count++;
 				//ModEntry.instance.Monitor.Log($"Converted {chest} to {bot} at {tileLoc} of {inLocation}");

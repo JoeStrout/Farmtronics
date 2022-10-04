@@ -1,6 +1,9 @@
 
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using StardewModdingAPI;
+using StardewModdingAPI.Utilities;
 using StardewValley;
 
 namespace Farmtronics {
@@ -22,6 +25,16 @@ namespace Farmtronics {
 		
 		public static string GetUsrDiskPath(long playerID) {
 			return Path.Combine(UsrDisksPath, playerID.ToString());
+		}
+		
+		public static List<long> GetPlayersWithUsrDisk() {
+			return Directory.GetDirectories(UsrDisksPath).Select(playerID => long.Parse(Path.GetFileName(playerID))).ToList();
+		}
+		
+		public static List<long> GetOfflinePlayersWithUsrDisk() {
+			var players = SaveData.GetPlayersWithUsrDisk();
+			players.RemoveAll(Game1.getOnlineFarmers().Select(farmer => farmer.UniqueMultiplayerID).Contains);
+			return players;
 		}
 		
 		public static bool IsOldSaveDirPresent() {

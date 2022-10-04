@@ -45,9 +45,7 @@ namespace Farmtronics
             helper.Events.Content.AssetRequested += this.OnAssetRequested;
 
 			helper.Events.Multiplayer.ModMessageReceived += MultiplayerManager.OnModMessageReceived;
-			helper.Events.Multiplayer.PeerContextReceived += this.OnPeerContextReceived;
 			helper.Events.Multiplayer.PeerContextReceived += MultiplayerManager.OnPeerContextReceived;
-			helper.Events.Multiplayer.PeerConnected += this.OnPeerConnected;
 			helper.Events.Multiplayer.PeerConnected += MultiplayerManager.OnPeerConnected;
 			helper.Events.Multiplayer.PeerDisconnected += MultiplayerManager.OnPeerDisconnected;
 			
@@ -62,23 +60,10 @@ namespace Farmtronics
 			SaveData.CreateUsrDisk(Game1.player.UniqueMultiplayerID);
 		}
 
-		private void OnPeerContextReceived(object sender, PeerContextReceivedEventArgs e) {
-			// This prevents a XML serialization error
-			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests(false);
-			BotManager.ClearAll();
-		}
-
-		private void OnPeerConnected(object sender, PeerConnectedEventArgs e) {
-			// At this point we can restore everything again
-			if (Context.IsMainPlayer) {
-				SaveData.CreateUsrDisk(e.Peer.PlayerID);
-				BotManager.ConvertChestsToBots();
-			}
-			BotManager.InitShellAll();
-		}
-
 		private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e) {
 			BotManager.ClearAll();
+			MultiplayerManager.remoteComputer.Clear();
+			MultiplayerManager.remoteDisks.Clear();
 			shell = null;
 		}
 
@@ -203,6 +188,7 @@ namespace Farmtronics
 			// Initialize the home computer and all bots for autostart.
 			// This initialization will also cause all startup scripts to run.
 			InitComputerShell();
+			if (Context.IsMainPlayer) MultiplayerManager.InitRemoteComputer();
 			BotManager.InitShellAll();
 		}
 
