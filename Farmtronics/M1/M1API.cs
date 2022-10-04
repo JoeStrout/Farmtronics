@@ -444,12 +444,12 @@ namespace Farmtronics.M1 {
 					string name = value.ToString();
 					if (!string.IsNullOrEmpty(name)) {
 						Shell.runningInstance.bot.BotName = name;
-						Shell.runningInstance.bot.data.Update();
+						if (Context.IsMultiplayer) Shell.runningInstance.bot.data.Update();
 					}
 					return true;
 				} else if (keyStr == "statusColor") {
 					Shell.runningInstance.bot.statusColor = value.ToString().ToColor();
-					Shell.runningInstance.bot.data.Update();
+					if (Context.IsMultiplayer) Shell.runningInstance.bot.data.Update();
 					return true;
 				} else if (keyStr == "currentToolIndex") {
 					Shell.runningInstance.bot.currentToolIndex = value.IntValue();
