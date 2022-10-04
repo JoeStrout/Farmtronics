@@ -47,6 +47,8 @@ namespace Farmtronics.Bot {
 			}
 		}
 
+		private Vector2 position;   // our current position, in pixels
+		private Vector2 targetPos;  // position we're moving to, in pixels
 		private int scytheUseFrame = 0;       // > 0 when using the scythe
 		private float scytheOldStamina = -1;
 
@@ -140,6 +142,7 @@ namespace Farmtronics.Bot {
 			// Copy other data from this item to bot.
 			bot.modData.SetFromSerialization(this.modData);
 			bot.data.Load();
+			bot.NotePosition();
 
 			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
@@ -155,6 +158,11 @@ namespace Farmtronics.Bot {
 
 			location.playSound("hammer");
 			return true;
+		}
+
+		public void NotePosition() {
+			position = targetPos = TileLocation * 64f;
+			farmer.setTileLocation(TileLocation);
 		}
 
 		// Apply the currently-selected item as a tool (or weapon) on
@@ -450,38 +458,58 @@ namespace Farmtronics.Bot {
 			return 0;
 		}
 
-		public void MoveForward() {
+		public void Move(int dColumn, int dRow) {
+			// Face in the specified direction
+			if (dRow < 0) farmer.faceDirection(0);
+			else if (dRow > 0) farmer.faceDirection(2);
+			else if (dColumn < 0) farmer.faceDirection(3);
+			else if (dColumn > 0) farmer.faceDirection(1);
+
 			// make sure the terrain in that direction isn't blocked
-			Vector2 newTile = farmer.nextPositionTile().ToVector2();
-			Vector2 moveVector = newTile - farmer.getTileLocation();
-			ModEntry.instance.Monitor.Log($"Moving from {TileLocation} to {newTile} with speed: {farmer.getMovementSpeed()}");
-			var location = farmer.currentLocation;
+			Vector2 newTile = farmer.getTileLocation() + new Vector2(dColumn, dRow);
+			var location = currentLocation;
 			{
 				// How to detect walkability in pretty much the same way as other characters:
 				var newBounds = farmer.GetBoundingBox();
-				newBounds.X += moveVector.GetIntX() * Game1.tileSize;
-				newBounds.Y += moveVector.GetIntY() * Game1.tileSize;
+				newBounds.X += dColumn * Game1.tileSize;
+				newBounds.Y += dRow * Game1.tileSize;
 				bool coll = location.isCollidingPosition(newBounds, Game1.viewport, isFarmer: false, 0, glider: false, farmer);
 				if (coll) {
-					ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
+					//ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
 					return;
 				}
 			}
 
+			// start moving
+			targetPos = newTile.GetAbsolutePosition();
+
 			// Do collision actions (shake the grass, etc.)
 			if (location.terrainFeatures.ContainsKey(newTile)) {
+				//Rectangle posRect = new Rectangle((int)position.X-16, (int)position.Y-24, 32, 48);
 				var feature = location.terrainFeatures[newTile];
 				var posRect = feature.getBoundingBox(newTile);
 				feature.doCollisionAction(posRect, 4, newTile, null, location);
 			}
-			
-			// Remove this object from the Objects list at its old position
-			location.removeObject(TileLocation, false);
-			// Update our tile pos, and add this object to the Objects list at the new position
-			TileLocation = newTile;
-			location.setObject(newTile, this);
-			// Update the invisible farmer
-			farmer.setTileLocation(newTile);
+		}
+		
+		public static int DxForDirection(int direction) {
+			if (direction == 1) return 1;
+			if (direction == 3) return -1;
+			return 0;
+		}
+
+		public static int DyForDirection(int direction) {
+			if (direction == 2) return 1;
+			if (direction == 0) return -1;
+			return 0;
+		}
+		
+		public void MoveForward() {
+			Move(DxForDirection(farmer.FacingDirection), DyForDirection(farmer.FacingDirection));
+		}
+		
+		public bool IsMoving() {
+			return (position != targetPos);
 		}
 
 		public void Rotate(int stepsClockwise) {
@@ -561,6 +589,23 @@ namespace Farmtronics.Bot {
 				scytheUseFrame++;
 				if (scytheUseFrame == 6) ApplyScytheToTile();
 				else if (scytheUseFrame == 12) scytheUseFrame = 0;  // all done!
+			}
+
+			if (position != targetPos) {
+				// ToDo: make a utility module with MoveTowards in it
+				position.X += MathF.Sign(targetPos.X - position.X);
+				position.Y += MathF.Sign(targetPos.Y - position.Y);
+				Vector2 newTile = new Vector2((int)position.X / 64, (int)position.Y / 64);
+				if (newTile != TileLocation) {
+					// Remove this object from the Objects list at its old position
+					currentLocation.removeObject(TileLocation, false);
+					// Update our tile pos, and add this object to the Objects list at the new position
+					TileLocation = newTile;
+					currentLocation.setObject(newTile, this);
+					// Update the invisible farmer
+					farmer.setTileLocation(newTile);
+				}
+				//ModEntry.instance.Monitor.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
 			}
 
 			farmer.Update(gameTime, farmer.currentLocation);
