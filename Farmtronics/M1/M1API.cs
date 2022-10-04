@@ -1,4 +1,4 @@
-﻿/*
+/*
 This static class implements the APIs that extend MiniScript with
 custom intrinsic functions/classes for use on the M-1.
 */
@@ -441,7 +441,10 @@ namespace Farmtronics.M1 {
 				//ModEntry.instance.Monitor.Log($"botModule {key} = {value}");
 				if (keyStr == "name") {
 					string name = value.ToString();
-					if (!string.IsNullOrEmpty(name)) Shell.runningInstance.bot.BotName = name;
+					if (!string.IsNullOrEmpty(name)) {
+						Shell.runningInstance.bot.BotName = name;
+						Shell.runningInstance.bot.data.Update();
+					}
 					return true;
 				} else if (keyStr == "statusColor") {
 					Shell.runningInstance.bot.statusColor = value.ToString().ToColor();
