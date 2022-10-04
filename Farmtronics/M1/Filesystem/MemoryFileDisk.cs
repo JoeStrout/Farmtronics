@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Farmtronics.Multiplayer.Messages;
 using StardewModdingAPI.Utilities;
 
@@ -45,26 +46,52 @@ namespace Farmtronics.M1.Filesystem {
 			if (root == null) return;
 			
 			root.WriteTextFile(PathUtilities.GetSegments(filePath).ToList(), text);
+			
+			new UpdateMemoryFileDisk() {
+				Action = MemoryFileDiskAction.Write,
+				FilePath = filePath,
+				Data = Encoding.Default.GetBytes(text)
+			}.SendToHost();
 		}
 
 		public override void WriteBinary(string filePath, byte[] data) {
 			if (root == null) return;
 			
 			root.WriteBinaryFile(PathUtilities.GetSegments(filePath).ToList(), data);
+			
+			new UpdateMemoryFileDisk() {
+				Action = MemoryFileDiskAction.Write,
+				FilePath = filePath,
+				Data = data
+			}.SendToHost();
 		}
 
 		public override bool MakeDir(string dirPath, out string errMsg) {
 			errMsg = "Root directory not found";
 			if (root == null) return false;
 			
-			return root.MakeDir(PathUtilities.GetSegments(dirPath).ToList(), out errMsg);
+			var result = root.MakeDir(PathUtilities.GetSegments(dirPath).ToList(), out errMsg);
+			if (result) {
+				new UpdateMemoryFileDisk() {
+					Action = MemoryFileDiskAction.MakeDir,
+					FilePath = dirPath
+				}.SendToHost();
+			}
+			return result;
 		}
 
 		public override bool Delete(string filePath, out string errMsg) {
 			errMsg = "Root directory not found";
 			if (root == null) return false;
 			
-			return root.Delete(PathUtilities.GetSegments(filePath).ToList(), out errMsg);
+			var result = root.Delete(PathUtilities.GetSegments(filePath).ToList(), out errMsg);			
+			if (result) {
+				new UpdateMemoryFileDisk() {
+					Action = MemoryFileDiskAction.Delete,
+					FilePath = filePath
+				}.SendToHost();
+			}
+			return result;
 		}
 	}
 }

@@ -46,6 +46,13 @@ namespace Farmtronics.Multiplayer {
 				if (Context.IsMainPlayer) syncMemDisk.Apply(e.FromPlayerID);
 				else syncMemDisk.Apply();
 				return;
+			case nameof(UpdateMemoryFileDisk):
+				UpdateMemoryFileDisk updateMemDisk = e.ReadAs<UpdateMemoryFileDisk>();
+				if (Context.IsMainPlayer) {
+					if (remoteDisks.ContainsKey(e.FromPlayerID)) updateMemDisk.Disk = remoteDisks[e.FromPlayerID];
+					updateMemDisk.Apply();
+				}
+				return;
 			default:
 				ModEntry.instance.Monitor.Log($"Couldn't receive message of unknown type: {e.Type}", LogLevel.Error);
 				return;
