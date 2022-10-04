@@ -586,8 +586,11 @@ namespace Farmtronics.Bot {
 			//	ModEntry.instance.Monitor.Log("Failed to get mutex lock :(");
 			//});
 
-			// TODO: Maybe show a message about the owner of this bot instead?
-			if (who.UniqueMultiplayerID != owner.Value) return false;
+			if (who.UniqueMultiplayerID != owner.Value) {
+				var farmer = Game1.getFarmer(owner.Value);
+				Game1.addHUDMessage(new HUDMessage($"This belongs to {farmer.Name}.", HUDMessage.error_type));
+				return false;	
+			}
 			
 			// For now, just dewit:
 			Game1.playSound("bigSelect");
