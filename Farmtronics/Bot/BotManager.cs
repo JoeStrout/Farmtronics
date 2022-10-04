@@ -58,8 +58,7 @@ namespace Farmtronics.Bot {
 			for (int i = instances.Count - 1; i >= 0; i--) {
 				instances[i].Update(gameTime);
 			}
-			foreach (var remoteBots in remoteInstances.Values)
-			{
+			foreach (var remoteBots in remoteInstances.Values) {
 				foreach (var bot in remoteBots) {
 					bot.Update(gameTime);
 				}

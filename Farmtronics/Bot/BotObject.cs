@@ -589,7 +589,7 @@ namespace Farmtronics.Bot {
 
 			if (who.UniqueMultiplayerID != owner.Value) {
 				var farmer = Game1.getFarmer(owner.Value);
-				Game1.addHUDMessage(new HUDMessage($"This belongs to {farmer.Name}.", HUDMessage.error_type));
+				Game1.addHUDMessage(new HUDMessage($"{BotName} belongs to {farmer.Name}.", HUDMessage.error_type));
 				return false;	
 			}
 			
