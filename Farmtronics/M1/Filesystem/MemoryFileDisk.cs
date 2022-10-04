@@ -42,19 +42,29 @@ namespace Farmtronics.M1.Filesystem {
 		}		
 
 		public override void WriteText(string filePath, string text) {
-			base.WriteText(filePath, text);
+			if (root == null) return;
+			
+			root.WriteTextFile(PathUtilities.GetSegments(filePath).ToList(), text);
 		}
 
 		public override void WriteBinary(string filePath, byte[] data) {
-			base.WriteBinary(filePath, data);
+			if (root == null) return;
+			
+			root.WriteBinaryFile(PathUtilities.GetSegments(filePath).ToList(), data);
 		}
 
 		public override bool MakeDir(string dirPath, out string errMsg) {
-			return base.MakeDir(dirPath, out errMsg);
+			errMsg = "Root directory not found";
+			if (root == null) return false;
+			
+			return root.MakeDir(PathUtilities.GetSegments(dirPath).ToList(), out errMsg);
 		}
 
 		public override bool Delete(string filePath, out string errMsg) {
-			return base.Delete(filePath, out errMsg);
+			errMsg = "Root directory not found";
+			if (root == null) return false;
+			
+			return root.Delete(PathUtilities.GetSegments(filePath).ToList(), out errMsg);
 		}
 	}
 }
