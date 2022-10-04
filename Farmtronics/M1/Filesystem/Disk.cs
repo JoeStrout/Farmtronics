@@ -18,9 +18,8 @@ namespace Farmtronics.M1.Filesystem {
 
 		/// <summary>
 		/// Get a list of files in the given directory (which must end in "/").
-		/// If dirPath is null, then returns ALL files on the disk, in all directories,
-		/// with their full paths.  Otherwise, it returns just the names (not paths)
-		/// of files immediately within the given directory.
+		/// Returns just the names (not paths) of files immediately within the
+		/// given directory.
 		/// </summary>
 		public abstract List<string> GetFileNames(string dirPath);
 
