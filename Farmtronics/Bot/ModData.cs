@@ -106,5 +106,9 @@ namespace Farmtronics.Bot {
 			
 			Save(false);
 		}
+		
+		public override string ToString() {
+			return $"ModData [{Name}]\n\tEnergy: {Energy}\n\tFacing: {Facing}\n\tScreenColor: {ScreenColor}\n\tStatusColor: {StatusColor}";
+		}
 	}
 }

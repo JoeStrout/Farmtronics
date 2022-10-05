@@ -124,6 +124,14 @@ namespace Farmtronics
 				ToDoManager.MarkAllTasksDone();
 				this.Monitor.Log("All tasks solved!");
 				break;
+
+			case SButton.Insert:
+				this.Monitor.Log("Logging ModData of your bots...");
+				foreach (var instance in BotManager.instances) {
+					this.Monitor.Log($"Bot instance {instance.data.ToString()}");
+				}
+				this.Monitor.Log("Done!");
+				break;
 			}
 		}
 #endif
