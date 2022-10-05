@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -620,21 +620,11 @@ namespace Farmtronics.Bot {
 				return false;
 			}
 
-			// ToDo: use mutex to ensure only one player can open a bot at a time.
-			// (Tried, but couldn't get to work:
-			//ModEntry.instance.Monitor.Log($"Requesting mutex lock: {mutex}, IsLocked={mutex.IsLocked()}, IsLockHeld={mutex.IsLockHeld()}");
-			//mutex.RequestLock(delegate {
-			//	Game1.playSound("bigSelect");
-			//	Game1.player.Halt();
-			//	Game1.player.freezePause = 1000;
-			//	ShowMenu();
-			//}, delegate {
-			//	ModEntry.instance.Monitor.Log("Failed to get mutex lock :(");
-			//});
-
 			if (who.UniqueMultiplayerID != owner.Value) {
 				var farmer = Game1.getFarmer(owner.Value);
-				Game1.addHUDMessage(new HUDMessage($"{BotName} belongs to {farmer.Name}.", HUDMessage.error_type));
+				var name = farmer.Name;
+				if (farmer.UniqueMultiplayerID != owner.Value) name = "someone else";
+				Game1.addHUDMessage(new HUDMessage($"{BotName} belongs to {name}.", HUDMessage.error_type));
 				return false;	
 			}
 			
