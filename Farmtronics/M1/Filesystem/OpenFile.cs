@@ -25,8 +25,8 @@ namespace Farmtronics.M1.Filesystem {
 		MemoryStream memStream;
 		bool needSave = false;
 
-		public OpenFile(string path, string mode) {
-			this.disk = FileUtils.GetDisk(ref path);
+		public OpenFile(DiskController controller, string path, string mode) {
+			this.disk = controller.GetDisk(ref path);
 			this.path = path;
 			error = null;
 			readable = writeable = needSave = false;

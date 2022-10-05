@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Farmtronics.Multiplayer;
 using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
@@ -8,7 +7,7 @@ using StardewValley;
 using StardewValley.Objects;
 
 namespace Farmtronics.Bot {
-	class BotManager {
+	static class BotManager {
 		// Instances of bots which need updating, i.e., ones that actually exist in the world.
 		internal static List<BotObject> instances = new();
 		// Host needs to run instances of other players while they aren't connected

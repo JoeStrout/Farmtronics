@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using Farmtronics.Bot;
 using Farmtronics.M1;
+using Farmtronics.M1.Filesystem;
 using Farmtronics.Multiplayer;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
@@ -16,7 +19,9 @@ namespace Farmtronics
 	public class ModEntry : Mod {
 		private static string MOD_ID;
 		public static ModEntry instance;
-
+		
+		internal static RealFileDisk sysDisk;
+		
 		Shell shell;
 		uint prevTicks;
 		
@@ -52,6 +57,8 @@ namespace Farmtronics
 			Assets.Initialize(helper);
 			Monitor.Log($"Loaded fontAtlas with size {Assets.FontAtlas.Width}x{Assets.FontAtlas.Height}");
 			Monitor.Log($"read {Assets.FontList.Length} lines from fontList, starting with {Assets.FontList[0]}");
+			sysDisk = new RealFileDisk(Path.Combine(ModEntry.instance.Helper.DirectoryPath, "assets", "sysdisk"));
+			sysDisk.readOnly = true;
 		}
 
 		private void OnSaveCreated(object sender, SaveCreatedEventArgs e) {
@@ -63,7 +70,7 @@ namespace Farmtronics
 		private void OnReturnedToTitle(object sender, ReturnedToTitleEventArgs e) {
 			BotManager.ClearAll();
 			MultiplayerManager.remoteComputer.Clear();
-			MultiplayerManager.remoteDisks.Clear();
+			DiskController.ClearInstances();
 			shell = null;
 		}
 

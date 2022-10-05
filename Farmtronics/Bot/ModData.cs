@@ -41,15 +41,6 @@ namespace Farmtronics.Bot {
 			
 			ScreenColor = GetModDataValue(bot.modData, nameof(ScreenColor), Color.Transparent.ToHexString()).ToColor();
 			StatusColor = GetModDataValue(bot.modData, nameof(StatusColor), Color.Yellow.ToHexString()).ToColor();
-#if DEBUG			
-			ModEntry.instance.Monitor.Log($"IsBot: {IsBot}");
-			ModEntry.instance.Monitor.Log($"ModVersion: {ModVersion}");
-			ModEntry.instance.Monitor.Log($"Name: {Name}");
-			ModEntry.instance.Monitor.Log($"Energy: {Energy}");
-			ModEntry.instance.Monitor.Log($"Facing: {Facing}");
-			ModEntry.instance.Monitor.Log($"ScreenColor: {ScreenColor}");
-			ModEntry.instance.Monitor.Log($"StatusColor: {StatusColor}");
-#endif
 
 			if (ModVersion.IsOlderThan(ModEntry.instance.ModManifest.Version)) {
 				// NOTE: Do ModData update stuff here
