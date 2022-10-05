@@ -1,4 +1,4 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -118,6 +118,13 @@ namespace Farmtronics.Bot {
 			Farmer.removeInitialTools(copyItems);
 			ModEntry.instance.Monitor.Log($"isEmptyWithoutInitialTools: without initial tools: {copyItems.Count}");
 			return copyItems.Count == 0;
+		}
+		
+		private void PerformOtherPlayerAction() {
+			var farmer = Game1.getFarmer(owner.Value);
+			var name = farmer.Name;
+			if (farmer.UniqueMultiplayerID != owner.Value) name = "someone else";
+			Game1.addHUDMessage(new HUDMessage($"{BotName} belongs to {name}.", HUDMessage.error_type));
 		}
 		
 		public override bool performDropDownAction(Farmer who) {
@@ -621,11 +628,8 @@ namespace Farmtronics.Bot {
 			}
 
 			if (who.UniqueMultiplayerID != owner.Value) {
-				var farmer = Game1.getFarmer(owner.Value);
-				var name = farmer.Name;
-				if (farmer.UniqueMultiplayerID != owner.Value) name = "someone else";
-				Game1.addHUDMessage(new HUDMessage($"{BotName} belongs to {name}.", HUDMessage.error_type));
-				return false;	
+				PerformOtherPlayerAction();
+				return false;
 			}
 			
 			// For now, just dewit:
@@ -650,6 +654,7 @@ namespace Farmtronics.Bot {
 			if (who.UniqueMultiplayerID != owner.Value) {
 				shakeTimer = 20;
 				location.playSound("hammer");
+				PerformOtherPlayerAction();
 				return false;
 			}
 
