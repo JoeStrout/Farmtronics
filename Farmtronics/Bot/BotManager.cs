@@ -8,6 +8,7 @@ using StardewValley.Objects;
 
 namespace Farmtronics.Bot {
 	static class BotManager {
+		internal static int botCount = 0;
 		// Instances of bots which need updating, i.e., ones that actually exist in the world.
 		internal static List<BotObject> instances = new();
 		// Host needs to run instances of other players while they aren't connected

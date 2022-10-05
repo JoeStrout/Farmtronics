@@ -306,7 +306,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				return new Intrinsic.Result(new ValString(sh.bot.BotName));
+				return new Intrinsic.Result(new ValString(sh.bot.Name));
 			};
 			botModule["name"] = f.GetFunc();
 
@@ -451,7 +451,8 @@ namespace Farmtronics.M1 {
 				if (keyStr == "name") {
 					string name = value.ToString();
 					if (!string.IsNullOrEmpty(name)) {
-						Shell.runningInstance.bot.BotName = name;
+						Shell.runningInstance.bot.Name = name;
+						Shell.runningInstance.bot.DisplayName = name;
 						if (Context.IsMultiplayer) Shell.runningInstance.bot.data.Update();
 					}
 					return true;
@@ -1664,7 +1665,7 @@ namespace Farmtronics.M1 {
 					Shell sh = context.interpreter.hostData as Shell;
 					string name;
 					if (sh.bot == null) name = "Home Computer";
-					else name = sh.bot.BotName;
+					else name = sh.bot.Name;
 					TextDisplay disp = sh.textDisplay;
 					AddBotChatMessage.Send(name, msg, disp.textColor);
 					return Intrinsic.Result.Null;

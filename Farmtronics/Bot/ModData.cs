@@ -35,7 +35,7 @@ namespace Farmtronics.Bot {
 		internal void Load(bool applyEnergy = true) {
 			IsBot = GetModDataValue<int>(bot.modData, nameof(IsBot), 1) == 1;
 			ModVersion = new SemanticVersion(GetModDataValue(bot.modData, nameof(ModVersion), ModEntry.instance.ModManifest.Version.ToString()));
-			Name = GetModDataValue(bot.modData, nameof(Name), I18n.Bot_Name());
+			Name = GetModDataValue(bot.modData, nameof(Name), I18n.Bot_Name(BotManager.botCount));
 			Energy = GetModDataValue<float>(bot.modData, nameof(Energy), Farmer.startingStamina);
 			Facing = GetModDataValue<int>(bot.modData, nameof(Facing));
 			
@@ -47,7 +47,7 @@ namespace Farmtronics.Bot {
 				ModVersion = ModEntry.instance.ModManifest.Version;
 			}
 
-			if (bot.BotName != Name) bot.BotName = Name;
+			if (bot.Name != Name) bot.Name = bot.DisplayName = Name;
 			if (bot.facingDirection != Facing) bot.facingDirection = Facing;
 			if (applyEnergy && bot.energy != Energy) bot.energy = Energy;
 
@@ -97,7 +97,7 @@ namespace Farmtronics.Bot {
 		}
 		
 		public void Update() {
-			Name = bot.BotName;
+			Name = bot.Name;
 			Energy = bot.energy;
 			Facing = bot.facingDirection;
 

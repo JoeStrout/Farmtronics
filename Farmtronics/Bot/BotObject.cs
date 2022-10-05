@@ -27,7 +27,6 @@ namespace Farmtronics.Bot {
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
 		BotFarmer farmer;
-		public string BotName { get; internal set; }
 		internal readonly ModData data;
 
 		public IList<Item> inventory { get { return farmer.Items; } }
@@ -53,10 +52,9 @@ namespace Farmtronics.Bot {
 		private float scytheOldStamina = -1;
 
 		// Assign common values
-		private void Initialize() {
-			Name = I18n.Bot_Name();
-			DisplayName = I18n.Bot_Name();
-			BotName = I18n.Bot_Name();
+		private void Initialize() {			
+			Name = I18n.Bot_Name(BotManager.botCount);
+			DisplayName = I18n.Bot_Name(BotManager.botCount);
 			Type = "Crafting";
 			Category = StardewValley.Object.BigCraftableCategory;
 			ParentSheetIndex = ItemID;
@@ -106,6 +104,7 @@ namespace Farmtronics.Bot {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 			Initialize();
 
+			BotManager.botCount++;
 			CreateFarmer(tileLocation, location);
 			data = new ModData(this);
 		}
@@ -124,7 +123,7 @@ namespace Farmtronics.Bot {
 			var farmer = Game1.getFarmer(owner.Value);
 			var name = farmer.Name;
 			if (farmer.UniqueMultiplayerID != owner.Value) name = "someone else";
-			Game1.addHUDMessage(new HUDMessage($"{BotName} belongs to {name}.", HUDMessage.error_type));
+			Game1.addHUDMessage(new HUDMessage($"{Name} belongs to {name}.", HUDMessage.error_type));
 		}
 		
 		public override bool performDropDownAction(Farmer who) {
