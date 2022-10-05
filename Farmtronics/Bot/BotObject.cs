@@ -671,6 +671,7 @@ namespace Farmtronics.Bot {
 				
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
+				data.Update();
 				data.Save(ref deb.item.modData, true);
 				location.debris.Add(deb);
 				ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
@@ -805,6 +806,7 @@ namespace Farmtronics.Bot {
 		public override Item getOne() {
 			// Create a new Bot from this one, copying the modData and owner
 			var ret = new BotObject();
+			data.Update();
 			data.Save(ref ret.modData, true);
 			ret._GetOneFrom(this);
 			return ret;
