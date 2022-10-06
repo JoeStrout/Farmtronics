@@ -662,11 +662,6 @@ namespace Farmtronics.Bot {
 			// NOTE: If a player holds left click it will eventually trigger a toolAction with a pickaxe
 			// 		 This could be checked like this: t != t.getLastFarmerToUse().CurrentTool
 			if (t is Pickaxe or Axe or Hoe) {
-				if (!IsEmptyWithoutInitialTools()) {
-					shakeTimer = 10;
-					location.playSound("hammer");
-					return false;
-				}
 				
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
