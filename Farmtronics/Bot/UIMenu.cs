@@ -34,6 +34,7 @@ namespace Farmtronics.Bot {
 			//print($"Created BotUIMenu for {bot.Name}. PositionOnScreen:{xPositionOnScreen},{yPositionOnScreen}; viewport:{Game1.uiViewport.Width}, {Game1.uiViewport.Height}, shell {bot.shell}");
 
 			this.bot = bot;
+			bot.currentLocation = Game1.player.currentLocation;
 
 			// Layout notes:
 			// The position of a Menu is its top-left corner (ignoring the border), in game viewport coordinates.
