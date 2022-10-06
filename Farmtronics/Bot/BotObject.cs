@@ -46,8 +46,8 @@ namespace Farmtronics.Bot {
 			}
 		}
 
-		private Vector2 position;   // our current position, in pixels
-		private Vector2 targetPos;  // position we're moving to, in pixels
+		internal Vector2 position;   // our current position, in pixels
+		internal Vector2 targetPos;  // position we're moving to, in pixels
 		private int scytheUseFrame = 0;       // > 0 when using the scythe
 		private float scytheOldStamina = -1;
 
@@ -60,6 +60,8 @@ namespace Farmtronics.Bot {
 			ParentSheetIndex = ItemID;
 			bigCraftable.Value = true;
 			CanBeSetDown = true;
+
+			position = targetPos = TileLocation.GetAbsolutePosition();
 		}
 
 		private void CreateFarmer(Vector2 tileLocation, GameLocation location) {
@@ -92,7 +94,7 @@ namespace Farmtronics.Bot {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
 			Initialize();
 
-			CreateFarmer(tileLocation, null);
+			CreateFarmer(TileLocation, null);
 			data = new ModData(this);
 
 			// NOTE: this constructor is used for bots that are not in the world
@@ -107,8 +109,6 @@ namespace Farmtronics.Bot {
 			BotManager.botCount++;
 			CreateFarmer(tileLocation, location);
 			data = new ModData(this);
-			
-			position = targetPos = tileLocation.GetAbsolutePosition();
 		}
 		
 		private void PerformOtherPlayerAction() {
@@ -465,6 +465,7 @@ namespace Farmtronics.Bot {
 
 			// start moving
 			targetPos = newTile.GetAbsolutePosition();
+			data.Update();
 			ModEntry.instance.Monitor.Log($"Old pos: {position} / New pos: {targetPos}");
 
 			// Do collision actions (shake the grass, etc.)

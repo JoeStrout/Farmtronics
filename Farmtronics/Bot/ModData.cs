@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using Farmtronics.Utils;
@@ -21,13 +20,15 @@ namespace Farmtronics.Bot {
 		public string 			Name		{ get; internal set; }
 		public float			Energy		{ get; internal set; }
 		public int 				Facing		{ get; internal set; }
-		
 		// New with 1.3.0
-		public IList<Item>		Inventory	{get; internal set; }
+		public IList<Item>		Inventory	{ get; internal set; }
 
 		// the following mod data keys, won't be saved and are only used for multiplayer synchronization
 		public Color			ScreenColor { get; internal set; }
 		public Color			StatusColor { get; internal set; }
+		// New with 1.3.0
+		public float			TargetPosX	{ get; internal set; }
+		public float 			TargetPosY 	{ get; internal set; }
 		
 		private static string GetModDataValue(ModDataDictionary data, string key, string defaultValue = "") {
 			return data.TryGetValue(ModEntry.GetModDataKey(key.FirstToLower()), out string value) ? value : defaultValue;
@@ -45,9 +46,9 @@ namespace Farmtronics.Bot {
 			if (inventory == null) return null;
 			var stream = new MemoryStream();
 			var netInventory = new NetObjectList<Item>(inventory);
-			foreach (var item in inventory.Where(item => item != null)) {
-				ModEntry.instance.Monitor.Log($"Serializing item: {item.Name} with id {item.ParentSheetIndex}");
-			}
+			// foreach (var item in inventory.Where(item => item != null)) {
+			// 	ModEntry.instance.Monitor.Log($"Serializing item: {item.Name} with id {item.ParentSheetIndex}");
+			// }
 			serializer.Serialize(stream, netInventory);
 			var xml = Encoding.Default.GetString(stream.ToArray());
 			// ModEntry.instance.Monitor.Log($"Serialized inventory: {xml}");
@@ -59,9 +60,9 @@ namespace Farmtronics.Bot {
 			
 			var stream = new MemoryStream(Encoding.Default.GetBytes(inventoryXml));
 			var inventory = serializer.Deserialize(stream) as NetObjectList<Item>;
-			foreach (var item in inventory.Where(item => item != null)) {
-				ModEntry.instance.Monitor.Log($"Deserialized item {item.Name} with id {item.ParentSheetIndex}");
-			}
+			// foreach (var item in inventory.Where(item => item != null)) {
+			// 	ModEntry.instance.Monitor.Log($"Deserialized item {item.Name} with id {item.ParentSheetIndex}");
+			// }
 			return inventory;
 		}
 		
@@ -75,11 +76,15 @@ namespace Farmtronics.Bot {
 			
 			ScreenColor = GetModDataValue(bot.modData, nameof(ScreenColor), Color.Transparent.ToHexString()).ToColor();
 			StatusColor = GetModDataValue(bot.modData, nameof(StatusColor), Color.Yellow.ToHexString()).ToColor();
+			TargetPosX	= GetModDataValue<float>(bot.modData, nameof(TargetPosX), bot.targetPos.X);
+			TargetPosY	= GetModDataValue<float>(bot.modData, nameof(TargetPosY), bot.targetPos.Y);
 
 			if (ModVersion.IsOlderThan(ModEntry.instance.ModManifest.Version)) {
 				// NOTE: Do ModData update stuff here
 				ModVersion = ModEntry.instance.ModManifest.Version;
 			}
+			
+			Vector2 targetPosition = new Vector2(TargetPosX, TargetPosY);
 
 			if (bot.Name != Name) bot.Name = bot.DisplayName = Name;
 			if (bot.facingDirection != Facing) bot.facingDirection = Facing;
@@ -93,6 +98,7 @@ namespace Farmtronics.Bot {
 
 			if (bot.screenColor != ScreenColor) bot.screenColor = ScreenColor;
 			if (bot.statusColor != StatusColor) bot.statusColor = StatusColor;
+			if (bot.targetPos != targetPosition) bot.targetPos = targetPosition;
 		}
 		
 		private Dictionary<string, string> GetModData(bool isSaving) {
@@ -108,6 +114,8 @@ namespace Farmtronics.Bot {
 			if (!isSaving) {
 				saveData.Add(ModEntry.GetModDataKey(nameof(ScreenColor).FirstToLower()), ScreenColor.ToHexString());
 				saveData.Add(ModEntry.GetModDataKey(nameof(StatusColor).FirstToLower()), StatusColor.ToHexString());
+				saveData.Add(ModEntry.GetModDataKey(nameof(TargetPosX).FirstToLower()), TargetPosX.ToString());
+				saveData.Add(ModEntry.GetModDataKey(nameof(TargetPosY).FirstToLower()), TargetPosY.ToString());
 			}
 			
 			return saveData;
@@ -146,12 +154,14 @@ namespace Farmtronics.Bot {
 
 			ScreenColor = bot.screenColor;
 			StatusColor = bot.statusColor;
+			TargetPosX = bot.targetPos.X;
+			TargetPosY = bot.targetPos.Y;
 			
 			Save(false);
 		}
 		
 		public override string ToString() {
-			return $"ModData [{Name}]\n\tEnergy: {Energy}\n\tFacing: {Facing}\n\tScreenColor: {ScreenColor}\n\tStatusColor: {StatusColor}";
+			return $"ModData [{Name}]\n\tPosition: {TargetPosX}/{TargetPosY}\n\tEnergy: {Energy}\n\tFacing: {Facing}\n\tScreenColor: {ScreenColor}\n\tStatusColor: {StatusColor}";
 		}
 	}
 }
