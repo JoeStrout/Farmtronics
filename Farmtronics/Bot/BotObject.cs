@@ -167,7 +167,7 @@ namespace Farmtronics.Bot {
 		}
 
 		public void NotePosition() {
-			position = targetPos = TileLocation * 64f;
+			position = targetPos = TileLocation.GetAbsolutePosition();
 			farmer.setTileLocation(TileLocation);
 		}
 
@@ -601,7 +601,7 @@ namespace Farmtronics.Bot {
 				// ToDo: make a utility module with MoveTowards in it
 				position.X += MathF.Sign(targetPos.X - position.X);
 				position.Y += MathF.Sign(targetPos.Y - position.Y);
-				Vector2 newTile = new Vector2((int)position.X / 64, (int)position.Y / 64);
+				Vector2 newTile = position.GetTilePosition();
 				if (newTile != TileLocation) {
 					// Remove this object from the Objects list at its old position
 					currentLocation.removeObject(TileLocation, false);

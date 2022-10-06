@@ -71,6 +71,7 @@ namespace Farmtronics
 			BotManager.ClearAll();
 			MultiplayerManager.remoteComputer.Clear();
 			DiskController.ClearInstances();
+			BotManager.botCount = 0;
 			shell = null;
 		}
 
