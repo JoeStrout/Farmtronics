@@ -1,4 +1,4 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -83,8 +83,8 @@ namespace Farmtronics.Bot {
 			}
 			
 			// NOTE: Make sure to not use farmer.Items.Count to get the actual number of items in the inventory
-			ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Position: {farmer.Position} Location: {farmer.currentLocation}");
-			ModEntry.instance.Monitor.Log($"Items: {farmer.numberOfItemsInInventory()}/{farmer.MaxItems}");
+			// ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Position: {farmer.Position} Location: {farmer.currentLocation}");
+			// ModEntry.instance.Monitor.Log($"Items: {farmer.numberOfItemsInInventory()}/{farmer.MaxItems}");
 		}
 
 		// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
@@ -95,6 +95,7 @@ namespace Farmtronics.Bot {
 			CreateFarmer(TileLocation, null);
 			data = new ModData(this);
 
+			ModEntry.instance.Monitor.Log($"Constructor 1: {Name} - Location: {TileLocation} - owner: {owner.Value}");
 			// NOTE: this constructor is used for bots that are not in the world
 			// (but are in inventory, mail attachment, etc.).  So we do not add
 			// to the instances list.
@@ -109,6 +110,8 @@ namespace Farmtronics.Bot {
 			data = new ModData(this);
 			// Prevent bots from running away
 			targetPos = Position;
+
+			ModEntry.instance.Monitor.Log($"Constructor 1: {Name} - Location: {TileLocation} - owner: {owner.Value}");
 		}
 		
 		private void PerformOtherPlayerAction() {
@@ -139,6 +142,8 @@ namespace Farmtronics.Bot {
 			// Copy other data from this item to bot.
 			bot.modData.SetFromSerialization(this.modData);
 			bot.data.Load();
+			// ModEntry.instance.Monitor.Log($"Placement: {bot.data.ToString()}");
+			bot.targetPos = bot.Position;
 
 			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
@@ -147,6 +152,7 @@ namespace Farmtronics.Bot {
 			
 			// Save new facingDirection
 			bot.data.Update();
+			// ModEntry.instance.Monitor.Log($"Placement new: {bot.data.ToString()}");
 
 			// Add the new bot (which is in the world) to our instances list.
 			BotManager.instances.Add(bot);

@@ -16,7 +16,7 @@ namespace Farmtronics.M1.Filesystem {
 			string diskName = path.Substring(1);
 			int slashPos = diskName.IndexOf('/');
 			if (slashPos >= 0) diskName = diskName.Substring(0, slashPos);
-			ModEntry.instance.Monitor.Log($"Returning diskName: {diskName}");
+			// ModEntry.instance.Monitor.Log($"Returning diskName: {diskName}");
 			return diskName;
 		}
 
@@ -68,7 +68,7 @@ namespace Farmtronics.M1.Filesystem {
 		/// <param name="path"></param>
 		/// <returns></returns>
 		public Disk GetDisk(ref string path) {
-			ModEntry.instance.Monitor.Log($"Getting disk for: {path}");
+			// ModEntry.instance.Monitor.Log($"Getting disk for: {path}");
 			var diskName = GetDiskName(path);
 
 			if (path.Length <= diskName.Length + 2) path = "";
@@ -105,7 +105,7 @@ namespace Farmtronics.M1.Filesystem {
 		public M1FileInfo GetInfo(string path) {
 			Disk disk = GetDisk(ref path);
 			if (disk == null) return null;
-			ModEntry.instance.Monitor.Log($"Getting info for: {path}");
+			// ModEntry.instance.Monitor.Log($"Getting info for: {path}");
 			return disk.GetFileInfo(path);
 		}
 

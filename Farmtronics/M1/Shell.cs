@@ -127,7 +127,7 @@ namespace Farmtronics.M1 {
 					FixHostInfo();
 					interpreter.REPL(startupScript);
 				} catch (System.Exception err) {
-					ModEntry.instance.Monitor.Log("Error running /sys/startup.ms: " + err.ToString());
+					ModEntry.instance.Monitor.Log("Error running /sys/startup.ms: " + err.ToString(), LogLevel.Error);
 				}
 			}
 
@@ -242,7 +242,7 @@ namespace Farmtronics.M1 {
 			try {
 				interpreter.Compile();
 			} catch (MiniscriptException me) {
-				ModEntry.instance.Monitor.Log("Caught MiniScript exception: " + me);
+				ModEntry.instance.Monitor.Log("Caught MiniScript exception: " + me, LogLevel.Error);
 			}
 			if (interpreter.vm == null) interpreter.REPL("", 0);
 			interpreter.vm.globalContext.variables = globals;
@@ -251,7 +251,7 @@ namespace Farmtronics.M1 {
 			if (interpreter.NeedMoreInput()) {
 				// If the interpreter wants more input at this point, it's because the program
 				// has an unterminated if/while/for/function block.  Let's just cancel the run.
-				ModEntry.instance.Monitor.Log("Canceling run in BeginRun");
+				ModEntry.instance.Monitor.Log("Canceling run in BeginRun", LogLevel.Warn);
 				Break(true);
 			}		
 		}

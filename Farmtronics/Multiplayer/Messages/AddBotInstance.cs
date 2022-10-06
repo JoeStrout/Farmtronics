@@ -7,6 +7,8 @@ using StardewValley;
 
 namespace Farmtronics.Multiplayer.Messages {
 	class AddBotInstance : BaseMessage<AddBotInstance> {
+		private const int maxAttempts = 3;
+		private int attempt = 1;
 		public string LocationName { get; set; }
 		public Vector2 TileLocation { get; set; }
 
@@ -28,16 +30,23 @@ namespace Farmtronics.Multiplayer.Messages {
 		}
 
 		public override void Apply() {
-			ModEntry.instance.Monitor.Log($"Adding bot to instance list: {LocationName} - {TileLocation}");
 			var bot = GetBotFromLocation();
-			if (bot == null) {
+			if (bot == null && attempt < maxAttempts) {
 				ModEntry.instance.Monitor.Log($"Could not add new bot instance. Trying again later.", LogLevel.Warn);
 				if (!BotManager.lostInstances.Contains(this)) BotManager.lostInstances.Add(this);
+				BotManager.AddFindEvent();
+				attempt++;
 				return;
 			}
-			ModEntry.instance.Monitor.Log($"Successfully added bot to instance list!", LogLevel.Info);
+			else if (bot == null) {
+				ModEntry.instance.Monitor.Log($"Could not add new bot instance. Aborting after {attempt} attempts.", LogLevel.Error);
+				BotManager.lostInstances.Remove(this);
+				return;
+			}
+			ModEntry.instance.Monitor.Log($"Successfully added bot to instance list: {LocationName} - {TileLocation}", LogLevel.Info);
 			BotManager.lostInstances.Remove(this);
 			BotManager.instances.Add(bot);
+			bot.data.Load();
 			bot.InitShell();
 		}
 	}

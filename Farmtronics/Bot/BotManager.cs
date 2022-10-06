@@ -8,6 +8,7 @@ using StardewValley.Objects;
 
 namespace Farmtronics.Bot {
 	static class BotManager {
+		private static bool addedFindEvent = false;
 		internal static int botCount = 0;
 		// Instances of bots which need updating, i.e., ones that actually exist in the world.
 		internal static List<BotObject> instances = new();
@@ -29,6 +30,14 @@ namespace Farmtronics.Bot {
 			
 			if (lostInstances.Count == 0) {
 				ModEntry.instance.Helper.Events.GameLoop.OneSecondUpdateTicking -= FindLostInstances;
+				addedFindEvent = false;
+			}
+		}
+		
+		public static void AddFindEvent() {
+			if (!addedFindEvent && lostInstances.Count > 0) {
+				addedFindEvent = true;
+				ModEntry.instance.Helper.Events.GameLoop.OneSecondUpdateTicking += FindLostInstances;
 			}
 		}
 
@@ -38,19 +47,20 @@ namespace Farmtronics.Bot {
 		/// Effectively starts up the bots.
 		/// </summary>
 		public static void InitShellAll() {
-			if (lostInstances.Count > 0) {
-				ModEntry.instance.Helper.Events.GameLoop.OneSecondUpdateTicking += FindLostInstances;
-			}
-			
+			AddFindEvent();
+						
 			ModEntry.instance.Monitor.Log($"Initializing {instances.Count} bots!");
 			foreach (var instance in instances) {
 				instance.InitShell();
 			}
 			
-			foreach (var playerBots in remoteInstances.Values) {
-				foreach (var bot in playerBots) {
-					bot.InitShell();
-				}
+			if (remoteInstances.Count > 0) {
+				ModEntry.instance.Monitor.Log($"Initializing remote instances for {remoteInstances.Count} players!");
+				foreach (var playerBots in remoteInstances.Values) {
+					foreach (var bot in playerBots) {
+						bot.InitShell();
+					}
+				}	
 			}
 		}
 
@@ -121,7 +131,7 @@ namespace Farmtronics.Bot {
 
 		static Chest ConvertBotToChest(BotObject bot, bool saving = true) {
 			var chest = new Chest();
-			ModEntry.instance.Monitor.Log($"Converting bot [owned by: {bot.owner.Value}] to chest.");
+			// ModEntry.instance.Monitor.Log($"Converting bot [owned by: {bot.owner.Value}] to chest.");
 			chest.owner.Value = bot.owner.Value;
 			chest.Stack = bot.Stack;
 
@@ -218,7 +228,7 @@ namespace Farmtronics.Bot {
 			} else {
 				bot = new BotObject();	
 			}
-			ModEntry.instance.Monitor.Log($"Converting chest [owned by: {chest.owner.Value}] to bot.");
+			// ModEntry.instance.Monitor.Log($"Converting chest [owned by: {chest.owner.Value}] to bot.");
 			bot.owner.Value = chest.owner.Value;
 			
 			// Backwards compatibility
@@ -229,7 +239,7 @@ namespace Farmtronics.Bot {
 
 			bot.inventory.Clear();
 			for (int i = 0; i < chest.items.Count && i < bot.GetActualCapacity(); i++) {
-				ModEntry.instance.Monitor.Log($"Moving {chest.items[i]?.Name} from chest to bot in slot {i}");
+				// ModEntry.instance.Monitor.Log($"Moving {chest.items[i]?.Name} from chest to bot in slot {i}");
 				bot.inventory.Add(chest.items[i]);
 			}
 			
