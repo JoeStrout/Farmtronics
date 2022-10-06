@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -120,7 +120,7 @@ namespace Farmtronics.Bot {
 		}
 		
 		private void PerformOtherPlayerAction() {
-			var farmer = Game1.getFarmer(owner.Value);
+			var farmer = Game1.getFarmerMaybeOffline(owner.Value);
 			var name = farmer.Name;
 			if (farmer.UniqueMultiplayerID != owner.Value) name = "someone else";
 			Game1.addHUDMessage(new HUDMessage($"{Name} belongs to {name}.", HUDMessage.error_type));
