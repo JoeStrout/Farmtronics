@@ -607,12 +607,6 @@ namespace Farmtronics.Bot {
 			// ModEntry.instance.Monitor.Log($"UpdateWhenCurrentLocation: {time} {environment}");
 			if (shakeTimer > 0) shakeTimer--;
 			
-			// // NOTE: This is used to set the correct position after executing the first constructor
-			// if (Context.IsMultiplayer && !IsMoving() && TileLocation.GetAbsolutePosition() != Position) {
-			// 	farmer.Position = targetPos = TileLocation.GetAbsolutePosition();
-			// 	ModEntry.instance.Monitor.Log($"{Name} adjusted tileLocation to: {TileLocation}, position: {Position}");
-			// }
-			
 			if (Context.IsMultiplayer && owner.Value != Game1.player.UniqueMultiplayerID) data.Load(false);
 		}
 
