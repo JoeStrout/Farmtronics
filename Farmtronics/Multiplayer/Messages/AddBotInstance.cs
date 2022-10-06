@@ -35,6 +35,7 @@ namespace Farmtronics.Multiplayer.Messages {
 				if (!BotManager.lostInstances.Contains(this)) BotManager.lostInstances.Add(this);
 				return;
 			}
+			ModEntry.instance.Monitor.Log($"Successfully added bot to instance list!", LogLevel.Info);
 			BotManager.lostInstances.Remove(this);
 			BotManager.instances.Add(bot);
 			bot.InitShell();
