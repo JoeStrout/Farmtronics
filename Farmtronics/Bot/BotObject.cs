@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -677,8 +677,9 @@ namespace Farmtronics.Bot {
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1) {
-			//ModEntry.instance.print($"draw 1 at {x},{y}, {alpha}");
-			var absoluteLocation = new Location(x, y).GetAbsoluteLocation();
+			// ModEntry.instance.Monitor.Log($"draw 1 at {x},{y}, {alpha}");
+			// NOTE: To make the movement appear smooth we have to ignore x,y and use our own position
+			var absoluteLocation = new Location(position.GetIntX(), position.GetIntY());
 
 			// draw shadow
 			spriteBatch.Draw(Game1.shadowTexture, Game1.GlobalToLocal(Game1.viewport,
