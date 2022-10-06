@@ -124,18 +124,7 @@ namespace Farmtronics.M1 {
 			if (clump == null) return null;
 			var result = new ValMap();
 			result.map[_type] = new ValString("Clump");
-			string name;
-			switch (clump.parentSheetIndex.Value) {
-			case ResourceClump.boulderIndex: name = "Boulder"; break;
-			case ResourceClump.hollowLogIndex: name = "Hollow Log"; break;
-			case ResourceClump.meteoriteIndex: name = "Meteorite"; break;
-			case ResourceClump.mineRock1Index:
-			case ResourceClump.mineRock2Index:
-			case ResourceClump.mineRock3Index:
-			case ResourceClump.mineRock4Index: name = "Mine Rock"; break;
-			case ResourceClump.stumpIndex: name = "Stump"; break;
-			default: name = "#" + clump.parentSheetIndex.Value; break;
-			}
+			string name = clump.GetName();
 			result.map[_name] = new ValString(name);
 			result.map[_health] = new ValNumber(clump.health.Value);
 			return result;
@@ -203,10 +192,8 @@ namespace Farmtronics.M1 {
 			}
 
 			// check resource clumps (these span multiple tiles)
-			var bbox = new Rectangle(absoluteXy.GetIntX(), absoluteXy.GetIntY(), Game1.tileSize, Game1.tileSize);
-			foreach (var clump in loc.resourceClumps) {
-				if (clump.getBoundingBox(clump.tile.Value).Intersects(bbox)) return ToMap(clump);
-			}
+			var clump = loc.GetCollidingResourceClump(absoluteXy);
+			if (clump != null) return ToMap(clump);
 
 			// check water and other such terrain properties
 			int x = (int)xy.X;

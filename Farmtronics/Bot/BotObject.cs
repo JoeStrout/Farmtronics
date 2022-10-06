@@ -162,6 +162,11 @@ namespace Farmtronics.Bot {
 			if (farmer == null || inventory == null || farmer.CurrentTool == null) return;
 			Vector2 toolLocation = farmer.GetToolLocation(true);
 			ModEntry.instance.Monitor.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {toolLocation}");
+			
+			// Check ResourceClamps and current UpgradeLevel before hitting them
+			var clump = currentLocation.GetCollidingResourceClump(toolLocation);
+			if (clump != null && (clump.GetName().Contains("Stump") || clump.GetName().Contains("Boulder")) && farmer.CurrentTool.UpgradeLevel < 4) return;
+			
 			float oldStamina = farmer.stamina;
 			if (farmer.CurrentTool is not MeleeWeapon) {
 				farmer.CurrentTool.DoFunction(farmer.currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), 1, farmer);
