@@ -1,4 +1,4 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -107,12 +107,13 @@ namespace Farmtronics.Bot {
 			BotManager.botCount++;
 			CreateFarmer(tileLocation, location);
 			data = new ModData(this);
+			
+			position = targetPos = tileLocation.GetAbsolutePosition();
 		}
 		
 		private void PerformOtherPlayerAction() {
 			var farmer = Game1.getFarmerMaybeOffline(owner.Value);
 			var name = farmer.Name;
-			if (farmer.UniqueMultiplayerID != owner.Value) name = "someone else";
 			Game1.addHUDMessage(new HUDMessage($"{Name} belongs to {name}.", HUDMessage.error_type));
 		}
 		
@@ -133,12 +134,11 @@ namespace Farmtronics.Bot {
 			Vector2 placementTile = new Vector2(x, y).GetTilePosition();
 			// Create a new bot.
 			var bot = new BotObject(placementTile, location);
-			Game1.player.currentLocation.setObject(placementTile, bot);
+			location.setObject(placementTile, bot);
 
 			// Copy other data from this item to bot.
 			bot.modData.SetFromSerialization(this.modData);
 			bot.data.Load();
-			bot.NotePosition();
 
 			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
@@ -154,11 +154,6 @@ namespace Farmtronics.Bot {
 
 			location.playSound("hammer");
 			return true;
-		}
-
-		public void NotePosition() {
-			position = targetPos = TileLocation.GetAbsolutePosition();
-			farmer.setTileLocation(TileLocation);
 		}
 
 		// Apply the currently-selected item as a tool (or weapon) on
@@ -453,55 +448,32 @@ namespace Farmtronics.Bot {
 			else ModEntry.instance.Monitor.Log($"No object found at {tileLocation}");
 			return 0;
 		}
-
-		public void Move(int dColumn, int dRow) {
-			// Face in the specified direction
-			if (dRow < 0) farmer.faceDirection(0);
-			else if (dRow > 0) farmer.faceDirection(2);
-			else if (dColumn < 0) farmer.faceDirection(3);
-			else if (dColumn > 0) farmer.faceDirection(1);
-
+		
+		public void MoveForward() {
 			// make sure the terrain in that direction isn't blocked
-			Vector2 newTile = farmer.getTileLocation() + new Vector2(dColumn, dRow);
-			var location = currentLocation;
-			{
-				// How to detect walkability in pretty much the same way as other characters:
-				var newBounds = farmer.GetBoundingBox();
-				newBounds.X += dColumn * Game1.tileSize;
-				newBounds.Y += dRow * Game1.tileSize;
-				bool coll = location.isCollidingPosition(newBounds, Game1.viewport, isFarmer: false, 0, glider: false, farmer);
-				if (coll) {
-					//ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
-					return;
-				}
+			Location newTileLoc = farmer.nextPositionTile();
+			Vector2 newTile = newTileLoc.ToVector2();
+			ModEntry.instance.Monitor.Log($"Old tile: {TileLocation} / New tile: {newTile}");
+			
+			// How to detect walkability in pretty much the same way as other characters:
+			var newBounds = farmer.nextPosition(farmer.FacingDirection);
+			bool coll = currentLocation.isTilePassable(newTileLoc, Game1.viewport);
+			if (!coll) {
+				ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
+				return;
 			}
 
 			// start moving
 			targetPos = newTile.GetAbsolutePosition();
+			ModEntry.instance.Monitor.Log($"Old pos: {position} / New pos: {targetPos}");
 
 			// Do collision actions (shake the grass, etc.)
-			if (location.terrainFeatures.ContainsKey(newTile)) {
+			if (currentLocation.terrainFeatures.ContainsKey(newTile)) {
 				//Rectangle posRect = new Rectangle((int)position.X-16, (int)position.Y-24, 32, 48);
-				var feature = location.terrainFeatures[newTile];
+				var feature = currentLocation.terrainFeatures[newTile];
 				var posRect = feature.getBoundingBox(newTile);
-				feature.doCollisionAction(posRect, 4, newTile, null, location);
+				feature.doCollisionAction(posRect, farmer.Speed, newTile, farmer, currentLocation);
 			}
-		}
-		
-		public static int DxForDirection(int direction) {
-			if (direction == 1) return 1;
-			if (direction == 3) return -1;
-			return 0;
-		}
-
-		public static int DyForDirection(int direction) {
-			if (direction == 2) return 1;
-			if (direction == 0) return -1;
-			return 0;
-		}
-		
-		public void MoveForward() {
-			Move(DxForDirection(farmer.FacingDirection), DyForDirection(farmer.FacingDirection));
 		}
 		
 		public bool IsMoving() {
@@ -588,20 +560,16 @@ namespace Farmtronics.Bot {
 			}
 
 			if (position != targetPos) {
-				// ToDo: make a utility module with MoveTowards in it
-				position.X += MathF.Sign(targetPos.X - position.X);
-				position.Y += MathF.Sign(targetPos.Y - position.Y);
-				Vector2 newTile = position.GetTilePosition();
-				if (newTile != TileLocation) {
+				farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
+				position = farmer.Position;
+				if (TileLocation != farmer.getTileLocation()) {
 					// Remove this object from the Objects list at its old position
 					currentLocation.removeObject(TileLocation, false);
 					// Update our tile pos, and add this object to the Objects list at the new position
-					TileLocation = newTile;
-					currentLocation.setObject(newTile, this);
-					// Update the invisible farmer
-					farmer.setTileLocation(newTile);
+					TileLocation = farmer.getTileLocation();
+					currentLocation.setObject(TileLocation, this);
 				}
-				//ModEntry.instance.Monitor.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
+				// ModEntry.instance.Monitor.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
 			}
 
 			farmer.Update(gameTime, farmer.currentLocation);
@@ -748,7 +716,7 @@ namespace Farmtronics.Bot {
 				new Vector2(8f, 8f) * scaleSize, 4f * scaleSize, SpriteEffects.None, layerDepth);
 
 			if (shouldDrawStackNumber) {
-				var loc = location + new Vector2((float)(64 - Utility.getWidthOfTinyDigitString(this.Stack, 3f * scaleSize)) + 3f * scaleSize, 64f - 18f * scaleSize + 2f);
+				var loc = location + new Vector2((float)(Game1.tileSize - Utility.getWidthOfTinyDigitString(this.Stack, 3f * scaleSize)) + 3f * scaleSize, Game1.tileSize - 18f * scaleSize + 2f);
 				Utility.drawTinyDigits(this.Stack, spriteBatch, loc, 3f * scaleSize, 1f, color);
 			}
 		}

@@ -111,7 +111,7 @@ namespace Farmtronics
 			case SButton.PageUp:
 				// Create a bot.
 				Vector2 pos = Game1.player.position;
-				pos.X -= 64;
+				pos.X -= Game1.tileSize;
 				Vector2 tilePos = pos.GetTilePosition();
 				var bot = new BotObject(tilePos);
 				bot.owner.Value = Game1.player.UniqueMultiplayerID;

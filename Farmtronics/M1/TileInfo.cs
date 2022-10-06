@@ -6,13 +6,14 @@
 // which you may well find on a tile.
 
 using System.Collections.Generic;
-using Miniscript;
+using Farmtronics.Bot;
+using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
+using Miniscript;
 using StardewValley;
-using StardewValley.TerrainFeatures;
 using StardewValley.Locations;
 using StardewValley.Objects;
-using Farmtronics.Bot;
+using StardewValley.TerrainFeatures;
 
 namespace Farmtronics.M1 {
 	static class TileInfo {
@@ -195,13 +196,14 @@ namespace Farmtronics.M1 {
 
 			// check LARGE terrain features
 			// (not 100% certain we need to check these separately, but maybe)
-			var xyBounds = new Rectangle((int)(xy.X*64), (int)(xy.Y*64), 64, 64);
+			var absoluteXy = xy.GetAbsolutePosition();
+			var xyBounds = new Rectangle(absoluteXy.GetIntX(), absoluteXy.GetIntY(), Game1.tileSize, Game1.tileSize);
 			foreach (LargeTerrainFeature ltf in loc.largeTerrainFeatures) {
 				if (ltf.getBoundingBox().Intersects(xyBounds)) return ToMap(ltf);
 			}
 
 			// check resource clumps (these span multiple tiles)
-			var bbox = new Rectangle((int)xy.X * 64, (int)xy.Y * 64, 64, 64);
+			var bbox = new Rectangle(absoluteXy.GetIntX(), absoluteXy.GetIntY(), Game1.tileSize, Game1.tileSize);
 			foreach (var clump in loc.resourceClumps) {
 				if (clump.getBoundingBox(clump.tile.Value).Intersects(bbox)) return ToMap(clump);
 			}
@@ -222,7 +224,7 @@ namespace Farmtronics.M1 {
 			}
 
 			// check buildings (any not covered above -- such as the cabin)
-			var tileLocation = new xTile.Dimensions.Location(x*64, y*64);
+			var tileLocation = new xTile.Dimensions.Location(x*Game1.tileSize, y*Game1.tileSize);
 			var buildings_layer = loc.map.GetLayer("Buildings");
 			var tmp = buildings_layer.PickTile(tileLocation, Game1.viewport.Size);
 			if (tmp != null) {
