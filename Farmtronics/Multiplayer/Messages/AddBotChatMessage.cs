@@ -8,6 +8,7 @@ namespace Farmtronics.Multiplayer.Messages {
 		public Color MsgColor  { get; set; }
 		
 		public static void Send(string name, string message, Color color) {
+			Game1.chatBox.addMessage($"{name}: {message}", color);
 			new AddBotChatMessage() {
 				Name = name,
 				Message = message,
