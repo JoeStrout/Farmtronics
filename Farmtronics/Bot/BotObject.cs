@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -90,7 +90,7 @@ namespace Farmtronics.Bot {
 		}
 
 		// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
-		public BotObject() {
+		public BotObject() : base() {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
 			Initialize();
 
