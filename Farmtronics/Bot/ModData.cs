@@ -27,8 +27,8 @@ namespace Farmtronics.Bot {
 		public Color			ScreenColor { get; internal set; }
 		public Color			StatusColor { get; internal set; }
 		// New with 1.3.0
-		public float			TargetPosX	{ get; internal set; }
-		public float 			TargetPosY 	{ get; internal set; }
+		public float			PositionX	{ get; internal set; }
+		public float 			PositionY 	{ get; internal set; }
 		
 		private static string GetModDataValue(ModDataDictionary data, string key, string defaultValue = "") {
 			return data.TryGetValue(ModEntry.GetModDataKey(key.FirstToLower()), out string value) ? value : defaultValue;
@@ -76,15 +76,15 @@ namespace Farmtronics.Bot {
 			
 			ScreenColor = GetModDataValue(bot.modData, nameof(ScreenColor), Color.Transparent.ToHexString()).ToColor();
 			StatusColor = GetModDataValue(bot.modData, nameof(StatusColor), Color.Yellow.ToHexString()).ToColor();
-			TargetPosX	= GetModDataValue<float>(bot.modData, nameof(TargetPosX), bot.targetPos.X);
-			TargetPosY	= GetModDataValue<float>(bot.modData, nameof(TargetPosY), bot.targetPos.Y);
+			PositionX	= GetModDataValue<float>(bot.modData, nameof(PositionX), bot.Position.X);
+			PositionY	= GetModDataValue<float>(bot.modData, nameof(PositionY), bot.Position.Y);
 
 			if (ModVersion.IsOlderThan(ModEntry.instance.ModManifest.Version)) {
 				// NOTE: Do ModData update stuff here
 				ModVersion = ModEntry.instance.ModManifest.Version;
 			}
 			
-			Vector2 targetPosition = new Vector2(TargetPosX, TargetPosY);
+			Vector2 position = new Vector2(PositionX, PositionY);
 
 			if (bot.Name != Name) bot.Name = bot.DisplayName = Name;
 			if (bot.facingDirection != Facing) bot.facingDirection = Facing;
@@ -98,7 +98,7 @@ namespace Farmtronics.Bot {
 
 			if (bot.screenColor != ScreenColor) bot.screenColor = ScreenColor;
 			if (bot.statusColor != StatusColor) bot.statusColor = StatusColor;
-			if (bot.targetPos != targetPosition) bot.targetPos = targetPosition;
+			if (bot.Position != position) bot.Position = position;
 		}
 		
 		private Dictionary<string, string> GetModData(bool isSaving) {
@@ -114,8 +114,8 @@ namespace Farmtronics.Bot {
 			if (!isSaving) {
 				saveData.Add(ModEntry.GetModDataKey(nameof(ScreenColor).FirstToLower()), ScreenColor.ToHexString());
 				saveData.Add(ModEntry.GetModDataKey(nameof(StatusColor).FirstToLower()), StatusColor.ToHexString());
-				saveData.Add(ModEntry.GetModDataKey(nameof(TargetPosX).FirstToLower()), TargetPosX.ToString());
-				saveData.Add(ModEntry.GetModDataKey(nameof(TargetPosY).FirstToLower()), TargetPosY.ToString());
+				saveData.Add(ModEntry.GetModDataKey(nameof(PositionX).FirstToLower()), PositionX.ToString());
+				saveData.Add(ModEntry.GetModDataKey(nameof(PositionY).FirstToLower()), PositionY.ToString());
 			}
 			
 			return saveData;
@@ -137,13 +137,7 @@ namespace Farmtronics.Bot {
 		}
 		
 		public void RemoveEnergy(ref ModDataDictionary data) {
-			var energyKey = ModEntry.GetModDataKey(nameof(Energy).FirstToLower());
-			if (data.ContainsKey(energyKey))
-				data.Remove(energyKey);
-		}
-		
-		public void RemoveEnergy() {
-			RemoveEnergy(ref bot.modData);
+			data.Remove(ModEntry.GetModDataKey(nameof(Energy).FirstToLower()));
 		}
 		
 		public void Update() {
@@ -154,14 +148,15 @@ namespace Farmtronics.Bot {
 
 			ScreenColor = bot.screenColor;
 			StatusColor = bot.statusColor;
-			TargetPosX = bot.targetPos.X;
-			TargetPosY = bot.targetPos.Y;
+			
+			PositionX = bot.Position.X;
+			PositionY = bot.Position.Y;
 			
 			Save(false);
 		}
 		
 		public override string ToString() {
-			return $"ModData [{Name}]\n\tPosition: {TargetPosX}/{TargetPosY}\n\tEnergy: {Energy}\n\tFacing: {Facing}\n\tScreenColor: {ScreenColor}\n\tStatusColor: {StatusColor}";
+			return $"ModData [{Name}]\n\tPosition: {PositionX}/{PositionY}\n\tEnergy: {Energy}\n\tFacing: {Facing}\n\tScreenColor: {ScreenColor}\n\tStatusColor: {StatusColor}";
 		}
 	}
 }

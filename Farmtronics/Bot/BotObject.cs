@@ -1,4 +1,4 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -46,8 +46,8 @@ namespace Farmtronics.Bot {
 			}
 		}
 
-		internal Vector2 position;   // our current position, in pixels
-		internal Vector2 targetPos;  // position we're moving to, in pixels
+		internal Vector2 Position { get =>farmer.Position; set => farmer.Position = value; }   // our current position, in pixels
+		private Vector2 targetPos;  // position we're moving to, in pixels
 		private int scytheUseFrame = 0;       // > 0 when using the scythe
 		private float scytheOldStamina = -1;
 
@@ -60,8 +60,6 @@ namespace Farmtronics.Bot {
 			ParentSheetIndex = ItemID;
 			bigCraftable.Value = true;
 			CanBeSetDown = true;
-
-			position = targetPos = TileLocation.GetAbsolutePosition();
 		}
 
 		private void CreateFarmer(Vector2 tileLocation, GameLocation location) {
@@ -109,6 +107,8 @@ namespace Farmtronics.Bot {
 			BotManager.botCount++;
 			CreateFarmer(tileLocation, location);
 			data = new ModData(this);
+			// Prevent bots from running away
+			targetPos = Position;
 		}
 		
 		private void PerformOtherPlayerAction() {
@@ -470,8 +470,7 @@ namespace Farmtronics.Bot {
 
 			// start moving
 			targetPos = newTile.GetAbsolutePosition();
-			data.Update();
-			ModEntry.instance.Monitor.Log($"Old pos: {position} / New pos: {targetPos}");
+			ModEntry.instance.Monitor.Log($"Old pos: {Position} / New pos: {targetPos}");
 
 			// Do collision actions (shake the grass, etc.)
 			if (currentLocation.terrainFeatures.ContainsKey(newTile)) {
@@ -483,7 +482,7 @@ namespace Farmtronics.Bot {
 		}
 		
 		public bool IsMoving() {
-			return (position != targetPos);
+			return (Position != targetPos);
 		}
 
 		public void Rotate(int stepsClockwise) {
@@ -565,9 +564,9 @@ namespace Farmtronics.Bot {
 				else if (scytheUseFrame == 12) scytheUseFrame = 0;  // all done!
 			}
 
-			if (position != targetPos) {
+			if (Position != targetPos) {
 				farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
-				position = farmer.Position;
+				data.Update();
 				if (TileLocation != farmer.getTileLocation()) {
 					// Remove this object from the Objects list at its old position
 					currentLocation.removeObject(TileLocation, false);
@@ -607,6 +606,12 @@ namespace Farmtronics.Bot {
 		public override void updateWhenCurrentLocation(GameTime time, GameLocation environment) {
 			// ModEntry.instance.Monitor.Log($"UpdateWhenCurrentLocation: {time} {environment}");
 			if (shakeTimer > 0) shakeTimer--;
+			
+			// // NOTE: This is used to set the correct position after executing the first constructor
+			// if (Context.IsMultiplayer && !IsMoving() && TileLocation.GetAbsolutePosition() != Position) {
+			// 	farmer.Position = targetPos = TileLocation.GetAbsolutePosition();
+			// 	ModEntry.instance.Monitor.Log($"{Name} adjusted tileLocation to: {TileLocation}, position: {Position}");
+			// }
 			
 			if (Context.IsMultiplayer && owner.Value != Game1.player.UniqueMultiplayerID) data.Load(false);
 		}
@@ -651,9 +656,9 @@ namespace Farmtronics.Bot {
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1) {
-			// ModEntry.instance.Monitor.Log($"draw 1 at {x},{y}, {alpha}");
+			// ModEntry.instance.Monitor.Log($"draw 1 at {x},{y}, {alpha} - pos: {position} tileLocation: {TileLocation}");
 			// NOTE: To make the movement appear smooth we have to ignore x,y and use our own position
-			var absoluteLocation = new Location(position.GetIntX(), position.GetIntY());
+			var absoluteLocation = new Location(Position.GetIntX(), Position.GetIntY());
 
 			// draw shadow
 			spriteBatch.Draw(Game1.shadowTexture, Game1.GlobalToLocal(Game1.viewport,
@@ -782,6 +787,7 @@ namespace Farmtronics.Bot {
 		/// Effectively starts up the bot.
 		/// </summary>
 		public void InitShell() {
+			farmer.Position = targetPos = TileLocation.GetAbsolutePosition();
 			if (shell == null) {
 				shell = new Shell();
 				shell.Init(owner.Value, this);
