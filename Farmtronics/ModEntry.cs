@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using Farmtronics.Bot;
 using Farmtronics.M1;
@@ -132,6 +131,16 @@ namespace Farmtronics
 					this.Monitor.Log($"Bot instance {instance.data.ToString()}");
 				}
 				this.Monitor.Log("Done!");
+				break;
+				
+			case SButton.NumPad0:
+				Vector2 mousePos = this.Helper.Input.GetCursorPosition().Tile;
+				this.Monitor.Log($"Performing lookup at mouse position: {mousePos}");
+				bool occupied = Game1.player.currentLocation.isTileOccupied(mousePos);
+				string name = "null";
+				var obj = Game1.player.currentLocation.getObjectAtTile(mousePos.GetIntX(), mousePos.GetIntY());
+				if (obj != null) name = obj.Name;
+				this.Monitor.Log($"Object Lookup result [occupied: {occupied}]: {name}");
 				break;
 			}
 		}
