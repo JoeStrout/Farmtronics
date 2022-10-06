@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -772,6 +772,8 @@ namespace Farmtronics.Bot {
 			var ret = new BotObject();
 			data.Update();
 			data.Save(ref ret.modData, true);
+			ret.Name = Name;
+			ret.DisplayName = DisplayName;
 			ret._GetOneFrom(this);
 			return ret;
 		}
