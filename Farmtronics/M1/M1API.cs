@@ -5,6 +5,7 @@ custom intrinsic functions/classes for use on the M-1.
 
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using Farmtronics.M1.Filesystem;
 using Farmtronics.M1.GUI;
 using Farmtronics.Multiplayer.Messages;
@@ -15,6 +16,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
+using M1FileInfo = Farmtronics.M1.Filesystem.FileInfo;
 
 namespace Farmtronics.M1 {
 	static class M1API  {
@@ -178,7 +180,7 @@ namespace Farmtronics.M1 {
 					path += libname + ".ms";
 					string err;
 					path = sh.ResolvePath(path, out err);
-					Disk disk = FileUtils.GetDisk(ref path);
+					Disk disk = shell.Disks.GetDisk(ref path);
 					if (disk == null) continue;
 					lines = disk.ReadLines(path);
 					if (lines != null) break;
@@ -304,7 +306,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				return new Intrinsic.Result(new ValString(sh.bot.BotName));
+				return new Intrinsic.Result(new ValString(sh.bot.Name));
 			};
 			botModule["name"] = f.GetFunc();
 
@@ -339,9 +341,15 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				// Move the bot
-				sh.bot.MoveForward();
-				return Intrinsic.Result.Null;
+				if (partialResult == null) {
+					// Just starting our move; tell the bot and return partial result
+					sh.bot.MoveForward();
+					return new Intrinsic.Result(null, false);
+				} else {
+					// Continue until bot stops moving
+					if (sh.bot.IsMoving()) return partialResult;
+					return Intrinsic.Result.Null;
+				}
 			};
 			botModule["forward"] = f.GetFunc();
 
@@ -443,7 +451,8 @@ namespace Farmtronics.M1 {
 				if (keyStr == "name") {
 					string name = value.ToString();
 					if (!string.IsNullOrEmpty(name)) {
-						Shell.runningInstance.bot.BotName = name;
+						Shell.runningInstance.bot.Name = name;
+						Shell.runningInstance.bot.DisplayName = name;
 						if (Context.IsMultiplayer) Shell.runningInstance.bot.data.Update();
 					}
 					return true;
@@ -505,7 +514,7 @@ namespace Farmtronics.M1 {
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
 
-				Disk disk = FileUtils.GetDisk(ref path);
+				Disk disk = shell.Disks.GetDisk(ref path);
 				if (!disk.IsWriteable()) return new Intrinsic.Result("Error: disk is not writeable");
 				if (!path.EndsWith("/")) path += "/";
 				if (disk.Exists(path)) return new Intrinsic.Result("Error: file already exists");
@@ -528,14 +537,14 @@ namespace Farmtronics.M1 {
 				if (path == "/") {
 					// Special case: listing the disks.
 					var disks = new List<Value>();
-					var diskNames = new List<string>(FileUtils.disks.Keys);
+					var diskNames = new List<string>(shell.Disks.GetDiskNames());
 					diskNames.Sort();
 					foreach (string name in diskNames) {
 						disks.Add(new ValString("/" + name));
 					}
 					return new Intrinsic.Result(new ValList(disks));
 				}
-				Disk disk = FileUtils.GetDisk(ref path);
+				Disk disk = shell.Disks.GetDisk(ref path);
 				if (disk == null) return Intrinsic.Result.Null;
 				Value result = disk.GetFileNames(path).ToValue();
 				return new Intrinsic.Result(result);
@@ -551,7 +560,7 @@ namespace Farmtronics.M1 {
 				string err;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
-				return new Intrinsic.Result(FileUtils.GetFileName(path));
+				return new Intrinsic.Result(Path.GetFileName(path));
 			};
 			fileModule["name"] = f.GetFunc();
 
@@ -580,7 +589,7 @@ namespace Farmtronics.M1 {
 				string err;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
-				if (FileUtils.Exists(path)) return Intrinsic.Result.True;
+				if (shell.Disks.Exists(path)) return Intrinsic.Result.True;
 				return Intrinsic.Result.False;
 			};
 			fileModule["exists"] = f.GetFunc();
@@ -594,7 +603,7 @@ namespace Farmtronics.M1 {
 				string err;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
-				FileInfo info = FileUtils.GetInfo(path);
+				M1FileInfo info = shell.Disks.GetInfo(path);
 				if (info == null) return Intrinsic.Result.Null;
 				var result = new ValMap();
 				result["path"] = new ValString(path);
@@ -613,7 +622,7 @@ namespace Farmtronics.M1 {
 			f.code = (context, partialResult) => {
 				string basePath = context.GetLocalString("basePath");
 				string subpath = context.GetLocalString("subpath");
-				return new Intrinsic.Result(FileUtils.PathCombine(basePath, subpath));
+				return new Intrinsic.Result(Path.Combine(basePath, subpath));
 			};
 			fileModule["child"] = f.GetFunc();
 
@@ -626,7 +635,7 @@ namespace Farmtronics.M1 {
 				string err;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
-				err = FileUtils.Delete(path);
+				err = shell.Disks.Delete(path);
 				if (err == null) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(err);
 			};
@@ -647,7 +656,7 @@ namespace Farmtronics.M1 {
 				newPath = sh.ResolvePath(newPath, out err);
 				if (newPath == null) return new Intrinsic.Result(err);
 			
-				err = FileUtils.MoveOrCopy(oldPath, newPath, true, false);
+				err = shell.Disks.MoveOrCopy(oldPath, newPath, true, false);
 				if (err == null) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(err);
 			};
@@ -668,7 +677,7 @@ namespace Farmtronics.M1 {
 				newPath = sh.ResolvePath(newPath, out err);
 				if (newPath == null) return new Intrinsic.Result(err);
 			
-				err = FileUtils.MoveOrCopy(oldPath, newPath, false, false);
+				err = shell.Disks.MoveOrCopy(oldPath, newPath, false, false);
 				if (err == null) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(err);
 			};
@@ -686,8 +695,8 @@ namespace Farmtronics.M1 {
 				string err = null;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
-				if ((mode == "r" || mode == "r+") && !FileUtils.Exists(path)) return new Intrinsic.Result("Error: file not found");
-				var file = new OpenFile(path, mode);
+				if ((mode == "r" || mode == "r+") && !shell.Disks.Exists(path)) return new Intrinsic.Result("Error: file not found");
+				var file = new OpenFile(shell.Disks, path, mode);
 				ValMap result = new ValMap();
 				result.SetElem(ValString.magicIsA, FileHandleClass());
 				result.map[_handle] = new ValWrapper(file);
@@ -708,7 +717,7 @@ namespace Farmtronics.M1 {
 				string err = null;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
-				Disk disk = FileUtils.GetDisk(ref path);
+				Disk disk = shell.Disks.GetDisk(ref path);
 				if (disk == null) return Intrinsic.Result.Null;
 				Value result = disk.ReadLines(path).ToValue();
 				return new Intrinsic.Result(result);
@@ -730,7 +739,7 @@ namespace Farmtronics.M1 {
 				if (path == null) return new Intrinsic.Result(err);
 
 				try {
-					Disk disk = FileUtils.GetDisk(ref path);
+					Disk disk = shell.Disks.GetDisk(ref path);
 					if (!disk.IsWriteable()) return new Intrinsic.Result("Error: disk is not writeable");
 					disk.WriteLines(path, linesVal.ToStrings());
 				} catch (System.Exception) {
@@ -1656,7 +1665,7 @@ namespace Farmtronics.M1 {
 					Shell sh = context.interpreter.hostData as Shell;
 					string name;
 					if (sh.bot == null) name = "Home Computer";
-					else name = sh.bot.BotName;
+					else name = sh.bot.Name;
 					TextDisplay disp = sh.textDisplay;
 					AddBotChatMessage.Send(name, msg, disp.textColor);
 					return Intrinsic.Result.Null;

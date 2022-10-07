@@ -27,7 +27,6 @@ namespace Farmtronics.Bot {
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
 		BotFarmer farmer;
-		public string BotName { get; internal set; }
 		internal readonly ModData data;
 
 		public IList<Item> inventory { get { return farmer.Items; } }
@@ -47,14 +46,15 @@ namespace Farmtronics.Bot {
 			}
 		}
 
+		internal Vector2 Position { get =>farmer.Position; set => farmer.Position = value; }   // our current position, in pixels
+		private Vector2 targetPos;  // position we're moving to, in pixels
 		private int scytheUseFrame = 0;       // > 0 when using the scythe
 		private float scytheOldStamina = -1;
 
 		// Assign common values
-		private void Initialize() {
-			Name = I18n.Bot_Name();
-			DisplayName = I18n.Bot_Name();
-			BotName = I18n.Bot_Name();
+		private void Initialize() {			
+			Name = I18n.Bot_Name(BotManager.botCount);
+			DisplayName = I18n.Bot_Name(BotManager.botCount);
 			Type = "Crafting";
 			Category = StardewValley.Object.BigCraftableCategory;
 			ParentSheetIndex = ItemID;
@@ -83,18 +83,19 @@ namespace Farmtronics.Bot {
 			}
 			
 			// NOTE: Make sure to not use farmer.Items.Count to get the actual number of items in the inventory
-			ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Position: {farmer.Position} Location: {farmer.currentLocation}");
-			ModEntry.instance.Monitor.Log($"Items: {farmer.numberOfItemsInInventory()}/{farmer.MaxItems}");
+			// ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Position: {farmer.Position} Location: {farmer.currentLocation}");
+			// ModEntry.instance.Monitor.Log($"Items: {farmer.numberOfItemsInInventory()}/{farmer.MaxItems}");
 		}
 
 		// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
-		public BotObject() {
+		public BotObject() : base() {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
 			Initialize();
 
-			CreateFarmer(tileLocation, null);
+			CreateFarmer(TileLocation, null);
 			data = new ModData(this);
 
+			ModEntry.instance.Monitor.Log($"Constructor 1: {Name} - Location: {TileLocation} - owner: {owner.Value}");
 			// NOTE: this constructor is used for bots that are not in the world
 			// (but are in inventory, mail attachment, etc.).  So we do not add
 			// to the instances list.
@@ -104,18 +105,19 @@ namespace Farmtronics.Bot {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 			Initialize();
 
+			BotManager.botCount++;
 			CreateFarmer(tileLocation, location);
 			data = new ModData(this);
-		}
+			// Prevent bots from running away
+			targetPos = Position;
 
-		private bool IsEmptyWithoutInitialTools() {
-			ModEntry.instance.Monitor.Log($"isEmptyWithoutInitialTools: items: {farmer.numberOfItemsInInventory()}");
-			if (farmer.numberOfItemsInInventory() > Farmer.initialTools().Count) return false;
-			var copyItems = new List<Item>(farmer.Items);
-			while (copyItems.Contains(null)) { copyItems.Remove(null); }
-			Farmer.removeInitialTools(copyItems);
-			ModEntry.instance.Monitor.Log($"isEmptyWithoutInitialTools: without initial tools: {copyItems.Count}");
-			return copyItems.Count == 0;
+			ModEntry.instance.Monitor.Log($"Constructor 2: {Name} - Location: {TileLocation} - owner: {owner.Value}");
+		}
+		
+		private void PerformOtherPlayerAction() {
+			var farmer = Game1.getFarmerMaybeOffline(owner.Value);
+			var name = farmer.Name;
+			Game1.addHUDMessage(new HUDMessage($"{Name} belongs to {name}.", HUDMessage.error_type));
 		}
 		
 		public override bool performDropDownAction(Farmer who) {
@@ -135,11 +137,12 @@ namespace Farmtronics.Bot {
 			Vector2 placementTile = new Vector2(x, y).GetTilePosition();
 			// Create a new bot.
 			var bot = new BotObject(placementTile, location);
-			Game1.player.currentLocation.setObject(placementTile, bot);
+			location.setObject(placementTile, bot);
 
 			// Copy other data from this item to bot.
 			bot.modData.SetFromSerialization(this.modData);
 			bot.data.Load();
+			// ModEntry.instance.Monitor.Log($"Placement: {bot.data.ToString()}");
 
 			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
@@ -148,6 +151,7 @@ namespace Farmtronics.Bot {
 			
 			// Save new facingDirection
 			bot.data.Update();
+			// ModEntry.instance.Monitor.Log($"Placement new: {bot.data.ToString()}");
 
 			// Add the new bot (which is in the world) to our instances list.
 			BotManager.instances.Add(bot);
@@ -163,6 +167,11 @@ namespace Farmtronics.Bot {
 			if (farmer == null || inventory == null || farmer.CurrentTool == null) return;
 			Vector2 toolLocation = farmer.GetToolLocation(true);
 			ModEntry.instance.Monitor.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {toolLocation}");
+			
+			// Check ResourceClumps and current UpgradeLevel before hitting them
+			var clump = currentLocation.GetCollidingResourceClump(toolLocation);
+			if (clump != null && (clump.GetName().Contains("Stump") || clump.GetName().Contains("Boulder")) && farmer.CurrentTool.UpgradeLevel < 4) return;
+			
 			float oldStamina = farmer.stamina;
 			if (farmer.CurrentTool is not MeleeWeapon) {
 				farmer.CurrentTool.DoFunction(farmer.currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), 1, farmer);
@@ -239,6 +248,7 @@ namespace Farmtronics.Bot {
 				}
 				ModEntry.instance.Monitor.Log("Adding item");
 				Utility.addItemToThisInventoryList(item, farmer.Items, farmer.MaxItems);
+				if (Context.IsMultiplayer && item is Hat && farmer.getIndexOfInventoryItem(item) == GetActualCapacity() - 1) data.Update();
 				return true;
 			} else {
 				ModEntry.instance.Monitor.Log("Can't add item");
@@ -449,39 +459,36 @@ namespace Farmtronics.Bot {
 			else ModEntry.instance.Monitor.Log($"No object found at {tileLocation}");
 			return 0;
 		}
-
+		
 		public void MoveForward() {
 			// make sure the terrain in that direction isn't blocked
-			Vector2 newTile = farmer.nextPositionTile().ToVector2();
-			Vector2 moveVector = newTile - farmer.getTileLocation();
-			ModEntry.instance.Monitor.Log($"Moving from {TileLocation} to {newTile} with speed: {farmer.getMovementSpeed()}");
-			var location = farmer.currentLocation;
-			{
-				// How to detect walkability in pretty much the same way as other characters:
-				var newBounds = farmer.GetBoundingBox();
-				newBounds.X += moveVector.GetIntX() * Game1.tileSize;
-				newBounds.Y += moveVector.GetIntY() * Game1.tileSize;
-				bool coll = location.isCollidingPosition(newBounds, Game1.viewport, isFarmer: false, 0, glider: false, farmer);
-				if (coll) {
-					ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
-					return;
-				}
+			Location newTileLoc = farmer.nextPositionTile();
+			Vector2 newTile = newTileLoc.ToVector2();
+			ModEntry.instance.Monitor.Log($"Old tile: {TileLocation} / New tile: {newTile}");
+			
+			// How to detect walkability in pretty much the same way as other characters:
+			var newBounds = farmer.nextPosition(farmer.FacingDirection);
+			bool coll = currentLocation.isTilePassable(newTileLoc, Game1.viewport);
+			if (!coll) {
+				ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
+				return;
 			}
 
+			// start moving
+			targetPos = newTile.GetAbsolutePosition();
+			ModEntry.instance.Monitor.Log($"Old pos: {Position} / New pos: {targetPos}");
+
 			// Do collision actions (shake the grass, etc.)
-			if (location.terrainFeatures.ContainsKey(newTile)) {
-				var feature = location.terrainFeatures[newTile];
+			if (currentLocation.terrainFeatures.ContainsKey(newTile)) {
+				//Rectangle posRect = new Rectangle((int)position.X-16, (int)position.Y-24, 32, 48);
+				var feature = currentLocation.terrainFeatures[newTile];
 				var posRect = feature.getBoundingBox(newTile);
-				feature.doCollisionAction(posRect, 4, newTile, null, location);
+				feature.doCollisionAction(posRect, farmer.Speed, newTile, farmer, currentLocation);
 			}
-			
-			// Remove this object from the Objects list at its old position
-			location.removeObject(TileLocation, false);
-			// Update our tile pos, and add this object to the Objects list at the new position
-			TileLocation = newTile;
-			location.setObject(newTile, this);
-			// Update the invisible farmer
-			farmer.setTileLocation(newTile);
+		}
+		
+		public bool IsMoving() {
+			return (Position != targetPos);
 		}
 
 		public void Rotate(int stepsClockwise) {
@@ -563,6 +570,19 @@ namespace Farmtronics.Bot {
 				else if (scytheUseFrame == 12) scytheUseFrame = 0;  // all done!
 			}
 
+			if (Position != targetPos) {
+				farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
+				data.Update();
+				if (TileLocation != farmer.getTileLocation()) {
+					// Remove this object from the Objects list at its old position
+					currentLocation.removeObject(TileLocation, false);
+					// Update our tile pos, and add this object to the Objects list at the new position
+					TileLocation = farmer.getTileLocation();
+					currentLocation.setObject(TileLocation, this);
+				}
+				// ModEntry.instance.Monitor.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
+			}
+
 			farmer.Update(gameTime, farmer.currentLocation);
 		}
 
@@ -575,22 +595,9 @@ namespace Farmtronics.Bot {
 				return false;
 			}
 
-			// ToDo: use mutex to ensure only one player can open a bot at a time.
-			// (Tried, but couldn't get to work:
-			//ModEntry.instance.Monitor.Log($"Requesting mutex lock: {mutex}, IsLocked={mutex.IsLocked()}, IsLockHeld={mutex.IsLockHeld()}");
-			//mutex.RequestLock(delegate {
-			//	Game1.playSound("bigSelect");
-			//	Game1.player.Halt();
-			//	Game1.player.freezePause = 1000;
-			//	ShowMenu();
-			//}, delegate {
-			//	ModEntry.instance.Monitor.Log("Failed to get mutex lock :(");
-			//});
-
 			if (who.UniqueMultiplayerID != owner.Value) {
-				var farmer = Game1.getFarmer(owner.Value);
-				Game1.addHUDMessage(new HUDMessage($"{BotName} belongs to {farmer.Name}.", HUDMessage.error_type));
-				return false;	
+				PerformOtherPlayerAction();
+				return false;
 			}
 			
 			// For now, just dewit:
@@ -615,6 +622,7 @@ namespace Farmtronics.Bot {
 			if (who.UniqueMultiplayerID != owner.Value) {
 				shakeTimer = 20;
 				location.playSound("hammer");
+				PerformOtherPlayerAction();
 				return false;
 			}
 
@@ -623,14 +631,10 @@ namespace Farmtronics.Bot {
 			// NOTE: If a player holds left click it will eventually trigger a toolAction with a pickaxe
 			// 		 This could be checked like this: t != t.getLastFarmerToUse().CurrentTool
 			if (t is Pickaxe or Axe or Hoe) {
-				if (!IsEmptyWithoutInitialTools()) {
-					shakeTimer = 10;
-					location.playSound("hammer");
-					return false;
-				}
 				
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
+				data.Update();
 				data.Save(ref deb.item.modData, true);
 				location.debris.Add(deb);
 				ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
@@ -652,8 +656,9 @@ namespace Farmtronics.Bot {
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1) {
-			//ModEntry.instance.print($"draw 1 at {x},{y}, {alpha}");
-			var absoluteLocation = new Location(x, y).GetAbsoluteLocation();
+			// ModEntry.instance.Monitor.Log($"draw 1 at {x},{y}, {alpha} - pos: {position} tileLocation: {TileLocation}");
+			// NOTE: To make the movement appear smooth we have to ignore x,y and use our own position
+			var absoluteLocation = new Location(Position.GetIntX(), Position.GetIntY());
 
 			// draw shadow
 			spriteBatch.Draw(Game1.shadowTexture, Game1.GlobalToLocal(Game1.viewport,
@@ -722,7 +727,7 @@ namespace Farmtronics.Bot {
 				new Vector2(8f, 8f) * scaleSize, 4f * scaleSize, SpriteEffects.None, layerDepth);
 
 			if (shouldDrawStackNumber) {
-				var loc = location + new Vector2((float)(64 - Utility.getWidthOfTinyDigitString(this.Stack, 3f * scaleSize)) + 3f * scaleSize, 64f - 18f * scaleSize + 2f);
+				var loc = location + new Vector2((float)(Game1.tileSize - Utility.getWidthOfTinyDigitString(this.Stack, 3f * scaleSize)) + 3f * scaleSize, Game1.tileSize - 18f * scaleSize + 2f);
 				Utility.drawTinyDigits(this.Stack, spriteBatch, loc, 3f * scaleSize, 1f, color);
 			}
 		}
@@ -765,7 +770,10 @@ namespace Farmtronics.Bot {
 		public override Item getOne() {
 			// Create a new Bot from this one, copying the modData and owner
 			var ret = new BotObject();
+			data.Update();
 			data.Save(ref ret.modData, true);
+			ret.Name = Name;
+			ret.DisplayName = DisplayName;
 			ret._GetOneFrom(this);
 			return ret;
 		}
@@ -781,6 +789,7 @@ namespace Farmtronics.Bot {
 		/// Effectively starts up the bot.
 		/// </summary>
 		public void InitShell() {
+			farmer.Position = targetPos = TileLocation.GetAbsolutePosition();
 			if (shell == null) {
 				shell = new Shell();
 				shell.Init(owner.Value, this);

@@ -7,12 +7,10 @@ using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewValley;
 
 namespace Farmtronics.Multiplayer {
 	static class MultiplayerManager {
 		internal static long hostID;
-		internal static Dictionary<long, RealFileDisk> remoteDisks = new();
 		internal static Dictionary<long, Shell> remoteComputer = new();
 		
 		public static void OnPeerContextReceived(object sender, PeerContextReceivedEventArgs e) {
@@ -38,7 +36,7 @@ namespace Farmtronics.Multiplayer {
 				BotManager.ConvertChestsToBots();
 				var disk = new RealFileDisk(SaveData.GetUsrDiskPath(e.Peer.PlayerID));
 				disk.readOnly = false;
-				remoteDisks.Add(e.Peer.PlayerID, disk);
+				DiskController.GetDiskController(e.Peer.PlayerID).AddDisk("usr", disk);
 				InitRemoteComputer();
 			}
 			BotManager.InitShellAll();
@@ -46,7 +44,7 @@ namespace Farmtronics.Multiplayer {
 		
 		public static void OnPeerDisconnected(object sender, PeerDisconnectedEventArgs e) {
 			if (Context.IsMainPlayer) {
-				remoteDisks.Remove(e.Peer.PlayerID);
+				DiskController.RemovePlayer(e.Peer.PlayerID);
 				// Run home computer of disconnected player
 				remoteComputer.Add(e.Peer.PlayerID, new Shell());
 				remoteComputer[e.Peer.PlayerID].Init(e.Peer.PlayerID);
@@ -85,12 +83,14 @@ namespace Farmtronics.Multiplayer {
 				return;
 			case nameof(UpdateMemoryFileDisk):
 				UpdateMemoryFileDisk updateMemDisk = e.ReadAs<UpdateMemoryFileDisk>();
+				var diskName = $"/{updateMemDisk.DiskName}";
 				if (Context.IsMainPlayer) {
-					if (updateMemDisk.DiskName == "usr" && remoteDisks.ContainsKey(e.FromPlayerID)) {
-						updateMemDisk.Disk = remoteDisks[e.FromPlayerID];
+					if (updateMemDisk.DiskName == "usr" && DiskController.ContainsPlayer(e.FromPlayerID)) {
+						updateMemDisk.Disk = DiskController.GetDisk(ref diskName, e.FromPlayerID);
 						updateMemDisk.Apply();
 					} else if (updateMemDisk.DiskName != "usr") {
-						var sharedDisk = FileUtils.disks[updateMemDisk.DiskName] as SharedRealFileDisk;
+						
+						var sharedDisk = DiskController.GetCurrentDisk(ref diskName) as SharedRealFileDisk;
 						if (sharedDisk != null) {
 							sharedDisk.sendUpdate = false;
 							updateMemDisk.Disk = sharedDisk;
@@ -98,8 +98,8 @@ namespace Farmtronics.Multiplayer {
 							sharedDisk.sendUpdate = true;
 						}
 					}
-				} else if (updateMemDisk.DiskName != "usr" && FileUtils.disks.ContainsKey(updateMemDisk.DiskName)) {
-					updateMemDisk.Disk = FileUtils.disks[updateMemDisk.DiskName];
+				} else if (updateMemDisk.DiskName != "usr" && DiskController.GetCurrentDiskNames().Contains(updateMemDisk.DiskName)) {
+					updateMemDisk.Disk = DiskController.GetCurrentDisk(ref diskName);
 					updateMemDisk.Apply();
 				}
 				return;

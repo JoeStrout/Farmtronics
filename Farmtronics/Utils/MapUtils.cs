@@ -1,7 +1,9 @@
 using System;
 using Microsoft.Xna.Framework;
 using StardewValley;
+using StardewValley.TerrainFeatures;
 using xTile.Dimensions;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace Farmtronics.Utils {
 	static class MapUtils {
@@ -38,6 +40,28 @@ namespace Farmtronics.Utils {
 		
 		public static Location GetAbsoluteLocation(this Location location) {
 			return location * Game1.tileSize;
+		}
+		
+		public static ResourceClump GetCollidingResourceClump(this GameLocation gameLocation, Vector2 absolutePosition) {
+			var bbox = new Rectangle(absolutePosition.GetIntX(), absolutePosition.GetIntY(), Game1.tileSize, Game1.tileSize);
+			foreach (var clump in gameLocation.resourceClumps) {
+				if (clump.getBoundingBox(clump.tile.Value).Intersects(bbox)) return clump;
+			}
+			return null;
+		}
+		
+		public static string GetName(this ResourceClump clump) {			
+			switch (clump.parentSheetIndex.Value) {
+			case ResourceClump.boulderIndex: return "Boulder";
+			case ResourceClump.hollowLogIndex: return "Hollow Log";
+			case ResourceClump.meteoriteIndex: return "Meteorite";
+			case ResourceClump.mineRock1Index:
+			case ResourceClump.mineRock2Index:
+			case ResourceClump.mineRock3Index:
+			case ResourceClump.mineRock4Index: return "Mine Rock";
+			case ResourceClump.stumpIndex: return "Stump";
+			default: return "#" + clump.parentSheetIndex.Value;
+			}
 		}
 	}
 }

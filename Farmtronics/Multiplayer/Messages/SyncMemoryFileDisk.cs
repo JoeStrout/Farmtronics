@@ -1,3 +1,4 @@
+using System.Linq;
 using Farmtronics.M1.Filesystem;
 using Farmtronics.Utils;
 
@@ -8,12 +9,14 @@ namespace Farmtronics.Multiplayer.Messages {
 		
 		// Host
 		public void Apply(long playerID) {
+			var diskName = $"/{DiskName}";
 			if (DiskName == "usr") {
-				if (!MultiplayerManager.remoteDisks.ContainsKey(playerID)) MultiplayerManager.remoteDisks.Add(playerID, new RealFileDisk(SaveData.GetUsrDiskPath(playerID)));
+				var controller = DiskController.GetDiskController(playerID);
+				if (!controller.GetDiskNames().Contains("usr")) controller.AddDisk("usr", new RealFileDisk(SaveData.GetUsrDiskPath(playerID)));
 
-				RootDirectory = MultiplayerManager.remoteDisks[playerID].BuildMemoryDirectory();	
+				RootDirectory = (controller.GetDisk(ref diskName) as RealFileDisk).BuildMemoryDirectory();
 			} else {
-				var sharedDisk = FileUtils.disks[DiskName] as SharedRealFileDisk;
+				var sharedDisk = DiskController.GetCurrentDiskController().GetDisk(ref diskName) as SharedRealFileDisk;
 				if (sharedDisk == null) return;
 				RootDirectory = sharedDisk.BuildMemoryDirectory();
 			}
@@ -22,11 +25,12 @@ namespace Farmtronics.Multiplayer.Messages {
 
 		// Client
 		public override void Apply() {
-			MemoryFileDisk disk = FileUtils.disks[DiskName] as MemoryFileDisk;
+			var diskName = $"/{DiskName}";
+			MemoryFileDisk disk = DiskController.GetCurrentDiskController().GetDisk(ref diskName) as MemoryFileDisk;
 			if (disk == null) return;
 			
 			disk.root = RootDirectory;
-			ModEntry.instance.Monitor.Log($"MemoryFileDisk data: {disk.root.ToString()}");
+			// ModEntry.instance.Monitor.Log($"MemoryFileDisk data: {disk.root.ToString()}");
 		}
 	}
 }

@@ -5,7 +5,6 @@ the user.
 */
 
 using System.Collections.Generic;
-using System.IO;
 using Farmtronics.Bot;
 using Farmtronics.M1.Filesystem;
 using Farmtronics.M1.GUI;
@@ -16,6 +15,8 @@ using StardewModdingAPI;
 
 namespace Farmtronics.M1 {
 	class Shell {
+		private long playerID;
+		public DiskController Disks => DiskController.GetDiskController(playerID);
 		static Value _bootOpts = new ValString("bootOpts");
 		static Value _controlC = new ValString("controlC");
 		public Console console { get; private set; }
@@ -37,8 +38,6 @@ namespace Farmtronics.M1 {
 		public bool runProgram;
 		public string inputReceived;		// stores input while app is running, for _input intrinsic
 
-		Disk sysDisk;
-
 		ValString curStatusColor;
 		ValString curScreenColor;
 
@@ -54,6 +53,7 @@ namespace Farmtronics.M1 {
 		}
 
 		public void Init(long playerID, BotObject botContext=null) {
+			this.playerID = playerID;
 			this.bot = botContext;
 			M1API.Init(this);
 
@@ -79,26 +79,21 @@ namespace Farmtronics.M1 {
 				AddGlobals();
 			}
 
-			{
-				var d = new RealFileDisk(Path.Combine(ModEntry.instance.Helper.DirectoryPath, "assets", "sysdisk"));
-				d.readOnly = true;
-				sysDisk = d;
-				FileUtils.disks["sys"] = sysDisk;
-			}
 			if (Context.IsMainPlayer) {
 				var d = new RealFileDisk(SaveData.GetUsrDiskPath(playerID));
 				d.readOnly = false;
-				FileUtils.disks["usr"] = d;
-				FileUtils.disks["net"] = new SharedRealFileDisk("net", SaveData.NetDiskPath);
+				Disks.AddDisk("usr", d);
+				Disks.AddDisk("net", new SharedRealFileDisk("net", SaveData.NetDiskPath));
 			}
 			else {
-				FileUtils.disks["usr"] = new MemoryFileDisk("usr");
-				FileUtils.disks["net"] = new MemoryFileDisk("net", true);
+				Disks.AddDisk("usr", new MemoryFileDisk("usr"));
+				Disks.AddDisk("net", new MemoryFileDisk("net", true));
 			}
 
 			// Prepare the env map
 			env = new ValMap();
-			if (FileUtils.disks.ContainsKey("usr") && FileUtils.disks["usr"] != null) {
+			string diskName = "/usr";
+			if (Disks.GetDisk(ref diskName) != null) {
 				env["curdir"] = new ValString("/usr/");
 			} else {
 				env["curdir"] = new ValString("/sys/demo");
@@ -126,20 +121,22 @@ namespace Farmtronics.M1 {
 
 			// /sys/startup.ms
 
-			string startupScript = sysDisk.ReadText("startup.ms");
+			string startupScript = ModEntry.sysDisk.ReadText("startup.ms");
 			if (!string.IsNullOrEmpty(startupScript)) {
 				try {
 					FixHostInfo();
 					interpreter.REPL(startupScript);
 				} catch (System.Exception err) {
-					ModEntry.instance.Monitor.Log("Error running /sys/startup.ms: " + err.ToString());
+					ModEntry.instance.Monitor.Log("Error running /sys/startup.ms: " + err.ToString(), LogLevel.Error);
 				}
 			}
 
 			// /usr/startup.ms
-			if (FileUtils.disks.ContainsKey("usr") && FileUtils.disks["usr"] != null) {
+			string diskName = "/usr";
+			Disk usrDisk = Disks.GetDisk(ref diskName);
+			if (usrDisk != null) {
 				//ModEntry.instance.Monitor.Log("About to read startup.ms");
-				startupScript = FileUtils.disks["usr"].ReadText("startup.ms");
+				startupScript = usrDisk.ReadText("startup.ms");
 				if (!string.IsNullOrEmpty(startupScript)) BeginRun(startupScript);
 			}
 
@@ -198,7 +195,7 @@ namespace Farmtronics.M1 {
 		/// </summary>
 		public string ResolvePath(string path, out string error) {
 			string curdir = GetEnv("curdir").ToString();
-			return FileUtils.ResolvePath(curdir, path, out error);
+			return DiskUtils.ResolvePath(curdir, path, out error);
 		}
 	
 		public Value GetEnv(string key) {
@@ -245,7 +242,7 @@ namespace Farmtronics.M1 {
 			try {
 				interpreter.Compile();
 			} catch (MiniscriptException me) {
-				ModEntry.instance.Monitor.Log("Caught MiniScript exception: " + me);
+				ModEntry.instance.Monitor.Log("Caught MiniScript exception: " + me, LogLevel.Error);
 			}
 			if (interpreter.vm == null) interpreter.REPL("", 0);
 			interpreter.vm.globalContext.variables = globals;
@@ -254,7 +251,7 @@ namespace Farmtronics.M1 {
 			if (interpreter.NeedMoreInput()) {
 				// If the interpreter wants more input at this point, it's because the program
 				// has an unterminated if/while/for/function block.  Let's just cancel the run.
-				ModEntry.instance.Monitor.Log("Canceling run in BeginRun");
+				ModEntry.instance.Monitor.Log("Canceling run in BeginRun", LogLevel.Warn);
 				Break(true);
 			}		
 		}

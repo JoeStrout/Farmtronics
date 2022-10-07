@@ -1,6 +1,6 @@
 {
 	"tv-channel.label": "Farmtronics Home Computer",
 	"mail.text": "Dear @,^^Congratulations!  You have been selected to receive a complementary FARMTRONICS BOT, the latest in farm technology!^With this robotic companion, your days of toiling in the fields will soon be over.^Check your local stores for additional bots as needed.  Enjoy!^^{{botItem}}",
-	"bot.name": "Farmtronics Bot",
+	"bot.name": "Farmtronics Bot {{number}}",
 	"bot.description": "A programmable mechanical wonder."
 }

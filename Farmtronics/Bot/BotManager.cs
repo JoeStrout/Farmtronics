@@ -1,14 +1,16 @@
 using System.Collections.Generic;
-using Farmtronics.Multiplayer;
 using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
+using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Objects;
 
 namespace Farmtronics.Bot {
-	class BotManager {
+	static class BotManager {
+		private static bool addedFindEvent = false;
+		internal static int botCount = 0;
 		// Instances of bots which need updating, i.e., ones that actually exist in the world.
 		internal static List<BotObject> instances = new();
 		// Host needs to run instances of other players while they aren't connected
@@ -29,6 +31,14 @@ namespace Farmtronics.Bot {
 			
 			if (lostInstances.Count == 0) {
 				ModEntry.instance.Helper.Events.GameLoop.OneSecondUpdateTicking -= FindLostInstances;
+				addedFindEvent = false;
+			}
+		}
+		
+		public static void AddFindEvent() {
+			if (!addedFindEvent && lostInstances.Count > 0) {
+				addedFindEvent = true;
+				ModEntry.instance.Helper.Events.GameLoop.OneSecondUpdateTicking += FindLostInstances;
 			}
 		}
 
@@ -38,19 +48,20 @@ namespace Farmtronics.Bot {
 		/// Effectively starts up the bots.
 		/// </summary>
 		public static void InitShellAll() {
-			if (lostInstances.Count > 0) {
-				ModEntry.instance.Helper.Events.GameLoop.OneSecondUpdateTicking += FindLostInstances;
-			}
-			
+			AddFindEvent();
+						
 			ModEntry.instance.Monitor.Log($"Initializing {instances.Count} bots!");
 			foreach (var instance in instances) {
 				instance.InitShell();
 			}
 			
-			foreach (var playerBots in remoteInstances.Values) {
-				foreach (var bot in playerBots) {
-					bot.InitShell();
-				}
+			if (remoteInstances.Count > 0) {
+				ModEntry.instance.Monitor.Log($"Initializing remote instances for {remoteInstances.Count} players!");
+				foreach (var playerBots in remoteInstances.Values) {
+					foreach (var bot in playerBots) {
+						bot.InitShell();
+					}
+				}	
 			}
 		}
 
@@ -103,7 +114,7 @@ namespace Farmtronics.Bot {
 			if (!saving && Game1.activeClickableMenu is UIMenu) Game1.exitActiveMenu();
 
 			// New approach: search all game locations.
-			count += ConvertBotsInMapToChests(saving: saving);
+			if (Context.IsMainPlayer) count += ConvertBotsInMapToChests(saving: saving);
 
 			// Also convert the player's inventory.
 			int playerBotCount = ConvertBotsInListToChests(Game1.player.Items, saving);
@@ -118,10 +129,11 @@ namespace Farmtronics.Bot {
 
 		static Chest ConvertBotToChest(BotObject bot, bool saving = true) {
 			var chest = new Chest();
-			ModEntry.instance.Monitor.Log($"Converting bot [owned by: {bot.owner.Value}] to chest.");
+			// ModEntry.instance.Monitor.Log($"Converting bot [owned by: {bot.owner.Value}] to chest.");
 			chest.owner.Value = bot.owner.Value;
 			chest.Stack = bot.Stack;
 
+			bot.data.Update();
 			bot.data.Save(ref chest.modData, saving);
 			// Remove "energy" from the data, since this method happens at night, and
 			// we actually want our bots to wake up refreshed.
@@ -197,7 +209,7 @@ namespace Farmtronics.Bot {
 		/// </summary>
 		public static void ConvertChestsToBots() {
 			// Convert chests in the world.
-			ConvertChestsInMapToBots();
+			if (Context.IsMainPlayer) ConvertChestsInMapToBots();
 
 			// Convert chests in the player's inventory.
 			int count = ConvertChestsInListToBots(Game1.player.Items);
@@ -211,7 +223,7 @@ namespace Farmtronics.Bot {
 			} else {
 				bot = new BotObject();	
 			}
-			ModEntry.instance.Monitor.Log($"Converting chest [owned by: {chest.owner.Value}] to bot.");
+			// ModEntry.instance.Monitor.Log($"Converting chest [owned by: {chest.owner.Value}] to bot.");
 			bot.owner.Value = chest.owner.Value;
 			
 			// Backwards compatibility
@@ -222,7 +234,7 @@ namespace Farmtronics.Bot {
 
 			bot.inventory.Clear();
 			for (int i = 0; i < chest.items.Count && i < bot.GetActualCapacity(); i++) {
-				ModEntry.instance.Monitor.Log($"Moving {chest.items[i]?.Name} from chest to bot in slot {i}");
+				// ModEntry.instance.Monitor.Log($"Moving {chest.items[i]?.Name} from chest to bot in slot {i}");
 				bot.inventory.Add(chest.items[i]);
 			}
 			
