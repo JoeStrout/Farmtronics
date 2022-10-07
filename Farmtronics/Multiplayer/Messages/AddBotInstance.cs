@@ -20,17 +20,17 @@ namespace Farmtronics.Multiplayer.Messages {
 			message.Send(new[] {bot.owner.Value});
 		}
 		
-		private BotObject GetBotFromLocation() {
-			foreach (GameLocation location in ModEntry.instance.Helper.Multiplayer.GetActiveLocations().Where(location => location.NameOrUniqueName == LocationName)) {
-				var bot = location.getObjectAtTile(TileLocation.GetIntX(), TileLocation.GetIntY()) as BotObject;
-				if (bot != null) return bot;
-			}
-			
-			return null;
+		private GameLocation GetLocation() {
+			return ModEntry.instance.Helper.Multiplayer.GetActiveLocations().Where(location => location.NameOrUniqueName == LocationName).Single();
+		}
+		
+		private BotObject GetBotFromLocation(GameLocation location) {
+			return location.getObjectAtTile(TileLocation.GetIntX(), TileLocation.GetIntY()) as BotObject;
 		}
 
 		public override void Apply() {
-			var bot = GetBotFromLocation();
+			var location = GetLocation();
+			var bot = GetBotFromLocation(location);
 			if (bot == null && attempt < maxAttempts) {
 				ModEntry.instance.Monitor.Log($"Could not add new bot instance. Trying again later.", LogLevel.Warn);
 				if (!BotManager.lostInstances.Contains(this)) BotManager.lostInstances.Add(this);
@@ -43,10 +43,11 @@ namespace Farmtronics.Multiplayer.Messages {
 				BotManager.lostInstances.Remove(this);
 				return;
 			}
-			ModEntry.instance.Monitor.Log($"Successfully added bot to instance list: {LocationName} - {TileLocation}", LogLevel.Info);
 			BotManager.lostInstances.Remove(this);
 			BotManager.instances.Add(bot);
 			bot.data.Load();
+			bot.currentLocation = location;
+			ModEntry.instance.Monitor.Log($"Successfully added bot to instance list: {LocationName} - {TileLocation}", LogLevel.Info);
 			bot.InitShell();
 		}
 	}
