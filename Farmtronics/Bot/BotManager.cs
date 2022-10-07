@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
+using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Objects;
@@ -113,7 +114,7 @@ namespace Farmtronics.Bot {
 			if (!saving && Game1.activeClickableMenu is UIMenu) Game1.exitActiveMenu();
 
 			// New approach: search all game locations.
-			count += ConvertBotsInMapToChests(saving: saving);
+			if (Context.IsMainPlayer) count += ConvertBotsInMapToChests(saving: saving);
 
 			// Also convert the player's inventory.
 			int playerBotCount = ConvertBotsInListToChests(Game1.player.Items, saving);
@@ -208,7 +209,7 @@ namespace Farmtronics.Bot {
 		/// </summary>
 		public static void ConvertChestsToBots() {
 			// Convert chests in the world.
-			ConvertChestsInMapToBots();
+			if (Context.IsMainPlayer) ConvertChestsInMapToBots();
 
 			// Convert chests in the player's inventory.
 			int count = ConvertChestsInListToBots(Game1.player.Items);

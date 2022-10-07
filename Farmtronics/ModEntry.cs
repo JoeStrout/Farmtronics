@@ -42,6 +42,7 @@ namespace Farmtronics
 			helper.Events.GameLoop.Saving += this.OnSaving;
 			helper.Events.GameLoop.Saved += this.OnSaved;
 			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
+			helper.Events.GameLoop.DayEnding += this.OnDayEnding;
 			helper.Events.GameLoop.UpdateTicking += this.UpdateTicking;
 			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
 
@@ -188,22 +189,26 @@ namespace Farmtronics
 		}
 
 		public void OnSaving(object sender, SavingEventArgs args) {
-			if (Context.IsMainPlayer) BotManager.ConvertBotsToChests(true);
+			Monitor.Log($"OnSaving");
+			// Host can't save without this
+			BotManager.ConvertBotsToChests(true);
 			BotManager.ClearAll();
 		}
 
 		public void OnSaved(object sender, SavedEventArgs args) {
-			if (Context.IsMainPlayer) BotManager.ConvertChestsToBots();
+			Monitor.Log($"OnSaved");
+			BotManager.ConvertChestsToBots();
 		}
 
 		public void OnSaveLoaded(object sender, SaveLoadedEventArgs args) {
+			Monitor.Log($"OnSaveLoaded");
 			if (Context.IsMainPlayer) {
 				SaveData.CreateSaveDataDirs();
 				if (SaveData.IsOldSaveDirPresent()) SaveData.MoveOldSaveDir();
 				ModEntry.instance.Monitor.Log($"Setting host player ID: {Game1.player.UniqueMultiplayerID}");
 				MultiplayerManager.hostID = Game1.player.UniqueMultiplayerID;
-				BotManager.ConvertChestsToBots();
 			}
+			BotManager.ConvertChestsToBots();
 		}
 
 		public void OnDayStarted(object sender, DayStartedEventArgs args) {
@@ -215,6 +220,13 @@ namespace Farmtronics
 			InitComputerShell();
 			if (Context.IsMainPlayer) MultiplayerManager.InitRemoteComputer();
 			BotManager.InitShellAll();
+		}
+
+		private void OnDayEnding(object sender, DayEndingEventArgs e) {
+			Monitor.Log($"OnDayEnding");
+			// Other players need to convert their inventory before OnSaving happens
+			BotManager.ConvertBotsToChests(true);
+			BotManager.ClearAll();
 		}
 
 		/// <summary>
