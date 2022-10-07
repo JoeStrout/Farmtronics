@@ -1,4 +1,4 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -248,6 +248,7 @@ namespace Farmtronics.Bot {
 				}
 				ModEntry.instance.Monitor.Log("Adding item");
 				Utility.addItemToThisInventoryList(item, farmer.Items, farmer.MaxItems);
+				if (Context.IsMultiplayer && item is Hat && farmer.getIndexOfInventoryItem(item) == GetActualCapacity() - 1) data.Update();
 				return true;
 			} else {
 				ModEntry.instance.Monitor.Log("Can't add item");
