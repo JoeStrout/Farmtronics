@@ -168,7 +168,7 @@ namespace Farmtronics.Bot {
 			Vector2 toolLocation = farmer.GetToolLocation(true);
 			ModEntry.instance.Monitor.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {toolLocation}");
 			
-			// Check ResourceClamps and current UpgradeLevel before hitting them
+			// Check ResourceClumps and current UpgradeLevel before hitting them
 			var clump = currentLocation.GetCollidingResourceClump(toolLocation);
 			if (clump != null && (clump.GetName().Contains("Stump") || clump.GetName().Contains("Boulder")) && farmer.CurrentTool.UpgradeLevel < 4) return;
 			

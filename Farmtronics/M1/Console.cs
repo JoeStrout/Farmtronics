@@ -137,13 +137,12 @@ namespace Farmtronics.M1 {
 
 		public override void receiveKeyPress(Keys key) {
 			var inp = ModEntry.instance.Helper.Input;
-			// ModEntry.instance.Monitor.Log($"Console.receiveKeyPress({key}) inputMode: {inInputMode}");
 			if (key == Keys.Escape) {
 				if (inInputMode) Exit();
 				else HandleKey((char)27);
 				return;
 			}
-			// ModEntry.instance.Monitor.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
+			//ModEntry.instance.Monitor.Log($"Console.receiveKeyPress({key}, int {(int)key}) with LeftControl {inp.IsDown(SButton.LeftControl)}, RightControl {inp.IsDown(SButton.RightControl)}");
 
 			// Most keys are handled through one of the misspelled IKeyboardSubscriber
 			// interface methods.  But not these:
@@ -158,7 +157,7 @@ namespace Farmtronics.M1 {
 
 			bool control = inp.IsDown(SButton.LeftControl) || inp.IsDown(SButton.RightControl);
 			if (control && key >= Keys.A && key <= Keys.Z) {
-				// ModEntry.instance.Monitor.Log($"Handling control-{key}");
+				//ModEntry.instance.Monitor.Log($"Handling control-{key}");
 				if (key == Keys.C && owner.allowControlCBreak) owner.Break();
 				else HandleKey((char)(Key.ControlA + (int)key - (int)Keys.A));
 			} else {
@@ -169,7 +168,7 @@ namespace Farmtronics.M1 {
 		public bool Selected {  get; set; }
 
 		public virtual void RecieveTextInput(char inputChar) {
-			// ModEntry.instance.Monitor.Log($"RecieveTextInput<char>({inputChar})");
+			//ModEntry.instance.Monitor.Log($"RecieveTextInput<char>({inputChar})");
 			HandleKey(inputChar);
 		}
 
@@ -198,7 +197,7 @@ namespace Farmtronics.M1 {
 		}
 
 		void HandleKey(char keyChar) {
-			// ModEntry.instance.Monitor.Log($"HandleKey: {keyChar} ({(int)keyChar}) inputMode: {inInputMode}");
+			//ModEntry.instance.Monitor.Log($"HandleKey: {keyChar} ({(int)keyChar})");
 			KeyboardState state = Keyboard.GetState();
 
 			if (!inInputMode) {
@@ -331,7 +330,6 @@ namespace Farmtronics.M1 {
 		}
 	
 		public void StartInput() {
-			// ModEntry.instance.Monitor.Log($"StartInput");
 			inputStartPos = display.GetCursor();
 			ClearSelection();
 			display.ShowCursor();
