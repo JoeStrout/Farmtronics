@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -111,7 +111,7 @@ namespace Farmtronics.Bot {
 			// Prevent bots from running away
 			targetPos = Position;
 
-			ModEntry.instance.Monitor.Log($"Constructor 1: {Name} - Location: {TileLocation} - owner: {owner.Value}");
+			ModEntry.instance.Monitor.Log($"Constructor 2: {Name} - Location: {TileLocation} - owner: {owner.Value}");
 		}
 		
 		private void PerformOtherPlayerAction() {
