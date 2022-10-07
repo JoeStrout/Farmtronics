@@ -116,15 +116,12 @@ namespace Farmtronics.Bot {
 			count += ConvertBotsInMapToChests(saving: saving);
 
 			// Also convert the player's inventory.
-			foreach (var player in Game1.getOnlineFarmers()) {
-				int playerBotCount = ConvertBotsInListToChests(player.Items, saving);
-				//ModEntry.instance.Monitor.Log($"Converted {playerBotCount} bots in player inventory");
-				
-				count += playerBotCount;
-				
-				// And watch out for a recoveredItem (mail attachment).
-				if (player.recoveredItem is BotObject) player.recoveredItem = null;
-			}
+			int playerBotCount = ConvertBotsInListToChests(Game1.player.Items, saving);
+			//ModEntry.instance.Monitor.Log($"Converted {playerBotCount} bots in player inventory");
+			count += playerBotCount;
+
+			// And watch out for a recoveredItem (mail attachment).
+			if (Game1.player.recoveredItem is BotObject) Game1.player.recoveredItem = null;
 
 			//ModEntry.instance.Monitor.Log($"Total bots converted to chests: {count}");
 		}
@@ -214,10 +211,7 @@ namespace Farmtronics.Bot {
 			ConvertChestsInMapToBots();
 
 			// Convert chests in the player's inventory.
-			int count = 0;
-			foreach (var player in Game1.getOnlineFarmers()) {
-				count += ConvertChestsInListToBots(player.Items);
-			}
+			int count = ConvertChestsInListToBots(Game1.player.Items);
 			//ModEntry.instance.Monitor.Log($"Converted {count} chests to bots in player inventory");
 		}
 
