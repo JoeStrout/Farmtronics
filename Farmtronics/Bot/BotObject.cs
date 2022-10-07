@@ -143,7 +143,6 @@ namespace Farmtronics.Bot {
 			bot.modData.SetFromSerialization(this.modData);
 			bot.data.Load();
 			// ModEntry.instance.Monitor.Log($"Placement: {bot.data.ToString()}");
-			bot.targetPos = bot.Position;
 
 			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
