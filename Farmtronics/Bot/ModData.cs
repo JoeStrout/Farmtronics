@@ -109,15 +109,13 @@ namespace Farmtronics.Bot {
 			saveData.Add(ModEntry.GetModDataKey(nameof(Name).FirstToLower()), Name);
 			saveData.Add(ModEntry.GetModDataKey(nameof(Energy).FirstToLower()), Energy.ToString());
 			saveData.Add(ModEntry.GetModDataKey(nameof(Facing).FirstToLower()), Facing.ToString());
+			saveData.Add(ModEntry.GetModDataKey(nameof(Inventory).FirstToLower()), SerializeInventory(Inventory));
 
 			if (!isSaving) {
 				saveData.Add(ModEntry.GetModDataKey(nameof(ScreenColor).FirstToLower()), ScreenColor.ToHexString());
 				saveData.Add(ModEntry.GetModDataKey(nameof(StatusColor).FirstToLower()), StatusColor.ToHexString());
 				saveData.Add(ModEntry.GetModDataKey(nameof(PositionX).FirstToLower()), PositionX.ToString());
 				saveData.Add(ModEntry.GetModDataKey(nameof(PositionY).FirstToLower()), PositionY.ToString());
-			}
-			else {
-				saveData.Add(ModEntry.GetModDataKey(nameof(Inventory).FirstToLower()), SerializeInventory(Inventory));
 			}
 			
 			return saveData;
@@ -146,12 +144,8 @@ namespace Farmtronics.Bot {
 			Save(ref bot.modData, isSaving);
 		}
 		
-		public void RemoveEnergy() {
-			bot.modData.Remove(ModEntry.GetModDataKey(nameof(Energy).FirstToLower()));
-		}
-		
-		public void RemoveInventory() {
-			bot.modData.Remove(ModEntry.GetModDataKey(nameof(Inventory).FirstToLower()));
+		public void RemoveEnergy(ref ModDataDictionary data) {
+			data.Remove(ModEntry.GetModDataKey(nameof(Energy).FirstToLower()));
 		}
 		
 		public void Update() {
@@ -170,7 +164,7 @@ namespace Farmtronics.Bot {
 		}
 		
 		public override string ToString() {
-			return $"ModData [{Name}]\n\tPosition: ({PositionX}, {PositionY})\n\tEnergy: {Energy}\n\tFacing: {Facing}\n\tScreenColor: {ScreenColor}\n\tStatusColor: {StatusColor}";
+			return $"ModData [{Name}]\n\tPosition: {PositionX}/{PositionY}\n\tEnergy: {Energy}\n\tFacing: {Facing}\n\tScreenColor: {ScreenColor}\n\tStatusColor: {StatusColor}";
 		}
 	}
 }

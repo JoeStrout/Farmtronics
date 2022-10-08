@@ -5,7 +5,7 @@ It has several parts:
 	2. The bot inventory
 	3. A MiniScript console.
 */
-using Farmtronics.Multiplayer.Messages;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -133,8 +133,8 @@ namespace Farmtronics.Bot {
 		private void DoHatAction() {
 			if (!Context.IsMultiplayer) return;
 			
-			// Send hat update
-			BotHatChangeMessage.Send(bot);
+			// Update the inventory
+			bot.data.Update();
 		}
 
 		public override void receiveLeftClick(int x, int y, bool playSound = true) {

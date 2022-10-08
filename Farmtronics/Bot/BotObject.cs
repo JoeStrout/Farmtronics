@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Farmtronics.M1;
-using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -792,7 +791,6 @@ namespace Farmtronics.Bot {
 		/// </summary>
 		public void InitShell() {
 			farmer.Position = targetPos = TileLocation.GetAbsolutePosition();
-			if (Context.IsMultiplayer && owner.Value == Game1.player.UniqueMultiplayerID) BotHatChangeMessage.Send(this);
 			if (shell == null) {
 				shell = new Shell();
 				shell.Init(owner.Value, this);
