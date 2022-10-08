@@ -134,10 +134,11 @@ namespace Farmtronics.Bot {
 			chest.Stack = bot.Stack;
 
 			bot.data.Update();
-			bot.data.Save(ref chest.modData, saving);
+			bot.data.RemoveInventory();
 			// Remove "energy" from the data, since this method happens at night, and
 			// we actually want our bots to wake up refreshed.
-			if (saving) bot.data.RemoveEnergy(ref chest.modData);
+			if (saving) bot.data.RemoveEnergy();
+			bot.data.Save(ref chest.modData, saving);
 
 			var inventory = bot.inventory;
 			if (inventory != null) {
