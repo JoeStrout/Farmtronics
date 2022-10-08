@@ -170,7 +170,7 @@ namespace Farmtronics.Bot {
 			
 			// Check ResourceClumps and current UpgradeLevel before hitting them
 			var clump = currentLocation.GetCollidingResourceClump(toolLocation);
-			if (clump != null && (clump.GetName().Contains("Stump") || clump.GetName().Contains("Boulder")) && farmer.CurrentTool.UpgradeLevel < 4) return;
+			if (clump != null && farmer.CurrentTool.UpgradeLevel < 4) return;
 			
 			float oldStamina = farmer.stamina;
 			if (farmer.CurrentTool is not MeleeWeapon) {
