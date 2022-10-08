@@ -574,11 +574,8 @@ namespace Farmtronics.Bot {
 				farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
 				data.Update();
 				if (TileLocation != farmer.getTileLocation()) {
-					// Remove this object from the Objects list at its old position
-					currentLocation.removeObject(TileLocation, false);
-					// Update our tile pos, and add this object to the Objects list at the new position
-					TileLocation = farmer.getTileLocation();
-					currentLocation.setObject(TileLocation, this);
+					// Move this object to it's new position
+					currentLocation.moveObject(TileLocation.GetIntX(), TileLocation.GetIntY(), farmer.getTileX(), farmer.getTileY());
 				}
 				// ModEntry.instance.Monitor.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
 			}
