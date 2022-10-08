@@ -138,6 +138,13 @@ namespace Farmtronics.Bot {
 			foreach (var kv in GetModData(isSaving)) {
 				data[kv.Key] = kv.Value;
 			}
+			// Remove temp keys
+			if (isSaving) {
+				data.Remove(ModEntry.GetModDataKey(nameof(ScreenColor).FirstToLower()));
+				data.Remove(ModEntry.GetModDataKey(nameof(StatusColor).FirstToLower()));
+				data.Remove(ModEntry.GetModDataKey(nameof(PositionX).FirstToLower()));
+				data.Remove(ModEntry.GetModDataKey(nameof(PositionY).FirstToLower()));
+			}
 		}
 		
 		public void Save(bool isSaving) {
