@@ -137,7 +137,9 @@ namespace Farmtronics.Bot {
 		}
 
 		public void Save(ref ModDataDictionary data, bool isSaving) {
-			data.Set(GetModData(isSaving));
+			foreach (var kv in GetModData(isSaving)) {
+				data[kv.Key] = kv.Value;
+			}
 		}
 		
 		public void Save(bool isSaving) {
