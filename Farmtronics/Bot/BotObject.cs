@@ -467,9 +467,8 @@ namespace Farmtronics.Bot {
 			ModEntry.instance.Monitor.Log($"Old tile: {TileLocation} / New tile: {newTile}");
 			
 			// How to detect walkability in pretty much the same way as other characters:
-			var newBounds = farmer.nextPosition(farmer.FacingDirection);
-			bool coll = currentLocation.isTilePassable(newTileLoc, Game1.viewport);
-			if (!coll) {
+			var newBounds = farmer.nextPosition(farmer.FacingDirection);			
+			if (currentLocation.isCollidingPosition(new Rectangle(newTile.GetIntX(), newTile.GetIntY(), Game1.tileSize, Game1.tileSize), Game1.viewport, false)) {
 				ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
 				return;
 			}
