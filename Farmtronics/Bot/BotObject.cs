@@ -791,8 +791,8 @@ namespace Farmtronics.Bot {
 		/// </summary>
 		public void InitShell() {
 			farmer.Position = targetPos = TileLocation.GetAbsolutePosition();
-			if (Context.IsMultiplayer && owner.Value == Game1.player.UniqueMultiplayerID) BotHatChangeMessage.Send(this);
 			if (shell == null) {
+				if (Context.IsMultiplayer && owner.Value == Game1.player.UniqueMultiplayerID) BotHatChangeMessage.Send(this);
 				shell = new Shell();
 				shell.Init(owner.Value, this);
 			}
