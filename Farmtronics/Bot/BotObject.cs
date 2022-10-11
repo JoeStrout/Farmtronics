@@ -1,4 +1,4 @@
-﻿/*
+/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -170,7 +170,7 @@ namespace Farmtronics.Bot {
 			
 			// Check ResourceClumps and current UpgradeLevel before hitting them
 			var clump = currentLocation.GetCollidingResourceClump(toolLocation);
-			if (clump != null && (clump.GetName().Contains("Stump") || clump.GetName().Contains("Boulder")) && farmer.CurrentTool.UpgradeLevel < 4) return;
+			if (clump != null && farmer.CurrentTool.UpgradeLevel < 4) return;
 			
 			float oldStamina = farmer.stamina;
 			if (farmer.CurrentTool is not MeleeWeapon) {
@@ -467,9 +467,8 @@ namespace Farmtronics.Bot {
 			ModEntry.instance.Monitor.Log($"Old tile: {TileLocation} / New tile: {newTile}");
 			
 			// How to detect walkability in pretty much the same way as other characters:
-			var newBounds = farmer.nextPosition(farmer.FacingDirection);
-			bool coll = currentLocation.isTilePassable(newTileLoc, Game1.viewport);
-			if (!coll) {
+			var newBounds = farmer.nextPosition(farmer.FacingDirection);			
+			if (currentLocation.isCollidingPosition(new Rectangle(newTile.GetIntX(), newTile.GetIntY(), Game1.tileSize, Game1.tileSize), Game1.viewport, false)) {
 				ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
 				return;
 			}
@@ -574,11 +573,8 @@ namespace Farmtronics.Bot {
 				farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
 				data.Update();
 				if (TileLocation != farmer.getTileLocation()) {
-					// Remove this object from the Objects list at its old position
-					currentLocation.removeObject(TileLocation, false);
-					// Update our tile pos, and add this object to the Objects list at the new position
-					TileLocation = farmer.getTileLocation();
-					currentLocation.setObject(TileLocation, this);
+					// Move this object to its new position
+					currentLocation.moveObject(TileLocation.GetIntX(), TileLocation.GetIntY(), farmer.getTileX(), farmer.getTileY());
 				}
 				// ModEntry.instance.Monitor.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
 			}
@@ -634,8 +630,6 @@ namespace Farmtronics.Bot {
 				
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
-				data.Update();
-				data.Save(ref deb.item.modData, true);
 				location.debris.Add(deb);
 				ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
@@ -657,6 +651,10 @@ namespace Farmtronics.Bot {
 
 		public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1) {
 			// ModEntry.instance.Monitor.Log($"draw 1 at {x},{y}, {alpha} - pos: {position} tileLocation: {TileLocation}");
+			// Drawing with alpha=0.5 is done when the player is placing the bot down
+			// in the world.  In this case, our internal position doesn't matter;
+			// we want to update that to match the given tile position.			
+			if (alpha < 0.9f || Position == Vector2.Zero) Position = targetPos = new Vector2(x, y).GetAbsolutePosition();
 			// NOTE: To make the movement appear smooth we have to ignore x,y and use our own position
 			var absoluteLocation = new Location(Position.GetIntX(), Position.GetIntY());
 
@@ -770,11 +768,11 @@ namespace Farmtronics.Bot {
 		public override Item getOne() {
 			// Create a new Bot from this one, copying the modData and owner
 			var ret = new BotObject();
+			ret._GetOneFrom(this);
 			data.Update();
 			data.Save(ref ret.modData, true);
 			ret.Name = Name;
 			ret.DisplayName = DisplayName;
-			ret._GetOneFrom(this);
 			return ret;
 		}
 
