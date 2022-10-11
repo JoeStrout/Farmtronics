@@ -573,7 +573,7 @@ namespace Farmtronics.Bot {
 				farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
 				data.Update();
 				if (TileLocation != farmer.getTileLocation()) {
-					// Move this object to it's new position
+					// Move this object to its new position
 					currentLocation.moveObject(TileLocation.GetIntX(), TileLocation.GetIntY(), farmer.getTileX(), farmer.getTileY());
 				}
 				// ModEntry.instance.Monitor.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
