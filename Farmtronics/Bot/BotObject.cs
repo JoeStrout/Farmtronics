@@ -1,4 +1,4 @@
-/*
+﻿/*
 This class is a stardew valley Object subclass that represents a Bot.
 */
 
@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Locations;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
@@ -464,11 +465,20 @@ namespace Farmtronics.Bot {
 			// make sure the terrain in that direction isn't blocked
 			Location newTileLoc = farmer.nextPositionTile();
 			Vector2 newTile = newTileLoc.ToVector2();
+			Rectangle newBounds = getBoundingBox(newTile);
 			ModEntry.instance.Monitor.Log($"Old tile: {TileLocation} / New tile: {newTile}");
+
+			// Special case: BuildableGameLocation
+			if (currentLocation is BuildableGameLocation) {
+				var buildableLocation = currentLocation as BuildableGameLocation;
+				if (buildableLocation.isCollidingWithBuilding(newBounds)) {
+					ModEntry.instance.Monitor.Log("Colliding building: " + newBounds + " - old box: " + getBoundingBox(TileLocation));
+					return;
+				}
+			}
 			
 			// How to detect walkability in pretty much the same way as other characters:
-			var newBounds = farmer.nextPosition(farmer.FacingDirection);			
-			if (currentLocation.isCollidingPosition(new Rectangle(newTile.GetIntX(), newTile.GetIntY(), Game1.tileSize, Game1.tileSize), Game1.viewport, false)) {
+			if (!currentLocation.isTilePassable(newTileLoc, Game1.viewport)) {
 				ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
 				return;
 			}
@@ -573,8 +583,11 @@ namespace Farmtronics.Bot {
 				farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
 				data.Update();
 				if (TileLocation != farmer.getTileLocation()) {
-					// Move this object to its new position
-					currentLocation.moveObject(TileLocation.GetIntX(), TileLocation.GetIntY(), farmer.getTileX(), farmer.getTileY());
+					// Remove this object from the Objects list at its old position
+					currentLocation.removeObject(TileLocation, false);
+					// Update our tile pos, and add this object to the Objects list at the new position
+					TileLocation = farmer.getTileLocation();
+					currentLocation.setObject(TileLocation, this);
 				}
 				// ModEntry.instance.Monitor.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
 			}
