@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 using StardewValley;
+using StardewValley.Locations;
 using StardewValley.TerrainFeatures;
 using xTile.Dimensions;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -40,6 +41,14 @@ namespace Farmtronics.Utils {
 		
 		public static Location GetAbsoluteLocation(this Location location) {
 			return location * Game1.tileSize;
+		}
+		
+		public static bool isCollidingWithBuilding(this BuildableGameLocation gameLocation, Rectangle position) {
+			foreach (var building in gameLocation.buildings)
+			{
+				if (building.intersects(position)) return true;
+			}
+			return false;
 		}
 		
 		public static ResourceClump GetCollidingResourceClump(this GameLocation gameLocation, Vector2 absolutePosition) {

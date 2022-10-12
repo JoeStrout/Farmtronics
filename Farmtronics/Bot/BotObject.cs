@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Locations;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
@@ -464,12 +465,20 @@ namespace Farmtronics.Bot {
 			// make sure the terrain in that direction isn't blocked
 			Location newTileLoc = farmer.nextPositionTile();
 			Vector2 newTile = newTileLoc.ToVector2();
+			Rectangle newBounds = getBoundingBox(newTile);
 			ModEntry.instance.Monitor.Log($"Old tile: {TileLocation} / New tile: {newTile}");
+
+			// Special case: BuildableGameLocation
+			if (currentLocation is BuildableGameLocation) {
+				var buildableLocation = currentLocation as BuildableGameLocation;
+				if (buildableLocation.isCollidingWithBuilding(newBounds)) {
+					ModEntry.instance.Monitor.Log("Colliding building: " + newBounds + " - old box: " + getBoundingBox(TileLocation));
+					return;
+				}
+			}
 			
 			// How to detect walkability in pretty much the same way as other characters:
-			var newBounds = farmer.nextPosition(farmer.FacingDirection);
-			bool coll = currentLocation.isTilePassable(newTileLoc, Game1.viewport);
-			if (!coll) {
+			if (!currentLocation.isTilePassable(newTileLoc, Game1.viewport)) {
 				ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
 				return;
 			}
