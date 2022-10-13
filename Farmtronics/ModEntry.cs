@@ -22,7 +22,6 @@ namespace Farmtronics
 		internal static RealFileDisk sysDisk;
 		
 		Shell shell;
-		uint prevTicks;
 		
 		public static string GetModDataKey(string key) {
 			return $"{MOD_ID}/{key}";
@@ -76,7 +75,6 @@ namespace Farmtronics
 		}
 
 		private void UpdateTicking(object sender, UpdateTickingEventArgs e) {
-			uint dTicks = e.Ticks - prevTicks;
 			var gameTime = Game1.currentGameTime; //new GameTime(new TimeSpan(e.Ticks * 10000000 / 60), new TimeSpan(dTicks * 10000000 / 60));
 
 			// update the shell here only if it is not open; if it IS open, it will
@@ -85,7 +83,6 @@ namespace Farmtronics
 
 			// update all bots
 			BotManager.UpdateAll(gameTime);
-			prevTicks = e.Ticks;
 		}
 		
 		// NOTE: Only check the mailbox once per day and only when the player warps to the farm
