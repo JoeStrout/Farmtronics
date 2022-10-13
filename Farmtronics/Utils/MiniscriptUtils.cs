@@ -192,7 +192,7 @@ namespace Farmtronics.Utils {
 
 		public static ValMap GetMap(this ValMap map, string key, bool createIfNotFound = false) {
 			Value val = null;
-			if (!map.TryGetValue(key, out val) || !(map is ValMap)) {
+			if (!map.TryGetValue(key, out val) || !(val is ValMap)) {
 				val = null;
 				if (createIfNotFound) {
 					val = new ValMap();
