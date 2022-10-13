@@ -301,7 +301,7 @@ namespace Farmtronics.M1 {
 			foreach (var kw in keyWatchers) {
 				kw.Update(time);
 				if (kw.justPressedOrRepeats) {
-					//ModEntry.instance.Monitor.Log($"KeyWatcher {kw.keyButton} pressed or repeats");
+					ModEntry.instance.Monitor.Log($"KeyWatcher {kw.keyButton} pressed or repeats");
 					HandleKey(kw.keyChar);
 				}
 			}

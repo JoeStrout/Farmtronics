@@ -78,6 +78,7 @@ namespace Farmtronics
 		private void UpdateTicking(object sender, UpdateTickingEventArgs e) {
 			uint dTicks = e.Ticks - prevTicks;
 			var gameTime = new GameTime(new TimeSpan(e.Ticks * 10000000 / 60), new TimeSpan(dTicks * 10000000 / 60));
+			if (shell != null) shell.console.update(gameTime);
 			BotManager.UpdateAll(gameTime);
 			prevTicks = e.Ticks;
 		}
