@@ -6,6 +6,7 @@ as a key input (due to initial press or repeat).
 using System;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
+using StardewValley;
 
 namespace Farmtronics.M1 {
 	class KeyWatcher {
@@ -23,8 +24,9 @@ namespace Farmtronics.M1 {
 		}
 
 		public void Update(GameTime gameTime) {
-			if (gameTime.TotalGameTime == lastUpdate) return;	// already updated
-			lastUpdate = gameTime.TotalGameTime;
+			TimeSpan nowTS = Game1.currentGameTime.TotalGameTime;
+			if (nowTS == lastUpdate) return;	// already updated
+			lastUpdate = nowTS;
 
 			var inp = ModEntry.instance.Helper.Input;
 			bool nowDown = inp.IsDown(keyButton);
@@ -32,7 +34,7 @@ namespace Farmtronics.M1 {
 			if (!nowDown) {
 				isDown = justPressedOrRepeats = false;
 			} else {
-				double now = gameTime.TotalGameTime.TotalSeconds;
+				double now = nowTS.TotalSeconds;
 				if (!isDown) {
 					// initial press
 					justPressedOrRepeats = true;

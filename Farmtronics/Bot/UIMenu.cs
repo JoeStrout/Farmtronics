@@ -20,8 +20,6 @@ namespace Farmtronics.Bot {
 		BotObject bot;
 		InventoryMenu botInventoryMenu;
 
-		//Shell shell;
-
 		int consoleLeft, consoleTop;
 		const int consoleHeight = 480;
 		const int consoleWidth = 640;
@@ -138,6 +136,8 @@ namespace Farmtronics.Bot {
 		}
 
 		public override void receiveLeftClick(int x, int y, bool playSound = true) {
+			bot.shell.console.receiveLeftClick(x, y, playSound);
+
 			// ModEntry.instance.Monitor.Log($"Bot.receiveLeftClick({x}, {y}, {playSound}) while heldItem={heldItem}; inDragArea={inDragArea(x,y)}");
 			int slot = botInventoryMenu.getInventoryPositionOfClick(x, y);
 			bool checkHat = slot == bot.GetActualCapacity() - 1;

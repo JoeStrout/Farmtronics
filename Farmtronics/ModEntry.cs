@@ -77,8 +77,13 @@ namespace Farmtronics
 
 		private void UpdateTicking(object sender, UpdateTickingEventArgs e) {
 			uint dTicks = e.Ticks - prevTicks;
-			var gameTime = new GameTime(new TimeSpan(e.Ticks * 10000000 / 60), new TimeSpan(dTicks * 10000000 / 60));
-			if (shell != null) shell.console.update(gameTime);
+			var gameTime = Game1.currentGameTime; //new GameTime(new TimeSpan(e.Ticks * 10000000 / 60), new TimeSpan(dTicks * 10000000 / 60));
+
+			// update the shell here only if it is not open; if it IS open, it will
+			// be updated automatically via the UI system
+			if (shell != null && !shell.console.isOpen) shell.console.update(gameTime);
+
+			// update all bots
 			BotManager.UpdateAll(gameTime);
 			prevTicks = e.Ticks;
 		}
