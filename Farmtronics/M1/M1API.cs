@@ -359,7 +359,7 @@ namespace Farmtronics.M1 {
 				ValList result = new ValList();
 				if (sh.bot.inventory != null) {
 					foreach (var item in sh.bot.inventory) {
-						result.values.Add(TileInfo.ToMap(item));
+						result.values.Add(TileInfo.ToMap(item, new ValMap()));
 					}
 				}
 				return new Intrinsic.Result(result);

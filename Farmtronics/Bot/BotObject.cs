@@ -465,27 +465,16 @@ namespace Farmtronics.Bot {
 			// make sure the terrain in that direction isn't blocked
 			Location newTileLoc = farmer.nextPositionTile();
 			Vector2 newTile = newTileLoc.ToVector2();
-			Rectangle newBounds = getBoundingBox(newTile);
-			ModEntry.instance.Monitor.Log($"Old tile: {TileLocation} / New tile: {newTile}");
-
-			// Special case: BuildableGameLocation
-			if (currentLocation is BuildableGameLocation) {
-				var buildableLocation = currentLocation as BuildableGameLocation;
-				if (buildableLocation.isCollidingWithBuilding(newBounds)) {
-					ModEntry.instance.Monitor.Log("Colliding building: " + newBounds + " - old box: " + getBoundingBox(TileLocation));
-					return;
-				}
-			}
-			
-			// How to detect walkability in pretty much the same way as other characters:
-			if (!currentLocation.isTilePassable(newTileLoc, Game1.viewport)) {
-				ModEntry.instance.Monitor.Log("Colliding position: " + newBounds);
+			bool isPassable = TileInfo.IsPassable(currentLocation, newTile);
+			if (!isPassable) {
+				ModEntry.instance.Monitor.Log($"MoveForward: tile {newTile} is not passable");
+				targetPos = Position;
 				return;
 			}
 
 			// start moving
 			targetPos = newTile.GetAbsolutePosition();
-			ModEntry.instance.Monitor.Log($"Old pos: {Position} / New pos: {targetPos}");
+			ModEntry.instance.Monitor.Log($"MoveForward: Position: {Position} / targetPos: {targetPos}");
 
 			// Do collision actions (shake the grass, etc.)
 			if (currentLocation.terrainFeatures.ContainsKey(newTile)) {
@@ -580,7 +569,18 @@ namespace Farmtronics.Bot {
 			}
 
 			if (Position != targetPos) {
+				// face target position
+				float dx = targetPos.X - Position.X;
+				float dy = targetPos.Y - Position.Y;
+				if (MathF.Abs(dx) > MathF.Abs(dy)) farmer.FacingDirection = dx > 0 ? 1 : 3;
+				else farmer.FacingDirection = dy > 0 ? 2 : 0;
+				// try to move; if fail, abandon movement
+				var oldPos = farmer.Position;
 				farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
+				if (farmer.Position == oldPos) {
+					// Movement failed
+					targetPos = Position;
+				}
 				data.Update();
 				if (TileLocation != farmer.getTileLocation()) {
 					// Remove this object from the Objects list at its old position
