@@ -230,6 +230,10 @@ namespace Farmtronics
 			// Other players need to convert their inventory before OnSaving happens
 			BotManager.ConvertBotsToChests(true);
 			BotManager.ClearAll();
+			// And let's also shut down the home computer, for consistency
+			if (shell != null) {
+				shell = null;		// well that was easy.
+			}
 		}
 
 		/// <summary>
