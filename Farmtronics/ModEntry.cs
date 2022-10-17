@@ -243,6 +243,7 @@ namespace Farmtronics
 		private void InitComputerShell() {
 			if (shell == null) {
 				shell = new Shell();
+				shell.name = "Home Computer";
 				shell.Init(Game1.player.UniqueMultiplayerID);
 			}
 		}

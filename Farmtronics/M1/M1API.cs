@@ -33,6 +33,8 @@ namespace Farmtronics.M1 {
 
 		public static ValMap locationsMap;	// key: name; value: Location subclass
 
+		static double lastBotWarnTime = -9999;
+
 		public static void Init(Shell shell) {
 			M1API.shell = shell;
 			console = shell.console;
@@ -74,8 +76,19 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("bot");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				double now = Game1.currentGameTime.TotalGameTime.TotalSeconds;
+				if (now - lastBotWarnTime > 60*10) {
+					sh.PrintLine("`bot` is deprecated; please use `me` instead");
+					lastBotWarnTime = now;
+				}
 				if (sh.bot == null) return Intrinsic.Result.Null;
-				return new Intrinsic.Result(BotModule());
+				return new Intrinsic.Result(MeModule());
+			};
+
+			f = Intrinsic.Create("me");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(MeModule());
 			};
 
 			f = Intrinsic.Create("env");
@@ -294,49 +307,56 @@ namespace Farmtronics.M1 {
 			throw new RuntimeException("Assignment to protected map");
 		}
 
-		static ValMap botModule;
+		static ValMap meModule;
 		static HashSet<string> botProtectedKeys;
-		public static ValMap BotModule() {
-			if (botModule != null) return botModule;
+		public static ValMap MeModule() {
+			if (meModule != null) return meModule;
 
-			botModule = new ValMap();
+			meModule = new ValMap();
 
 			Intrinsic f;
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				return new Intrinsic.Result(new ValString(sh.bot.Name));
+				return sh.bot == null ? Intrinsic.Result.False : Intrinsic.Result.True;
 			};
-			botModule["name"] = f.GetFunc();
+			meModule["isBot"] = f.GetFunc();
+
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				return new Intrinsic.Result(new ValString(sh.name));
+			};
+			meModule["name"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				return new Intrinsic.Result(new ValNumber(sh.bot.facingDirection));
 			};
-			botModule["facing"] = f.GetFunc();
+			meModule["facing"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				return new Intrinsic.Result(new ValNumber(sh.bot.currentToolIndex));
 			};
-			botModule["currentToolIndex"] = f.GetFunc();
+			meModule["currentToolIndex"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				return new Intrinsic.Result(new ValNumber(sh.bot.energy));
 			};
-			botModule["energy"] = f.GetFunc();
+			meModule["energy"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				return new Intrinsic.Result(new ValString(sh.bot.statusColor.ToHexString()));
 			};
-			botModule["statusColor"] = f.GetFunc();
+			meModule["statusColor"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
@@ -351,7 +371,7 @@ namespace Farmtronics.M1 {
 					return Intrinsic.Result.Null;
 				}
 			};
-			botModule["forward"] = f.GetFunc();
+			meModule["forward"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
@@ -364,7 +384,7 @@ namespace Farmtronics.M1 {
 				}
 				return new Intrinsic.Result(result);
 			};
-			botModule["inventory"] = f.GetFunc();
+			meModule["inventory"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
@@ -372,7 +392,7 @@ namespace Farmtronics.M1 {
 				sh.bot.Rotate(-1);
 				return Intrinsic.Result.Null;
 			};
-			botModule["left"] = f.GetFunc();
+			meModule["left"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
@@ -385,7 +405,7 @@ namespace Farmtronics.M1 {
 				result["area"] = LocationSubclass(loc);
 				return new Intrinsic.Result(result);
 			};
-			botModule["position"] = f.GetFunc();
+			meModule["position"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
@@ -393,7 +413,7 @@ namespace Farmtronics.M1 {
 				sh.bot.Rotate(1);
 				return Intrinsic.Result.Null;
 			};
-			botModule["right"] = f.GetFunc();
+			meModule["right"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			// ToDo: accept a count of items to place.
@@ -403,7 +423,7 @@ namespace Farmtronics.M1 {
 				int itemsPlaced = sh.bot.PlaceItem();
 				return new Intrinsic.Result(itemsPlaced);
 			};
-			botModule["placeItem"] = f.GetFunc();
+			meModule["placeItem"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.AddParam("slot", 0);
@@ -412,7 +432,7 @@ namespace Farmtronics.M1 {
 				bool result = sh.bot.TakeItem(context.GetLocalInt("slot"));
 				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
 			};
-			botModule["takeItem"] = f.GetFunc();
+			meModule["takeItem"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
@@ -428,7 +448,7 @@ namespace Farmtronics.M1 {
 					return Intrinsic.Result.Null;
 				}
 			};
-			botModule["useTool"] = f.GetFunc();
+			meModule["useTool"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
@@ -437,23 +457,23 @@ namespace Farmtronics.M1 {
 				bool result = sh.bot.Harvest();
 				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
 			};
-			botModule["harvest"] = f.GetFunc();
+			meModule["harvest"] = f.GetFunc();
 
 			botProtectedKeys = new HashSet<string>();
-			foreach (Value key in botModule.Keys) {
+			foreach (Value key in meModule.Keys) {
 				botProtectedKeys.Add(key.ToString());
 			}
 
-			botModule.assignOverride = (key,value) => {
+			meModule.assignOverride = (key,value) => {
 				string keyStr = key.ToString();
 				if (keyStr == "_") return false;
-				//ModEntry.instance.Monitor.Log($"botModule {key} = {value}");
+				//ModEntry.instance.Monitor.Log($"meModule {key} = {value}");
 				if (keyStr == "name") {
 					string name = value.ToString();
 					if (!string.IsNullOrEmpty(name)) {
-						Shell.runningInstance.bot.Name = name;
-						Shell.runningInstance.bot.DisplayName = name;
-						if (Context.IsMultiplayer) Shell.runningInstance.bot.data.Update();
+						var sh = Shell.runningInstance;
+						sh.name = name;
+						if (Context.IsMultiplayer && sh.bot != null) sh.bot.data.Update();
 					}
 					return true;
 				} else if (keyStr == "statusColor") {
@@ -467,7 +487,7 @@ namespace Farmtronics.M1 {
 				return false;	// allow the assignment
 			};
 
-			return botModule;
+			return meModule;
 		}
 
 		static ValMap fileModule;
@@ -560,7 +580,7 @@ namespace Farmtronics.M1 {
 				string err;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
-				return new Intrinsic.Result(Path.GetFileName(path));
+				return new Intrinsic.Result(PathUtils.GetFileName(path));
 			};
 			fileModule["name"] = f.GetFunc();
 
@@ -622,7 +642,7 @@ namespace Farmtronics.M1 {
 			f.code = (context, partialResult) => {
 				string basePath = context.GetLocalString("basePath");
 				string subpath = context.GetLocalString("subpath");
-				return new Intrinsic.Result(Path.Combine(basePath, subpath));
+				return new Intrinsic.Result(PathUtils.PathCombine(basePath, subpath));
 			};
 			fileModule["child"] = f.GetFunc();
 
@@ -1663,11 +1683,8 @@ namespace Farmtronics.M1 {
 				f.code = (context, partialResult) => {
 					string msg = context.variables.GetString("message");
 					Shell sh = context.interpreter.hostData as Shell;
-					string name;
-					if (sh.bot == null) name = "Home Computer";
-					else name = sh.bot.Name;
 					TextDisplay disp = sh.textDisplay;
-					AddBotChatMessage.Send(name, msg, disp.textColor);
+					AddBotChatMessage.Send(sh.name, msg, disp.textColor);
 					return Intrinsic.Result.Null;
                 };
 				worldInfo["chat"] = f.GetFunc();

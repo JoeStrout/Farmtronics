@@ -21,6 +21,16 @@ namespace Farmtronics.M1 {
 		static Value _controlC = new ValString("controlC");
 		public Console console { get; private set; }
 		public BotObject bot {  get; private set; }
+		
+		private string _name;
+		public string name {
+			get { return bot == null ? _name : bot.name; }
+			set {
+				_name = value;
+				if (bot != null) bot.Name = bot.DisplayName = value;
+			}
+		}
+
 		public bool allowControlCBreak {
 			get {
 				ValMap bootOpts = env.Lookup(_bootOpts) as ValMap;
