@@ -123,12 +123,10 @@ namespace Farmtronics.Bot {
 		
 		public ModData(BotObject bot) {
 			this.bot = bot;
-#if DEBUG
-			this.bot.modData.OnValueAdded += (key, value) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueAdded: {key}: {value}");
-			this.bot.modData.OnValueRemoved += (key, value) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueRemoved: {key}: {value}");
-			this.bot.modData.OnValueTargetUpdated += (key, oldValue, newValue) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueUpdated: {key}: {oldValue} -> {newValue}");
-			this.bot.modData.OnConflictResolve += (key, rejected, accepted) => ModEntry.instance.Monitor.Log($"{Name} ModData OnConflictResolve: {key}: Rejected: {rejected} Accepted: {accepted}");
-#endif
+			//this.bot.modData.OnValueAdded += (key, value) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueAdded: {key}: {value}");
+			//this.bot.modData.OnValueRemoved += (key, value) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueRemoved: {key}: {value}");
+			//this.bot.modData.OnValueTargetUpdated += (key, oldValue, newValue) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueUpdated: {key}: {oldValue} -> {newValue}");
+			//this.bot.modData.OnConflictResolve += (key, rejected, accepted) => ModEntry.instance.Monitor.Log($"{Name} ModData OnConflictResolve: {key}: Rejected: {rejected} Accepted: {accepted}");
 			this.serializer = SaveGame.GetSerializer(typeof(NetObjectList<Item>));
 			this.Load(false);
 			this.Save(false);

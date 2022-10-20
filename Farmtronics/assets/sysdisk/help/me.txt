@@ -1,0 +1,37 @@
+The `me` module provides access to the
+machine environment.  Most of these work
+only on robots; on the Home Computer,
+only `me.screenColor`, `me.name`, and
+`me.isBot` are functional.
+
+Read-only properties:
+ `me.isBot`: 1 if robot, 0 if computer
+ `me.position`: current tile position
+ `me.facing`: 0=north, 1=east, etc.
+ `me.energy`: energy left (0-270)
+ `me.inventory`: list of items carried
+ `me.here`: same as `me.position.area`
+ `me.ahead`: info on tile ahead of me
+ 
+Read/write properties:
+ `me.name`: robotbot or computer name
+ `me.screenColor`: screen background color
+ `me.currentToolIndex`: selected item
+ `me.statusColor`: color of status light
+
+Methods:
+ `me.forward`: move forward 1 tile
+ `me.left`: turn left
+ `me.right`: turn right
+ `me.select toolNameOrIndex`: choose item
+ `me.placeItem`: place item down
+ `me.takeItem`: take item from chest
+ `me.harvest`: harvest a crop/item
+ `me.useTool`: apply current tool
+ `me.clearAhead`: choose/apply tool
+ `me.clearAndMove`: clear ahead and move
+   (optionally specify # of tiles)
+
+Note that each robot must be given a
+suitable set of tools for the tasks you
+program them to do.

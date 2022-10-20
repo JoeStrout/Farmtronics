@@ -68,7 +68,6 @@ namespace Farmtronics.M1 {
 			M1API.Init(this);
 
 			var display = console.display;
-			display.backColor = new Color(0.31f, 0.11f, 0.86f);
 			display.Clear();
 
 			var colors = new Color[] { Color.Red, Color.Yellow, Color.Green, Color.Purple };
@@ -320,9 +319,9 @@ namespace Farmtronics.M1 {
 					string keyStr = key.ToString();
 					if (keyStr == "_") return false;
 					//ModEntry.instance.Monitor.Log($"global {key} = {value}");
-					if (keyStr == "statusColor") {		// DEPRECATED: now in bot module
+					if (keyStr == "statusColor") {		// DEPRECATED: now in me module
 						bot.statusColor = value.ToString().ToColor();
-					} else if (keyStr == "screenColor") {
+					} else if (keyStr == "screenColor") {		// DEPRECATED: now in me module
 						bot.screenColor = value.ToString().ToColor();
 					}
 					bot.data.Update();
@@ -334,7 +333,7 @@ namespace Farmtronics.M1 {
 					string keyStr = key.ToString();
 					if (keyStr == "_") return false;
 					//ModEntry.instance.Monitor.Log($"global {key} = {value}");
-					if (keyStr == "screenColor") {
+					if (keyStr == "screenColor") {		// DEPRECATED: now in me module
 						console.backColor = value.ToString().ToColor();
 					}
 					return false;	// allow the assignment

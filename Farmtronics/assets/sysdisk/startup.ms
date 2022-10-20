@@ -392,32 +392,32 @@ todo = @toDo	// (allow mistyping just this one time, because newbies)
 
 mkdir = @file.makedir  // (handy and expected alias)
 
-if bot then
-	// Additional bot functions
+if me.isBot then
+	// Additional functions for robots only
 	here = function
-		return bot.position.area
+		return me.position.area
 	end function
 	
-	bot.ahead = function
-		f = bot.facing
-		pos = bot.position
+	me.ahead = function
+		f = me.facing
+		pos = me.position
 		if f == 0 then return here.tile(pos.x, pos.y-1)
 		if f == 1 then return here.tile(pos.x+1, pos.y)
 		if f == 2 then return here.tile(pos.x, pos.y+1)
 		if f == 3 then return here.tile(pos.x-1, pos.y)
 	end function
 	
-	bot.select = function(toolNameOrIndex)
-		inv = bot.inventory
+	me.select = function(toolNameOrIndex)
+		inv = me.inventory
 		if toolNameOrIndex isa number then
-			bot.currentToolIndex = toolNameOrIndex
+			me.currentToolIndex = toolNameOrIndex
 			print "Using " + inv[toolNameOrIndex].name + " (index " + toolNameOrIndex + ")"
 			return
 		end if
 		toolName = str(toolNameOrIndex).lower
 		for i in inv.indexes
 			if inv[i] and inv[i].name.lower == toolName then
-				bot.currentToolIndex = i
+				me.currentToolIndex = i
 				print "Using " + inv[i].name + " (index " + i + ")"
 				return
 			end if
@@ -425,34 +425,34 @@ if bot then
 		print "No tool found matching: " + toolNameOrIndex
 	end function
 
-	bot.use = function(toolNameOrIndex)
-		_printMark "`bot.use` is deprecated and will be removed."
-		_printMark "Please call `bot.select` instead."
-		bot.select toolNameOrIndex
+	me.use = function(toolNameOrIndex)
+		_printMark "`me.use` is deprecated and will be removed."
+		_printMark "Please call `me.select` instead."
+		me.select toolNameOrIndex
 	end function
 
 	// Clear ahead: try to select the right tool for whatever is in front
-	// of the bot, and then use that tool up to 20 times to try to clear
+	// of the me, and then use that tool up to 20 times to try to clear
 	// it.  Returns 1 (true) on success, 0 (false) on failure.
-	bot.clearAhead = function
-		obstacle = bot.ahead
+	me.clearAhead = function
+		obstacle = me.ahead
 		if not obstacle then return true
 		what = obstacle.type
 		if obstacle.hasIndex("name") then what = obstacle.name
 		print "Clearing: " + what
 		if what == "Grass" or what == "Weeds" then
-			bot.statusColor = "#66FF66"
-			bot.select "Scythe"
+			me.statusColor = "#66FF66"
+			me.select "Scythe"
 		else if what == "Stone" or what == "HoeDirt" then
-			bot.statusColor = "#8888FF"
-			bot.select "Pickaxe"
+			me.statusColor = "#8888FF"
+			me.select "Pickaxe"
 		else
-			bot.statusColor = "#FF8800"
-			bot.select "Axe"
+			me.statusColor = "#FF8800"
+			me.select "Axe"
 		end if
 		for tries in range(19)
-			if not bot.ahead then return true
-			bot.useTool
+			if not me.ahead then return true
+			me.useTool
 			wait 0.2
 		end for
 		return false	// couldn't clear the obstacle
@@ -460,12 +460,12 @@ if bot then
 
 	// Attempt to clear any obstacle ahead, and then move forward, for the
 	// given total distance.  Returns 1 (true) on success, 0 (false) on failure.
-	bot.clearAndMove = function(dist=1)
+	me.clearAndMove = function(dist=1)
 		for i in range(dist-1)
-			pos = bot.position
-			while bot.position == pos
-				if not bot.clearAhead then return false
-				bot.forward
+			pos = me.position
+			while me.position == pos
+				if not me.clearAhead then return false
+				me.forward
 			end while
 		end for
 		return true
@@ -474,6 +474,10 @@ if bot then
 end if
 
 // Stuff that applies both to bots and to the home computer
-screenColor = "#333399"
+me.screenColor = "#333399"
 
 _saveGlobals
+
+print
+_printMark "Enter `help` for help."
+print

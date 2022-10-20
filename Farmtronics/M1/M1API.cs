@@ -307,6 +307,12 @@ namespace Farmtronics.M1 {
 			throw new RuntimeException("Assignment to protected map");
 		}
 
+		static bool RequireBot(Shell sh, string methodName) {
+			if (sh.bot != null) return false;
+			sh.PrintLine($"me.{methodName} is only valid for bots");
+			return true;
+		}
+
 		static ValMap meModule;
 		static HashSet<string> botProtectedKeys;
 		public static ValMap MeModule() {
@@ -330,9 +336,11 @@ namespace Farmtronics.M1 {
 			};
 			meModule["name"] = f.GetFunc();
 
+
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "facing")) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(new ValNumber(sh.bot.facingDirection));
 			};
 			meModule["facing"] = f.GetFunc();
@@ -340,6 +348,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "currentToolIndex")) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(new ValNumber(sh.bot.currentToolIndex));
 			};
 			meModule["currentToolIndex"] = f.GetFunc();
@@ -347,6 +356,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "energy")) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(new ValNumber(sh.bot.energy));
 			};
 			meModule["energy"] = f.GetFunc();
@@ -354,6 +364,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "statusColor")) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(new ValString(sh.bot.statusColor.ToHexString()));
 			};
 			meModule["statusColor"] = f.GetFunc();
@@ -361,6 +372,15 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (sh.bot == null) return new Intrinsic.Result(new ValString(sh.console.backColor.ToHexString()));
+				return new Intrinsic.Result(new ValString(sh.bot.screenColor.ToHexString()));
+			};
+			meModule["screenColor"] = f.GetFunc();
+
+			f = Intrinsic.Create("");
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "forward")) return Intrinsic.Result.Null;
 				if (partialResult == null) {
 					// Just starting our move; tell the bot and return partial result
 					sh.bot.MoveForward();
@@ -376,6 +396,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "inventory")) return Intrinsic.Result.Null;
 				ValList result = new ValList();
 				if (sh.bot.inventory != null) {
 					foreach (var item in sh.bot.inventory) {
@@ -389,6 +410,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "left")) return Intrinsic.Result.Null;
 				sh.bot.Rotate(-1);
 				return Intrinsic.Result.Null;
 			};
@@ -397,6 +419,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "position")) return Intrinsic.Result.Null;
 				var pos = sh.bot.TileLocation;
 				var loc = sh.bot.currentLocation;
 				var result = new ValMap();
@@ -410,6 +433,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "right")) return Intrinsic.Result.Null;
 				sh.bot.Rotate(1);
 				return Intrinsic.Result.Null;
 			};
@@ -420,6 +444,7 @@ namespace Farmtronics.M1 {
 			// For now, we'll just always place as many as possible.
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "placeItem")) return Intrinsic.Result.Null;
 				int itemsPlaced = sh.bot.PlaceItem();
 				return new Intrinsic.Result(itemsPlaced);
 			};
@@ -429,6 +454,7 @@ namespace Farmtronics.M1 {
 			f.AddParam("slot", 0);
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "takeItem")) return Intrinsic.Result.Null;
 				bool result = sh.bot.TakeItem(context.GetLocalInt("slot"));
 				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
 			};
@@ -437,6 +463,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "useTool")) return Intrinsic.Result.Null;
 				
 				if (partialResult == null) {
 					// Just starting our tool use; tell the bot and return partial result
@@ -453,6 +480,7 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "harvest")) return Intrinsic.Result.Null;
 
 				bool result = sh.bot.Harvest();
 				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
@@ -477,11 +505,23 @@ namespace Farmtronics.M1 {
 					}
 					return true;
 				} else if (keyStr == "statusColor") {
-					Shell.runningInstance.bot.statusColor = value.ToString().ToColor();
-					if (Context.IsMultiplayer) Shell.runningInstance.bot.data.Update();
+					var sh = Shell.runningInstance;
+					if (RequireBot(sh, keyStr)) return true;
+					sh.bot.statusColor = value.ToString().ToColor();
+					if (Context.IsMultiplayer) sh.bot.data.Update();
+					return true;
+				} else if (keyStr == "screenColor") {
+					var sh = Shell.runningInstance;
+					sh.console.backColor = value.ToString().ToColor();
+					if (sh.bot != null) {
+						sh.bot.screenColor = value.ToString().ToColor();
+						if (Context.IsMultiplayer) sh.bot.data.Update();
+					}
 					return true;
 				} else if (keyStr == "currentToolIndex") {
-					Shell.runningInstance.bot.currentToolIndex = value.IntValue();
+					var sh = Shell.runningInstance;
+					if (RequireBot(sh, keyStr)) return true;
+					sh.bot.currentToolIndex = value.IntValue();
 					return true;
 				} else if (botProtectedKeys.Contains(keyStr)) return true;
 				return false;	// allow the assignment

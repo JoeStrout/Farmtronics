@@ -26,7 +26,11 @@ namespace Farmtronics.M1 {
 
 		Shell owner;
 		public TextDisplay display {  get; private set; }
-		public Color backColor;
+		Color _backColor = Color.DeepSkyBlue;
+		public Color backColor {
+			get { return _backColor; }
+			set {  _backColor = value; if (display != null) display.screenColor = value; }
+		}
 
 		bool inInputMode;
 		RowCol inputStartPos;		// where on the screen we started taking input
@@ -61,7 +65,8 @@ namespace Farmtronics.M1 {
 
 			display = new TextDisplay();
 			display.onScrolled += NoteScrolled;
-			display.backColor = new Color(0.31f, 0.11f, 0.86f);
+			display.backColor = Color.Transparent;
+			display.screenColor = _backColor;
 			display.Clear();
 
 			var colors = new Color[] { Color.Red, Color.Yellow, Color.Green, Color.Purple };
@@ -319,7 +324,7 @@ namespace Farmtronics.M1 {
 				foreach (var kw in keyWatchers) {
 					kw.Update(time);
 					if (kw.justPressedOrRepeats) {
-						ModEntry.instance.Monitor.Log($"KeyWatcher {kw.keyButton} pressed or repeats");
+						//ModEntry.instance.Monitor.Log($"KeyWatcher {kw.keyButton} pressed or repeats");
 						HandleKey(kw.keyChar);
 					}
 				}

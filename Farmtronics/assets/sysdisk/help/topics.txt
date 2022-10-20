@@ -1,7 +1,7 @@
 Available topics:
    files        coding        demos
    text         input         community
-   farm         bot           world
+   farm         me            world
    toDo
    
 (Access these with, for example: 

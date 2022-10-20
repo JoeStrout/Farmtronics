@@ -14,7 +14,8 @@ namespace Farmtronics.M1.GUI {
 		public float colSpacing = 16;
 		public float rowSpacing = 24;
 		public Color textColor = Color.White;
-		public Color backColor = Color.DeepSkyBlue;
+		public Color backColor = Color.Transparent;
+		public Color screenColor = Color.Black;	// (used in special case of inverse text with clear backColor)
 		public bool inverse;
 		public float cursorOnTime = 0.7f;
 		public float cursorOffTime = 0.3f;
@@ -290,6 +291,9 @@ namespace Farmtronics.M1.GUI {
 			for (int row=0; row<rows; row++) {
 				for (int col=0; col<cols; col++) {
 					Color c = cells[row, col].inverse ? cells[row,col].backColor : cells[row,col].foreColor;
+					// Special case: if the text color is clear because of inverse mode, we won't be able to actually see it.
+					// In this case, explicitly draw the screen color.
+					if (c.A == 0) c = screenColor;
 					DrawFontCell(b, cells[row, col].character, c, col, row, displayArea);
 				}
 			}
