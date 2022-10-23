@@ -301,6 +301,22 @@ namespace Farmtronics.M1 {
 			f.code = (context, partialResult) => {
 				return new Intrinsic.Result(WorldInfo());
 			};
+
+			// stackTrace: get a list describing the call stack.
+			f = Intrinsic.Create("stackTrace");
+			f.code = (context, partialResult) => {
+				TAC.Machine vm = context.vm;
+				if (vm.globalContext.variables.ContainsKey(_stackAtBreak)) {
+					// We have a stored stack from a break or exit.
+					// So, display that.  This gets cleared by 'run' so should never interfere with
+					// showing a more up-to-date stack during a run.
+					return new Intrinsic.Result(vm.globalContext.variables.map[_stackAtBreak]);
+				}
+				// Otherwise, build a stack now from the state of the VM.
+				ValList result = StackList(context.vm);
+				return new Intrinsic.Result(result);
+			};
+
 		}
 
 		static bool DisallowAllAssignment(Value key, Value value) {

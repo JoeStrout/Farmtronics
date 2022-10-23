@@ -52,12 +52,14 @@ namespace Farmtronics.M1 {
 		ValString curScreenColor;
 
 		public TextDisplay textDisplay {  get {  return console.display; } }
-		
+
+		ValList stackAtLastErr;
+
 		public Shell() {
 			console = new Console(this);
 
 			// prepare the interpreter
-			interpreter = new Interpreter(null, PrintLineWithTaskCheck, PrintLine);
+			interpreter = new Interpreter(null, PrintLineWithTaskCheck, PrintErrLine);
 			interpreter.implicitOutput = PrintLine;
 			interpreter.hostData = this;
 		}
@@ -275,7 +277,8 @@ namespace Farmtronics.M1 {
 			if (!silent && !allowControlCBreak) return;
 		
 			// grab the full stack and tuck it away for future reference
-			ValList stack = M1API.StackList(interpreter.vm);
+			ValList stack = stackAtLastErr;
+			if (stack == null) stack = M1API.StackList(interpreter.vm);
 		
 			// also find the first non-null entry, to display right away
 			SourceLoc loc = null;
@@ -349,8 +352,8 @@ namespace Farmtronics.M1 {
 	
 		public void Exit() {
 			if (interpreter.Running()) {
-				//interpreter.vm.globalContext.variables.SetElem(MiniMicroAPI._stackAtBreak, 
-				//	MiniMicroAPI.StackList(interpreter.vm));
+				interpreter.vm.globalContext.variables.SetElem(M1API._stackAtBreak, 
+					M1API.StackList(interpreter.vm));
 				interpreter.Stop();
 			}
 		}
@@ -359,6 +362,16 @@ namespace Farmtronics.M1 {
 			TextDisplay disp = console.display;
 			disp.Print(line);
 			disp.Print(disp.delimiter);
+		}
+
+		public void PrintErrLine(string line) {
+			if (interpreter.vm != null) {
+				stackAtLastErr = M1API.StackList(interpreter.vm);
+				interpreter.vm.globalContext.variables.SetElem(M1API._stackAtBreak, stackAtLastErr);
+			} else {
+				stackAtLastErr = new ValList();	// empty list signifies error without a VM, e.g. at compile time.
+			}
+			PrintLine(line);
 		}
 
 		void PrintLineWithTaskCheck(string line) {
