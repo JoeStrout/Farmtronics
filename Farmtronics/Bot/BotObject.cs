@@ -461,10 +461,29 @@ namespace Farmtronics.Bot {
 			return 0;
 		}
 		
-		public void MoveForward() {
+		public static int DxForDirection(int direction) {
+			if (direction == 1) return 1;
+			if (direction == 3) return -1;
+			return 0;
+		}
+
+		public static int DyForDirection(int direction) {
+			if (direction == 2) return 1;
+			if (direction == 0) return -1;
+			return 0;
+		}
+
+		public void Move(int dColumn, int dRow) {
+			// Face in the specified direction
+			if (dRow < 0) farmer.faceDirection(0);
+			else if (dRow > 0) farmer.faceDirection(2);
+			else if (dColumn < 0) farmer.faceDirection(3);
+			else if (dColumn > 0) farmer.faceDirection(1);
+
 			// make sure the terrain in that direction isn't blocked
-			Location newTileLoc = farmer.nextPositionTile();
-			Vector2 newTile = newTileLoc.ToVector2();
+			Vector2 newTile = farmer.getTileLocation() + new Vector2(dColumn, dRow);
+
+			// make sure the terrain in that direction isn't blocked
 			bool isPassable = TileInfo.IsPassable(currentLocation, newTile);
 			if (!isPassable) {
 				ModEntry.instance.Monitor.Log($"MoveForward: tile {newTile} is not passable");
@@ -474,7 +493,7 @@ namespace Farmtronics.Bot {
 
 			// start moving
 			targetPos = newTile.GetAbsolutePosition();
-			ModEntry.instance.Monitor.Log($"MoveForward: Position: {Position} / targetPos: {targetPos}");
+			ModEntry.instance.Monitor.Log($"MoveForward: Facing: {facingDirection}; Position: {Position}; newTile: {newTile}; targetPos: {targetPos}");
 
 			// Do collision actions (shake the grass, etc.)
 			if (currentLocation.terrainFeatures.ContainsKey(newTile)) {
@@ -484,6 +503,10 @@ namespace Farmtronics.Bot {
 				feature.doCollisionAction(posRect, farmer.Speed, newTile, farmer, currentLocation);
 			}
 		}
+
+		public void MoveForward() {
+			Move(DxForDirection(farmer.FacingDirection), DyForDirection(farmer.FacingDirection));
+		}
 		
 		public bool IsMoving() {
 			return (Position != targetPos);
@@ -492,7 +515,7 @@ namespace Farmtronics.Bot {
 		public void Rotate(int stepsClockwise) {
 			farmer.faceDirection((farmer.FacingDirection + 4 + stepsClockwise) % 4);
 			data.Update();
-			//ModEntry.instance.Monitor.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
+			ModEntry.instance.Monitor.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
 		}
 
 		void ApplyScytheToTile() {
@@ -572,8 +595,10 @@ namespace Farmtronics.Bot {
 				// face target position
 				float dx = targetPos.X - Position.X;
 				float dy = targetPos.Y - Position.Y;
+				int prevDir = farmer.FacingDirection;
 				if (MathF.Abs(dx) > MathF.Abs(dy)) farmer.FacingDirection = dx > 0 ? 1 : 3;
 				else farmer.FacingDirection = dy > 0 ? 2 : 0;
+				if (farmer.FacingDirection != prevDir) ModEntry.instance.Monitor.Log($"Update: changed facing from {prevDir} to {farmer.FacingDirection} because dx={dx}, dy={dy}");
 				// try to move; if fail, abandon movement
 				var oldPos = farmer.Position;
 				farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
