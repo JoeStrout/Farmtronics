@@ -199,14 +199,15 @@ namespace Farmtronics.Bot {
 			
 			ModEntry.instance.Monitor.Log($"Harvest start: {tileLocation}");
 
-			if (loc.isTerrainFeatureAt(absoluteLocation.GetIntX(), absoluteLocation.GetIntY())) {
+			TerrainFeature feature = null;
+			if (loc.terrainFeatures.TryGetValue(tileLocation, out feature)) {
 				// If we can get a terrain feature, then have it do the "use" action,
 				// by temporarily setting the bot farmer to be the Game1 player.
 				ModEntry.instance.Monitor.Log("Harvesting: TerrainFeature");
 				
 				var origPlayer = Game1.player;
 				Game1.player = farmer;
-				bool result = loc.terrainFeatures[tileLocation].performUseAction(tileLocation, loc);
+				bool result = feature.performUseAction(tileLocation, loc);
 				Game1.player = origPlayer;
 				return result;
 			} else if (loc.isObjectAtTile(tileLocation.GetIntX(), tileLocation.GetIntY())) {
@@ -226,10 +227,10 @@ namespace Farmtronics.Bot {
 						if (dirtObj.crop.harvest(tileLocation.GetIntX(), tileLocation.GetIntY(), dirtObj)) {
 							dirtObj.destroyCrop(tileLocation, true, farmer.currentLocation);
 							return true;
-						}	
-					}
-				}
-			}
+						} else ModEntry.instance.Monitor.Log("fail 1");
+					} else ModEntry.instance.Monitor.Log("fail 2");
+				} else ModEntry.instance.Monitor.Log("fail 3");
+			} else ModEntry.instance.Monitor.Log("fail 4");
 
 			return false;
 		}

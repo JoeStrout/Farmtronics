@@ -407,18 +407,24 @@ if me.isBot then
 		if f == 3 then return here.tile(pos.x-1, pos.y)
 	end function
 	
+	me.currentToolName = function
+		item = me.inventory[me.currentToolIndex]
+		if not item then return "nothing"
+		return item.name
+	end function
+
 	me.select = function(toolNameOrIndex)
 		inv = me.inventory
 		if toolNameOrIndex isa number then
 			me.currentToolIndex = toolNameOrIndex
-			print "Using " + inv[toolNameOrIndex].name + " (index " + toolNameOrIndex + ")"
+			print "Using " + me.currentToolName + " (index " + toolNameOrIndex + ")"
 			return
 		end if
 		toolName = str(toolNameOrIndex).lower
 		for i in inv.indexes
 			if inv[i] and inv[i].name.lower == toolName then
 				me.currentToolIndex = i
-				print "Using " + inv[i].name + " (index " + i + ")"
+				print "Using " + me.currentToolName + " (index " + i + ")"
 				return
 			end if
 		end for
