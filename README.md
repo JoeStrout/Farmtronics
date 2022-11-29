@@ -32,6 +32,3 @@ Best place to discuss this mod is on the [MiniScript Discord](https://discord.gg
 ## Road Map
 
 See [ROADMAP.md](ROADMAP.md) for our development plan, including what features are expected in which future versions of the mod.
-
-Please note that **multiplayer is not yet supported**.  We'll get to that eventually, but for now, this mod is recommended for single-player games only.
-
