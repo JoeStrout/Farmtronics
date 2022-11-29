@@ -49,7 +49,6 @@ These will be addressed ASAP.
 
 The following features are definitely things we want to include, but they have not yet been scheduled for a particular version.
 
-- multiplayer support
 - improved copy/paste support in the editor
 - console autocompletion (as in [Mini Micro](https://miniscript.org/MiniMicro))
 - `mouse` module (allowing for point-and-click UI)
