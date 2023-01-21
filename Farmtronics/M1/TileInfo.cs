@@ -260,7 +260,7 @@ namespace Farmtronics.M1 {
 				var tile = mapLayer.PickTile(tileLocation, Game1.viewport.Size);
 				if (tile == null) continue;
 				foreach (var kv in tile.TileIndexProperties) {
-					ModEntry.instance.Monitor.Log($"layer {layer}, {kv.Key} = {kv.Value}");
+					Debug.Log($"layer {layer}, {kv.Key} = {kv.Value}");
                 }
             }
 

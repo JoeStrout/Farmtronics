@@ -138,16 +138,16 @@ namespace Farmtronics.Bot {
 		public override void receiveLeftClick(int x, int y, bool playSound = true) {
 			bot.shell.console.receiveLeftClick(x, y, playSound);
 
-			// ModEntry.instance.Monitor.Log($"Bot.receiveLeftClick({x}, {y}, {playSound}) while heldItem={heldItem}; inDragArea={inDragArea(x,y)}");
+			// Debug.Log($"Bot.receiveLeftClick({x}, {y}, {playSound}) while heldItem={heldItem}; inDragArea={inDragArea(x,y)}");
 			int slot = botInventoryMenu.getInventoryPositionOfClick(x, y);
 			bool checkHat = slot == bot.GetActualCapacity() - 1;
-			// ModEntry.instance.Monitor.Log($"Bot.receiveLeftClick: slot={slot}");
+			// Debug.Log($"Bot.receiveLeftClick: slot={slot}");
 			base.receiveLeftClick(x, y, playSound);
 			heldItem = botInventoryMenu.leftClick(x, y, heldItem, false);
 			
 			if (checkHat && heldItem is Hat) DoHatAction();
 			
-			// ModEntry.instance.Monitor.Log($"after calling botInventoryMenu.leftClick, heldItem = {heldItem}");
+			// Debug.Log($"after calling botInventoryMenu.leftClick, heldItem = {heldItem}");
 
 			if (heldItem == null && inDragArea(x,y)) {
 				var cursor = ModEntry.instance.Helper.Input.GetCursorPosition();
@@ -157,7 +157,7 @@ namespace Farmtronics.Bot {
 		}
 
 		public override void receiveRightClick(int x, int y, bool playSound = true) {
-			// ModEntry.instance.Monitor.Log($"Bot.receiveRightClick({x}, {y}, {playSound})");
+			// Debug.Log($"Bot.receiveRightClick({x}, {y}, {playSound})");
 			int slot = botInventoryMenu.getInventoryPositionOfClick(x, y);
 			bool checkHat = slot == bot.GetActualCapacity() -1;
 			base.receiveRightClick(x, y, playSound);
@@ -165,12 +165,12 @@ namespace Farmtronics.Bot {
 			
 			if (checkHat && heldItem is Hat) DoHatAction();
 
-			// ModEntry.instance.Monitor.Log($"after calling botInventoryMenu.rightClick, heldItem = {heldItem}");
+			// Debug.Log($"after calling botInventoryMenu.rightClick, heldItem = {heldItem}");
 		}
 
 		// Invoked by InventoryMenu.leftClick when an item is dropped in an inventory slot.
 		void onAddItem(Item item, Farmer who) {
-			//ModEntry.instance.Monitor.Log($"Bot.onAddItem({item}, {who}");
+			//Debug.Log($"Bot.onAddItem({item}, {who}");
 			// Note: bot inventory has already been added, so we don't really need this.
 			DoHatAction();
 		}
@@ -183,7 +183,7 @@ namespace Farmtronics.Bot {
 			Item item_grab_hovered_item = botInventoryMenu.hover(x, y, heldItem);
 			if (item_grab_hovered_item != null)	{
 				hoveredItem = item_grab_hovered_item;
-				//ModEntry.instance.Monitor.Log($"hoveredItem = {hoveredItem}");
+				//Debug.Log($"hoveredItem = {hoveredItem}");
 			}
 		}
 
@@ -191,7 +191,7 @@ namespace Farmtronics.Bot {
 		/// Return whether the given screen position is in our draggable area.
 		/// </summary>
 		bool inDragArea(int x, int y) {
-			// ModEntry.instance.Monitor.Log($"inDragArea: x={x} y={y}, in botInventoryBounds: {botInventoryBounds().Contains(x, y)}, in consoleBounds: {consoleBounds().Contains(x, y)}");
+			// Debug.Log($"inDragArea: x={x} y={y}, in botInventoryBounds: {botInventoryBounds().Contains(x, y)}, in consoleBounds: {consoleBounds().Contains(x, y)}");
 			if (botInventoryBounds().Contains(x,y)) return false;
 			if (consoleBounds().Contains(x,y)) return false;
 

@@ -208,7 +208,7 @@ namespace Farmtronics
 			if (Context.IsMainPlayer) {
 				SaveData.CreateSaveDataDirs();
 				if (SaveData.IsOldSaveDirPresent()) SaveData.MoveOldSaveDir();
-				ModEntry.instance.Monitor.Log($"Setting host player ID: {Game1.player.UniqueMultiplayerID}");
+				Debug.Log($"Setting host player ID: {Game1.player.UniqueMultiplayerID}");
 				MultiplayerManager.hostID = Game1.player.UniqueMultiplayerID;
 			}
 			BotManager.ConvertChestsToBots();

@@ -165,7 +165,7 @@ namespace Farmtronics.M1.GUI {
 	
 		public void Print(string s) {
 			HideCursorVisual();
-			//ModEntry.instance.Monitor.Log($"Printing `{s}` with colors {textColor},{backColor}");
+			//Debug.Log($"Printing `{s}` with colors {textColor},{backColor}");
 			if (s != null) foreach (char c in s) Put(c);
 		}
 	
@@ -207,14 +207,14 @@ namespace Farmtronics.M1.GUI {
 		}
 	
 		public void HideCursor() {
-			//ModEntry.instance.Monitor.Log("Hiding cursor at " + cursorY + ", " + cursorX);
+			//Debug.Log("Hiding cursor at " + cursorY + ", " + cursorX);
 			HideCursorVisual();
 			cursorTime = 0;
 			cursorShown = false;
 		}
 	
 		public void ShowCursor() {
-			//ModEntry.instance.Monitor.Log("Showing cursor at " + cursorY + ", " + cursorX);
+			//Debug.Log("Showing cursor at " + cursorY + ", " + cursorX);
 			cells[cursorY, cursorX].inverse = true;
 			if (cells[cursorY, cursorX].foreColor != textColor) {
 				// Looks like the cursor is over some weird-colored text...

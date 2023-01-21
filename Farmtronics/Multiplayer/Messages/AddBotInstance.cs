@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using Farmtronics.Bot;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
@@ -32,14 +32,14 @@ namespace Farmtronics.Multiplayer.Messages {
 			var location = GetLocation();
 			var bot = GetBotFromLocation(location);
 			if (bot == null && attempt < maxAttempts) {
-				ModEntry.instance.Monitor.Log($"Could not add new bot instance. Trying again later.", LogLevel.Warn);
+				Debug.Log($"Could not add new bot instance. Trying again later.", LogLevel.Warn);
 				if (!BotManager.lostInstances.Contains(this)) BotManager.lostInstances.Add(this);
 				BotManager.AddFindEvent();
 				attempt++;
 				return;
 			}
 			else if (bot == null) {
-				ModEntry.instance.Monitor.Log($"Could not add new bot instance. Aborting after {attempt} attempts.", LogLevel.Error);
+				Debug.Log($"Could not add new bot instance. Aborting after {attempt} attempts.", LogLevel.Error);
 				BotManager.lostInstances.Remove(this);
 				return;
 			}
@@ -47,7 +47,7 @@ namespace Farmtronics.Multiplayer.Messages {
 			BotManager.instances.Add(bot);
 			bot.data.Load();
 			bot.currentLocation = location;
-			ModEntry.instance.Monitor.Log($"Successfully added bot to instance list: {LocationName} - {TileLocation}", LogLevel.Info);
+			Debug.Log($"Successfully added bot to instance list: {LocationName} - {TileLocation}", LogLevel.Info);
 			bot.InitShell();
 		}
 	}

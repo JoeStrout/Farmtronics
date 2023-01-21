@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Farmtronics.M1.Filesystem;
 using M1FileInfo = Farmtronics.M1.Filesystem.FileInfo;
+using StardewModdingAPI;
 
 namespace Farmtronics.Utils {
 	static class DiskUtils {
@@ -16,7 +17,7 @@ namespace Farmtronics.Utils {
 			error = null;
 			if (!path.StartsWith("/")) path = Path.Combine(curdir, path);
 
-			//ModEntry.instance.Monitor.Log("resolving path: " + path);
+			Debug.Log("resolving path: " + path, LogLevel.Trace);
 			// Simplify and then validate our full path.
 			List<string> parts = new List<string>(path.Split(new char[] { '/' }));
 			for (int i = 1; i < parts.Count; i++) {
@@ -27,7 +28,7 @@ namespace Farmtronics.Utils {
 				} else if (parts[i] == "..") {
 					// go up one level (error if we're at the root)
 					if (i == 1) {
-						ModEntry.instance.Monitor.Log("Wtf? " + parts[i]);
+						Debug.Log("Path error: attempt to go up beyond root", LogLevel.Error);
 						error = "Invalid path";
 						return null;
 					}
@@ -37,7 +38,8 @@ namespace Farmtronics.Utils {
 				}
 			}
 			path = string.Join("/", parts.ToArray());
-			//ModEntry.instance.Monitor.Log($"resolved path to: {path}");
+			if (path == "") path = "/";
+			Debug.Log($"ResolvePath: resolved path to: {path}", LogLevel.Trace);
 			return path;
 		}
 			

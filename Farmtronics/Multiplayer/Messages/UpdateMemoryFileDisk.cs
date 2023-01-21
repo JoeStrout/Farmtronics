@@ -1,4 +1,4 @@
-using Farmtronics.M1.Filesystem;
+﻿using Farmtronics.M1.Filesystem;
 using StardewModdingAPI;
 
 namespace Farmtronics.Multiplayer.Messages {
@@ -14,18 +14,18 @@ namespace Farmtronics.Multiplayer.Messages {
 			switch(Action) {
 			case MemoryFileDiskAction.Write:
 				Disk.WriteBinary(FilePath, Data);
-				ModEntry.instance.Monitor.Log($"UpdateMemoryFileDisk Write: Finished");
+				Debug.Log($"UpdateMemoryFileDisk Write: Finished");
 				return;
 			case MemoryFileDiskAction.MakeDir:
 				var makeDirResult = Disk.MakeDir(FilePath, out string makeDirError);
-				ModEntry.instance.Monitor.Log($"UpdateMemoryFileDisk MakeDir result: {makeDirResult} - {makeDirError}");
+				Debug.Log($"UpdateMemoryFileDisk MakeDir result: {makeDirResult} - {makeDirError}");
 				return;
 			case MemoryFileDiskAction.Delete:
 				var deleteResult = Disk.Delete(FilePath, out string deleteError);
-				ModEntry.instance.Monitor.Log($"UpdateMemoryFileDisk Delete result: {deleteResult} - {deleteError}");
+				Debug.Log($"UpdateMemoryFileDisk Delete result: {deleteResult} - {deleteError}");
 				return;
 			default:
-				ModEntry.instance.Monitor.Log("Invalid MemoryFileDisk action provided.", LogLevel.Error);
+				Debug.Log("Invalid MemoryFileDisk action provided.", LogLevel.Error);
 				return;
 			}
 		}

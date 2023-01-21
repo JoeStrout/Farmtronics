@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
@@ -50,13 +50,13 @@ namespace Farmtronics.Bot {
 		public static void InitShellAll() {
 			AddFindEvent();
 						
-			ModEntry.instance.Monitor.Log($"Initializing {instances.Count} bots!");
+			Debug.Log($"Initializing {instances.Count} bots!");
 			foreach (var instance in instances) {
 				instance.InitShell();
 			}
 			
 			if (remoteInstances.Count > 0) {
-				ModEntry.instance.Monitor.Log($"Initializing remote instances for {remoteInstances.Count} players!");
+				Debug.Log($"Initializing remote instances for {remoteInstances.Count} players!");
 				foreach (var playerBots in remoteInstances.Values) {
 					foreach (var bot in playerBots) {
 						bot.InitShell();
@@ -106,8 +106,8 @@ namespace Farmtronics.Bot {
 
 		// Convert all bots everywhere into vanilla chests, with appropriate metadata.
 		public static void ConvertBotsToChests(bool saving) {
-			//ModEntry.instance.Monitor.Log("Bot.ConvertBotsToChests");
-			//ModEntry.instance.Monitor.Log($"NOTE: Game1.player.recoveredItem = {Game1.player.recoveredItem}");
+			//Debug.Log("Bot.ConvertBotsToChests");
+			//Debug.Log($"NOTE: Game1.player.recoveredItem = {Game1.player.recoveredItem}");
 			int count = 0;
 			
 			// Prevent issues with an open menu while converting bots to chests
@@ -118,18 +118,18 @@ namespace Farmtronics.Bot {
 
 			// Also convert the player's inventory.
 			int playerBotCount = ConvertBotsInListToChests(Game1.player.Items, saving);
-			//ModEntry.instance.Monitor.Log($"Converted {playerBotCount} bots in player inventory");
+			//Debug.Log($"Converted {playerBotCount} bots in player inventory");
 			count += playerBotCount;
 
 			// And watch out for a recoveredItem (mail attachment).
 			if (Game1.player.recoveredItem is BotObject) Game1.player.recoveredItem = null;
 
-			//ModEntry.instance.Monitor.Log($"Total bots converted to chests: {count}");
+			//Debug.Log($"Total bots converted to chests: {count}");
 		}
 
 		static Chest ConvertBotToChest(BotObject bot, bool saving = true) {
 			var chest = new Chest();
-			// ModEntry.instance.Monitor.Log($"Converting bot [owned by: {bot.owner.Value}] to chest.");
+			// Debug.Log($"Converting bot [owned by: {bot.owner.Value}] to chest.");
 			chest.owner.Value = bot.owner.Value;
 			chest.Stack = bot.Stack;
 
@@ -143,7 +143,7 @@ namespace Farmtronics.Bot {
 			if (inventory != null) {
 				if (chest.GetActualCapacity() >= bot.GetActualCapacity()) chest.items.CopyFrom(inventory);
 				int convertedItems = ConvertBotsInListToChests(chest.items);
-				//if (convertedItems > 0) ModEntry.instance.Monitor.Log($"Converted {convertedItems} bots inside a bot");
+				//if (convertedItems > 0) Debug.Log($"Converted {convertedItems} bots inside a bot");
 				inventory.Clear();
 			}
 			return chest;
@@ -160,7 +160,7 @@ namespace Farmtronics.Bot {
 				BotObject bot = items[i] as BotObject;
 				if (bot == null) continue;
 				items[i] = ConvertBotToChest(bot, saving);
-				//ModEntry.instance.Monitor.Log($"Converted list item {i} to {items[i]} of stack {items[i].Stack}");
+				//Debug.Log($"Converted list item {i} to {items[i]} of stack {items[i].Stack}");
 				count++;
 			}
 			return count;
@@ -184,18 +184,18 @@ namespace Farmtronics.Bot {
 			foreach (var kv in inLocation.objects.Pairs) {
 				if (kv.Value is BotObject) targetTileLocs.Add(kv.Key);
 				if (kv.Value is Chest chest) {
-					//ModEntry.instance.Monitor.Log($"Found a chest in {inLocation.Name} at {kv.Key}");
+					//Debug.Log($"Found a chest in {inLocation.Name} at {kv.Key}");
 					countInLoc += ConvertBotsInListToChests(chest.items, saving);
 				}
 			}
 			foreach (var tileLoc in targetTileLocs) {
-				//ModEntry.instance.Monitor.Log($"Found bot in {inLocation.Name} at {tileLoc}; converting");
+				//Debug.Log($"Found bot in {inLocation.Name} at {tileLoc}; converting");
 				var chest = ConvertBotToChest(inLocation.getObjectAtTile(tileLoc.GetIntX(), tileLoc.GetIntY()) as BotObject, saving);
 				inLocation.removeObject(tileLoc, false);
 				inLocation.setObject(tileLoc, chest);
 				countInLoc++;
 			}
-			//if (countInLoc > 0) ModEntry.instance.Monitor.Log($"Converted {countInLoc} bots in {inLocation.Name}");
+			//if (countInLoc > 0) Debug.Log($"Converted {countInLoc} bots in {inLocation.Name}");
 			return countInLoc;
 		}
 
@@ -213,7 +213,7 @@ namespace Farmtronics.Bot {
 
 			// Convert chests in the player's inventory.
 			int count = ConvertChestsInListToBots(Game1.player.Items);
-			//ModEntry.instance.Monitor.Log($"Converted {count} chests to bots in player inventory");
+			//Debug.Log($"Converted {count} chests to bots in player inventory");
 		}
 
 		static BotObject ConvertChestToBot(Chest chest, Vector2 tileLocation = default, GameLocation location = null) {
@@ -223,7 +223,7 @@ namespace Farmtronics.Bot {
 			} else {
 				bot = new BotObject();	
 			}
-			// ModEntry.instance.Monitor.Log($"Converting chest [owned by: {chest.owner.Value}] to bot.");
+			// Debug.Log($"Converting chest [owned by: {chest.owner.Value}] to bot.");
 			bot.owner.Value = chest.owner.Value;
 			
 			// Backwards compatibility
@@ -234,7 +234,7 @@ namespace Farmtronics.Bot {
 
 			bot.inventory.Clear();
 			for (int i = 0; i < chest.items.Count && i < bot.GetActualCapacity(); i++) {
-				// ModEntry.instance.Monitor.Log($"Moving {chest.items[i]?.Name} from chest to bot in slot {i}");
+				// Debug.Log($"Moving {chest.items[i]?.Name} from chest to bot in slot {i}");
 				bot.inventory.Add(chest.items[i]);
 			}
 			
@@ -250,7 +250,7 @@ namespace Farmtronics.Bot {
 		static void ConvertChestsInMapToBots(GameLocation inLocation = null) {
 			if (inLocation == null) {
 				foreach (var loc in Game1.locations) {
-					//ModEntry.instance.Monitor.Log($"Converting in location: {loc}");
+					//Debug.Log($"Converting in location: {loc}");
 					ConvertChestsInMapToBots(loc);
 				}
 				return;
@@ -262,7 +262,7 @@ namespace Farmtronics.Bot {
 				var chest = kv.Value as Chest;
 				if (chest == null) continue;
 				int inChestCount = ConvertChestsInListToBots(chest.items);
-				//if (inChestCount > 0) ModEntry.instance.Monitor.Log($"Converted {inChestCount} chests stored in a chest into bots");
+				//if (inChestCount > 0) Debug.Log($"Converted {inChestCount} chests stored in a chest into bots");
 
 				if (!ModData.IsBotData(chest.modData)) continue;
 				targetTileLocs.Add(tileLoc);
@@ -277,15 +277,15 @@ namespace Farmtronics.Bot {
 				if (bot.owner.Value == Game1.player.UniqueMultiplayerID) BotManager.instances.Add(bot);
 				else if (ModEntry.instance.Helper.Multiplayer.GetConnectedPlayer(bot.owner.Value) != null) AddBotInstance.Send(bot);
 				else {
-					ModEntry.instance.Monitor.Log($"Adding bot to remote instances for playerID: {bot.owner.Value}");
+					Debug.Log($"Adding bot to remote instances for playerID: {bot.owner.Value}");
 					if (!BotManager.remoteInstances.ContainsKey(bot.owner.Value)) BotManager.remoteInstances.Add(bot.owner.Value, new());
 					BotManager.remoteInstances[bot.owner.Value].Add(bot);
 				}
 
 				count++;
-				//ModEntry.instance.Monitor.Log($"Converted {chest} to {bot} at {tileLoc} of {inLocation}");
+				//Debug.Log($"Converted {chest} to {bot} at {tileLoc} of {inLocation}");
 			}
-			//if (count > 0) ModEntry.instance.Monitor.Log($"Converted {count} chests to bots in {inLocation}");
+			//if (count > 0) Debug.Log($"Converted {count} chests to bots in {inLocation}");
 		}
 
 		/// <summary>

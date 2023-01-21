@@ -1,4 +1,4 @@
-using Farmtronics.Utils;
+﻿using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using xTile.Dimensions;
@@ -54,7 +54,7 @@ namespace Farmtronics.Bot
 		public new void tryToMoveInDirection(int direction, bool isFarmer, int damagesFarmer, bool glider) {
 			// For some reason the normal isCollidingPosition() check used in the base method doesn't work
 			bool canPass = currentLocation.isTilePassable(nextPosition(direction), Game1.viewport);
-			// ModEntry.instance.Monitor.Log($"tryToMoveInDirection: canPass: {canPass}");
+			// Debug.Log($"tryToMoveInDirection: canPass: {canPass}");
 			if (canPass) {
 				switch (direction) {
 				case 0:
