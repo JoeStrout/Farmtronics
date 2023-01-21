@@ -19,7 +19,7 @@ list.deepCopy = function
 	return result
 end function
 
-// add: add a number to all elements of a list (in place),
+// add: add a number or string to all elements of a list (in place),
 // OR do element-wise addition with another list of the same size.
 //
 // Example 1:
@@ -35,10 +35,14 @@ list.add = function(addend)
 		for i in range(0,maxi)
 			self[i] = self[i] + addend[i]
 		end for
-	else
+	else if addend isa string or addend isa number then
 		for i in self.indexes
 			self[i] = self[i] + addend
 		end for
+	else
+		print "ERROR: list.add requires a number, string, or list."
+		print "(Did you mean to use list.push instead?)"
+		exit
 	end if
 end function
 
@@ -75,7 +79,7 @@ list.multiplyBy = function(factor)
 end function
 
 // times: multiply all elements of a list by a scalar factor, OR do
-// element-wise multiplication with another list of teh same size, returning
+// element-wise multiplication with another list of the same size, returning
 // a new list (leaving this one untouched).
 //
 // Example 1:
@@ -294,6 +298,13 @@ list.any = function
 	return self[self.len * rnd]
 end function
 
+// swap: exchange two values in place, by their indexes
+list.swap = function(index1, index2)
+	temp = self[index1]
+	self[index1] = self[index2]
+	self[index2] = temp
+end function
+
 // init: build an array initialized with an initial value.
 // Note that initialValue may be a function passed in with @
 // (for example, @rnd), in which case it will be invoked for
@@ -363,6 +374,10 @@ runUnitTests = function
 	a.reverse
 	assertEqual a, [4,3,2,1], "reverse"
 	
+	a = ["zero", "one", "two"]
+	a.swap 1, 2
+	assertEqual a, ["zero", "two", "one"], "swap"
+
 	a = [1.1, 1.9, 3.45]
 	a.apply @round
 	assertEqual a, [1, 2, 3], "apply"

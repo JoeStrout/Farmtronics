@@ -218,6 +218,26 @@ string.rot13 = function
 	return self.cipher(rot13map)
 end function
 
+// between: find a string between two substrings.  This can be 
+// used, for example, to find text between two HTML tags.
+string.between = function(startTag, endTag, after=null)
+	if startTag == "" then
+		pos0 = 0
+	else
+		pos0 = self.indexOf(startTag, after)
+	end if
+	if pos0 == null then return null
+	pos0 = pos0 + startTag.len
+	if endTag == "" then
+		pos1 = self.len
+	else
+		pos1 = self.indexOf(endTag, pos0-1)
+	end if
+	if pos1 == null then return null
+	return self[pos0:pos1]
+end function
+
+
 // editDistance: return the Levenshtein distance, aka the edit 
 // distance, between the two strings.  That's the number of 
 // insertions, deletions, or changes required to make one string
@@ -397,7 +417,14 @@ runUnitTests = function
 	testing = "wrap"
 	assertEqual "".wrap(24), [""]
 	assertEqual "Now is the time for all good folks to come together".wrap(24),
-		["Now is the time for all", "good folks to come", "together"]
+	["Now is the time for all", "good folks to come", "together"]
+
+	testing = "between"
+	s = "foobarbaz"
+	assertEqual s.between("foo","baz"), "bar"
+	assertEqual s.between("oba","rba"), ""
+	assertEqual s.between("foo",""), "barbaz"
+	assertEqual s.between("","baz"), "foobar"
 	
 	testing = "editDistance"
 	assertEqual "Foo".editDistance(""), 3

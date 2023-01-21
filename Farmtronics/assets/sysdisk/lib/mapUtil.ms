@@ -66,6 +66,14 @@ map.filterValues = function(func)
 	end for
 end function
 
+// applyToValues: apply the given function to all values,
+// in place.
+map.applyToValues = function(func)
+	for kv in self
+		self[kv.key] = func(kv.value)
+	end for
+end function
+
 // pairs: get all key/value pairs as a list (in arbitrary order)
 // of little maps with "key" and "value", just like what you get
 // when you iterate over a map with a `for` loop.
@@ -77,7 +85,14 @@ map.pairs = function
 	return result
 end function
 
-
+// swap: swap the values of two keys.  Note that this may be
+// applied to locals (or globals), enabling you to swap the values
+// of two variables.
+map.swap = function(key1, key2)
+	temp = self[key1]
+	self[key1] = self[key2]
+	self[key2] = temp
+end function
 
 // mapUtils.fromTo: generate a map from one sequence (list or string)
 // to another.  The two sequences must be the same length.
@@ -130,12 +145,28 @@ runUnitTests = function
 	end function
 	assertEqual d.sortedIndexes, ["one", "two"]
 
+	testing = "swap"
+	d = {"one":"ichi", "two":"ni", "three":"san", "four":"shi", "five":"go"}
+	d.swap "one", "two"
+	assertEqual d.one, "ni"
+	assertEqual d.two, "ichi"
+
 	testing = "filterValues"
 	d = {"one":"ichi", "two":"ni", "three":"san", "four":"shi", "five":"go"}
 	d.filterValues function(v)
 		return v.len < 3		// only true for "ni" and "go"
 	end function
 	assertEqual d.sortedIndexes, ["five", "two"]	// (keys for "go" and "ni")
+	
+	testing = "applyToValues"
+	d = {"one":"ichi", "two":"ni"}
+	d.applyToValues @upper
+	assertEqual d.one, "ICHI"
+	assertEqual d.two, "NI"
+	d = {"one":"1", "two":"2"}
+	d.applyToValues @val
+	assertEqual d.one, 1
+	assertEqual d.two, 2	
 	
 	if errorCount == 0 then
 		print "All tests passed.  Boo-yeah!"

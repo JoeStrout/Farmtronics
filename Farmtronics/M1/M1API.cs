@@ -61,6 +61,186 @@ namespace Farmtronics.M1 {
 				return Intrinsic.Result.Null;
 			};
 
+			f = Intrinsic.Create("_pointInPoly");
+			f.AddParam("point");
+			f.AddParam("polygon");
+			f.code = (context, partialResult) => {
+				Value pointVal = context.GetLocal("point");
+				if (pointVal == null) throw new RuntimeException("x,y list or map required for point parameter");
+				ValList polyVal = context.GetLocal("polygon") as ValList;
+				if (polyVal == null) throw new RuntimeException("List required for polygon parameter");
+				List<Vector2> polygon = polyVal.ToVector2List();
+				if (polyVal.values.Count < 3) return Intrinsic.Result.False;
+				bool result;
+				if (pointVal is ValList && ((ValList)pointVal).values[0] is ValList) {
+					// We've been given a list of coordinates; return whether ANY of them are in the polygon.
+					List<Vector2> points = ((ValList)pointVal).ToVector2List();
+					result = MathUtils.AnyPointInPoly(points, polygon);
+				} else {
+					// Just one coordinate.
+					result = MathUtils.PointInPoly(pointVal.ToVector2(), polygon);
+				}
+				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
+			};
+		
+			f = Intrinsic.Create("_offsetPoly");		// inset/outset (depending on winding)
+			f.AddParam("polygon");
+			f.AddParam("delta", ValNumber.one);
+			f.code = (context, partialResult) => {
+				float delta = context.variables.GetFloat("delta", 0);
+				ValList polyVal = context.GetLocal("polygon") as ValList;
+				if (polyVal == null) throw new RuntimeException("List required for polygon parameter");
+				List<Vector2> polygon = polyVal.ToVector2List();
+				if (polygon.Count < 2) return new Intrinsic.Result(polyVal);
+				polygon = MathUtils.InsetPolygon(polygon, delta);
+				ValList result = polygon.ToValue();
+				return new Intrinsic.Result(result);
+			};
+		
+			f = Intrinsic.Create("_translatePoly");
+			f.AddParam("polygon");
+			f.AddParam("dx", ValNumber.zero);
+			f.AddParam("dy", ValNumber.zero);
+			f.code = (context, partialResult) => {
+				float dx = context.variables.GetFloat("dx", 0);
+				float dy = context.variables.GetFloat("dy", 0);
+				ValList polyVal = context.GetLocal("polygon") as ValList;
+				if (polyVal == null) throw new RuntimeException("List required for polygon parameter");
+				List<Vector2> polygon = polyVal.ToVector2List();
+				for (int i=0; i<polygon.Count; i++) {
+					polygon[i] = new Vector2(polygon[i].X + dx, polygon[i].Y + dy);
+				}
+				ValList result = polygon.ToValue();
+				return new Intrinsic.Result(result);
+			};
+		
+			f = Intrinsic.Create("_rotatePoly");
+			f.AddParam("polygon");
+			f.AddParam("degrees", ValNumber.zero);
+			f.code = (context, partialResult) => {
+				float radians = context.variables.GetFloat("degrees", 0) * MathUtils.Deg2Rad;
+				ValList polyVal = context.GetLocal("polygon") as ValList;
+				if (polyVal == null) throw new RuntimeException("List required for polygon parameter");
+				List<Vector2> polygon = polyVal.ToVector2List();
+				float cosAng = (float)System.Math.Cos(radians);
+				float sinAng = (float)System.Math.Sin(radians);
+				for (int i=0; i<polygon.Count; i++) {
+					var v = polygon[i];
+					polygon[i] = new Vector2(v.X * cosAng - v.Y - sinAng, v.X * sinAng + v.Y * cosAng);
+				}
+				ValList result = polygon.ToValue();
+				return new Intrinsic.Result(result);
+			};
+	
+			f = Intrinsic.Create("_polyPerimeter");
+			f.AddParam("polygon");
+			f.code = (context, partialResult) => {
+				ValList polyVal = context.GetLocal("polygon") as ValList;
+				if (polyVal == null) throw new RuntimeException("List required for polygon parameter");
+				List<Vector2> polygon = polyVal.ToVector2List();
+				if (polygon.Count < 2) return Intrinsic.Result.Null;
+				int lasti = polygon.Count - 1;
+				float result = 0;
+				for (int i=0; i<polygon.Count; i++) {
+					result += Vector2.Distance(polygon[lasti], polygon[i]);
+					lasti = i;
+				}
+				return new Intrinsic.Result(result);
+			};
+	
+			f = Intrinsic.Create("_polyArea");
+			f.AddParam("polygon");
+			f.code = (context, partialResult) => {
+				ValList polyVal = context.GetLocal("polygon") as ValList;
+				if (polyVal == null) throw new RuntimeException("List required for polygon parameter");
+				List<Vector2> polygon = polyVal.ToVector2List();
+				return new Intrinsic.Result(MathUtils.PolyArea(polygon));
+			};
+
+			f = Intrinsic.Create("_proportionAlongLine");
+			f.AddParam("endA");
+			f.AddParam("endB");
+			f.AddParam("p");
+			f.code = (context, partialResult) => {
+				Vector2 endA = context.variables.GetVector2("endA");
+				Vector2 endB = context.variables.GetVector2("endB");
+				Vector2 p = context.variables.GetVector2("p");
+				return new Intrinsic.Result(MathUtils.ProportionAlongLine(endA, endB, p));
+			};
+
+			f = Intrinsic.Create("_nearestPointOnLine");
+			f.AddParam("endA");
+			f.AddParam("endB");
+			f.AddParam("p");
+			f.code = (context, partialResult) => {
+				Vector2 endA = context.variables.GetVector2("endA");
+				Vector2 endB = context.variables.GetVector2("endB");
+				Vector2 p = context.variables.GetVector2("p");
+				return new Intrinsic.Result(MathUtils.NearestPointOnLine(endA, endB, p).ToValue());
+			};
+
+			f = Intrinsic.Create("_nearestPointOnLineSegment");
+			f.AddParam("endA");
+			f.AddParam("endB");
+			f.AddParam("p");
+			f.code = (context, partialResult) => {
+				Vector2 endA = context.variables.GetVector2("endA");
+				Vector2 endB = context.variables.GetVector2("endB");
+				Vector2 p = context.variables.GetVector2("p");
+				return new Intrinsic.Result(MathUtils.NearestPointOnLineSegment(endA, endB, p).ToValue());
+			};
+
+			f = Intrinsic.Create("_lineIntersectProportion");
+			f.AddParam("endA1");
+			f.AddParam("endB1");
+			f.AddParam("endA2");
+			f.AddParam("endB2");
+			f.code = (context, partialResult) => {
+				Vector2 endA1 = context.variables.GetVector2("endA1");
+				Vector2 endB1 = context.variables.GetVector2("endB1");
+				Vector2 endA2 = context.variables.GetVector2("endA2");
+				Vector2 endB2 = context.variables.GetVector2("endB2");
+				float result = MathUtils.LineSegIntersectFraction(endA1, endB1, endA2, endB2);
+				if (result == float.NaN) return Intrinsic.Result.Null;
+				return new Intrinsic.Result(result);
+			};
+
+			f = Intrinsic.Create("_lineSegmentsIntersect");
+			f.AddParam("endA1");
+			f.AddParam("endB1");
+			f.AddParam("endA2");
+			f.AddParam("endB2");
+			f.code = (context, partialResult) => {
+				Vector2 endA1 = context.variables.GetVector2("endA1");
+				Vector2 endB1 = context.variables.GetVector2("endB1");
+				Vector2 endA2 = context.variables.GetVector2("endA2");
+				Vector2 endB2 = context.variables.GetVector2("endB2");
+				if (MathUtils.LineSegmentsIntersect(endA1, endB1, endA2, endB2)) {
+					return Intrinsic.Result.True;
+				} else {
+					return Intrinsic.Result.False;
+				}
+			};
+
+			f = Intrinsic.Create("_lineLineIntersection");
+			f.AddParam("endA1");
+			f.AddParam("endB1");
+			f.AddParam("endA2");
+			f.AddParam("endB2");
+			f.code = (context, partialResult) => {
+				Vector2 endA1 = context.variables.GetVector2("endA1");
+				Vector2 endB1 = context.variables.GetVector2("endB1");
+				Vector2 endA2 = context.variables.GetVector2("endA2");
+				Vector2 endB2 = context.variables.GetVector2("endB2");
+				Vector2 result;
+				if (MathUtils.LineLineIntersection(endA1, endB1, endA2, endB2, out result)) {
+					return new Intrinsic.Result(result.ToValue());
+				} else {
+					return Intrinsic.Result.Null;
+				}
+			};
+
+
 			f = Intrinsic.Create("_lerpColor");
 			f.AddParam("colorA", "#FFFFFF");
 			f.AddParam("colorB", "#FFFFFF");

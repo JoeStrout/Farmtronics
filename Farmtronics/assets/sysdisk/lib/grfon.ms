@@ -141,6 +141,7 @@ Parser._parseElement = function(asValue=false)
 			// nested collection
 			self._p = self._p + 1
 			tok = self._parseElement
+			if tok == null then tok = {}  // (interpret {} as an empty map)
 			if self._p < self._sourceLen and self.source[self._p] == "{" then
 				self._p = self._p + 1
 			end if
@@ -179,12 +180,14 @@ Parser._parseElement = function(asValue=false)
 				result = tok
 			else if result isa list then
 				result.push tok
-			else
+			else if result isa map then
 				if result.hasIndex("_") then
 					result["_"].push tok
 				else
 					result["_"] = [tok]
 				end if
+			else
+				result = [result, tok]
 			end if
 			if next == "" then return result
 		end if
@@ -339,6 +342,11 @@ runUnitTests = function
 	assertEqual parse("\tHello, \""Bob\""."), char(9) + "Hello, ""Bob""."
 	
 	assertEqual parse("foo:{1; 2; 3}; bar:baz"), {"foo":[1, 2, 3], "bar":"baz"}
+	
+	// An empty {} could be interpreted as a list or map, and the choice
+	// is rather arbitrary.  But we choose to have it return a map
+	assertEqual parse("{}"), {}
+	assertEqual parse("1; 2; {}; 4"), [1, 2, {}, 4]
 	
 	if errorCount == 0 then
 		print "All tests passed.  Fus Ro Dah!"

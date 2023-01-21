@@ -87,9 +87,15 @@ printable = [leftArrow, upArrow, rightArrow, downArrow, unprintable,
 	buttonCapLeft, buttonCapRight, 
 	figureStanding, figureWaitingToeDown, figureWaitingToeUp, figureAkimbo,
 	mu, invertedBang, copyright, lineEndSymbol, registered, degrees, 
-	invertedQuestion, multSign, divSign, pi, bullet, tree, 
+	invertedQuestion, multSign, divSign, pi, tau, bullet, tree, ellipsis,
 	emptyBox, checkedBox, boxWithX,
 	spade, club, heart, diamond] + dieFace.values
+
+allPrintable = []
+for code in range(32,126) + [161, 165, 169, 172, 174, 176] + range(191,255)
+	allPrintable.push char(code)
+end for
+allPrintable = allPrintable + printable
 
 if locals == globals then
 	text.clear
