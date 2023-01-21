@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Locations;
 using StardewValley.TerrainFeatures;
+using StardewModdingAPI;
 using xTile.Dimensions;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
@@ -52,9 +53,16 @@ namespace Farmtronics.Utils {
 		}
 		
 		public static ResourceClump GetCollidingResourceClump(this GameLocation gameLocation, Vector2 absolutePosition) {
-			var bbox = new Rectangle(absolutePosition.GetIntX(), absolutePosition.GetIntY(), Game1.tileSize, Game1.tileSize);
+			int tileX = absolutePosition.GetIntX() / Game1.tileSize;
+			int tileY = absolutePosition.GetIntY() / Game1.tileSize;
+
+			var bbox = new Rectangle(tileX*Game1.tileSize+2, tileY*Game1.tileSize+2, Game1.tileSize-4, Game1.tileSize-4);
 			foreach (var clump in gameLocation.resourceClumps) {
-				if (clump.getBoundingBox(clump.tile.Value).Intersects(bbox)) return clump;
+				var clumpBounds = clump.getBoundingBox(clump.tile.Value);
+				if (clumpBounds.Intersects(bbox)) {
+					Debug.Log($"position {absolutePosition} intersects {clump.GetName()}, because {bbox} overlaps {clumpBounds}", LogLevel.Trace);
+					return clump;
+				}
 			}
 			return null;
 		}

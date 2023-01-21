@@ -167,14 +167,18 @@ namespace Farmtronics.Bot {
 		public void UseTool() {
 			if (farmer == null || inventory == null || farmer.CurrentTool == null) return;
 			Vector2 toolLocation = farmer.GetToolLocation(true);
-			Debug.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {toolLocation}");
+			Debug.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {toolLocation}", LogLevel.Trace);
 			
 			// Check ResourceClumps and current UpgradeLevel before hitting them
 			var clump = currentLocation.GetCollidingResourceClump(toolLocation);
-			if (clump != null && farmer.CurrentTool.UpgradeLevel < 4) return;
+			if (clump != null && farmer.CurrentTool.UpgradeLevel < 4) {
+				Debug.Log($"Can't use tool because it's hitting clump {clump.GetName()}", LogLevel.Warn);
+				return;
+			}
 			
 			float oldStamina = farmer.stamina;
 			if (farmer.CurrentTool is not MeleeWeapon) {
+				Debug.Log($"farmer.CurrentTool.DoFunction", LogLevel.Trace);
 				farmer.CurrentTool.DoFunction(farmer.currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), 1, farmer);
 				farmer.checkForExhaustion(oldStamina);
 				data.Update();
