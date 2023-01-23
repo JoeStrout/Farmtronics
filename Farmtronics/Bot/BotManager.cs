@@ -95,6 +95,7 @@ namespace Farmtronics.Bot {
 		public static void ClearAll() {
 			instances.Clear();
 			remoteInstances.Clear();
+			lostInstances.Clear();
 		}
 
 		public static List<BotObject> GetPlayerBotsInMap(long playerID, GameLocation inLocation = null) {
