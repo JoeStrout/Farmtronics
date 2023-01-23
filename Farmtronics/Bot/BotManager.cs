@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Farmtronics.Multiplayer.Messages;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
@@ -26,12 +27,27 @@ namespace Farmtronics.Bot {
 			
 			foreach (var addInstance in findInstances)
 			{
+				// If maxAttempts were reached it's unlikely another attempt here could find this instance.
+				if (addInstance.HasGivenUp) continue;
+				
 				addInstance.Apply();
 			}
 			
-			if (lostInstances.Count == 0) {
+			if (lostInstances.All(instance => instance.HasGivenUp)) {
 				ModEntry.instance.Helper.Events.GameLoop.OneSecondUpdateTicking -= FindLostInstances;
 				addedFindEvent = false;
+			}
+		}
+
+		public static void FindLostInstancesOnWarp(object sender, WarpedEventArgs args) {
+			if (lostInstances.Count == 0) return;
+			
+			var findInstances = new List<AddBotInstance>(lostInstances);
+			
+			// Also retry all lost instances which reached maxAttempts
+			foreach (var addInstance in findInstances)
+			{
+				addInstance.Apply();
 			}
 		}
 		
