@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Farmtronics.Bot;
 using Farmtronics.M1;
 using Farmtronics.M1.Filesystem;
@@ -52,6 +51,7 @@ namespace Farmtronics
 			helper.Events.Multiplayer.PeerContextReceived += MultiplayerManager.OnPeerContextReceived;
 			helper.Events.Multiplayer.PeerConnected += MultiplayerManager.OnPeerConnected;
 			helper.Events.Multiplayer.PeerDisconnected += MultiplayerManager.OnPeerDisconnected;
+			helper.Events.Player.Warped += BotManager.FindLostInstancesOnWarp;
 			
 			Assets.Initialize(helper);
 			Monitor.Log($"Loaded fontAtlas with size {Assets.FontAtlas.Width}x{Assets.FontAtlas.Height}");
