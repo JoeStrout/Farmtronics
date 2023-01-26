@@ -576,7 +576,6 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				if (RequireBot(sh, "owner")) return Intrinsic.Result.Null;
 				return new Intrinsic.Result(new ValString(Game1.getFarmerMaybeOffline(sh.bot.owner.Value).displayName));
 			};
 			meModule["owner"] = f.GetFunc();
