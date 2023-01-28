@@ -21,7 +21,7 @@ Bots each carry the same computer, but also have the ability to move around in t
   - Check your mail the next day (after completing all tasks).  You should have a letter with a Bot included.  (Once you have read this letter, you can purchase additional bots at Pierre's shop.)
   - Place the bot down in any empty spot on the map.
   - Right-click a bot to access its computer console.
-  - Type code at the prompt.  This is the same code as on the Home Computer, but allows for some additional commands, like `bot.position`, `bot.left`, `bot.right`, `bot.forward`, `bot.inventory`, `bot.currentToolIndex` (which can be assigned to), and `bot.useTool`.
+  - Type code at the prompt.  This is the same code as on the Home Computer, but allows for some additional commands, like `me.position`, `me.left`, `me.right`, `me.forward`, `me.inventory`, `me.currentToolIndex` (which can be assigned to), and `me.useTool`.
 
 See the [Wiki](https://github.com/JoeStrout/Farmtronics/wiki) for more documentation and sample code.
 

@@ -1,5 +1,5 @@
 // This module contains names for all the special characters
-// supported by Mini Micro.
+// supported by Farmtronics.
 //
 // To use:
 //	1. add this line near the top of your program:
@@ -77,6 +77,7 @@ inverseOff = char(135)
 bell = char(7)
 
 // Other miscellaneous control characters:
+backup = char(8)
 tab = char(9)
 esc = char(27)
 returnKey = char(10)
@@ -116,7 +117,7 @@ if locals == globals then
 	printAlign "figureWaitingToeUp", figureWaitingToeUp
 	printAlign "figureAkimbo", figureAkimbo
 	printAlign "mu, pi, tau", mu + " " + pi + " " + tau
-	printAlign "bullet, ellipsis", bullet + " " + ellipsis
+	printAlign "bullet, ellipsis, degrees", [bullet, ellipsis, degrees].join
 	printAlign "tree", tree
 	printAlign "emptyBox", emptyBox
 	printAlign "checkedBox", checkedBox
