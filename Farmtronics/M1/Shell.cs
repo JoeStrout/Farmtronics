@@ -5,6 +5,7 @@ the user.
 */
 
 using System.Collections.Generic;
+using Farmtronics;
 using Farmtronics.Bot;
 using Farmtronics.M1.Filesystem;
 using Farmtronics.M1.GUI;
@@ -27,7 +28,8 @@ namespace Farmtronics.M1 {
 			get { return bot == null ? _name : bot.name; }
 			set {
 				_name = value;
-				if (bot != null) bot.Name = bot.DisplayName = value;
+				if (bot == null) ModData.instance.HomeComputerName = value;
+				else bot.Name = bot.DisplayName = value;
 			}
 		}
 

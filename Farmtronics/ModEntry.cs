@@ -193,6 +193,7 @@ namespace Farmtronics
 
 		public void OnSaving(object sender, SavingEventArgs args) {
 			Monitor.Log($"OnSaving");
+			ModData.Save();
 			// Host can't save without this
 			BotManager.ConvertBotsToChests(true);
 			BotManager.ClearAll();
@@ -212,6 +213,7 @@ namespace Farmtronics
 				MultiplayerManager.hostID = Game1.player.UniqueMultiplayerID;
 			}
 			BotManager.ConvertChestsToBots();
+			if (shell != null) shell.name = ModData.instance.HomeComputerName;
 		}
 
 		public void OnDayStarted(object sender, DayStartedEventArgs args) {
@@ -243,7 +245,7 @@ namespace Farmtronics
 		private void InitComputerShell() {
 			if (shell == null) {
 				shell = new Shell();
-				shell.name = "Home Computer";
+				shell.name = ModData.instance.HomeComputerName;
 				shell.Init(Game1.player.UniqueMultiplayerID);
 			}
 		}
