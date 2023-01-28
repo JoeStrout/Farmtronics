@@ -611,6 +611,30 @@ namespace Farmtronics.M1 {
 			meModule["inventory"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
+			f.AddParam("Item1", 0);
+			f.AddParam("Item2", 0);
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "swapItem")) return Intrinsic.Result.Null;
+				if(sh.bot.inventory != null) {
+					int item1Index = context.GetLocalInt("Item1");
+					int item2Index = context.GetLocalInt("Item2");
+					bool index1WithinConstrants = item1Index < sh.bot.inventory.Count && item1Index >= 0;
+					bool index2WithinConstrants = item2Index < sh.bot.inventory.Count && item2Index >= 0;
+					if(index1WithinConstrants && index2WithinConstrants) {
+						Item item1 = sh.bot.inventory[item1Index];
+						Item item2 = sh.bot.inventory[item2Index];
+						sh.bot.inventory[item1Index] = item2;
+						sh.bot.inventory[item2Index] = item1;
+						return new Intrinsic.Result(1);
+					}
+				}
+				return new Intrinsic.Result(0);
+			};
+
+			meModule["swapItem"] = f.GetFunc();
+
+			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				if (RequireBot(sh, "left")) return Intrinsic.Result.Null;
