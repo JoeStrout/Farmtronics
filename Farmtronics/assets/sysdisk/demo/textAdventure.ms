@@ -761,8 +761,8 @@ if locals == globals then
 		end if
 	end function
 	
-	print "                         THE GREEDY GARGOYLE"
-	print "                        A 5-Minute Text Puzzle"
+	print "          THE GREEDY GARGOYLE"
+	print "         A 5-Minute Text Puzzle"
 	print
 	printWrap "Holding your lantern high, you cautiously explore the" +
 	" stone panel before you.  According to the maps, the entrance to"+

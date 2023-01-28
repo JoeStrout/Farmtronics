@@ -267,7 +267,7 @@ ship.draw = function()
   if self.x < 37 then
     print self.ascii[1]
     text.setCell self.x+3,0, " "
-    text.setCellBackColor self.x+3,0, color.clear
+    text.setCellBackColor self.x+3,0, text.backColor
   else
     print self.ascii[1][:-2]
     text.setCell 39,0, self.ascii[1][-2]
