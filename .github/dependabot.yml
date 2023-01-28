@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - directory: "/M1"
+  - directory: "/Farmtronics"
     open-pull-requests-limit: 5
     package-ecosystem: "nuget"
     commit-message:
