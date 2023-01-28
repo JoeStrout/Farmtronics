@@ -576,7 +576,16 @@ namespace Farmtronics.M1 {
 			f = Intrinsic.Create("");
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
-				return new Intrinsic.Result(new ValString(Game1.getFarmerMaybeOffline(sh.bot.owner.Value).displayName));
+				string owner;
+				if (sh.bot == null) {
+					// on the Home Computer, the owner should always be the local player, since
+					// you can only access it in your own cabin (see ModEntry.OnMenuChanged)
+					owner = Game1.player.displayName;
+				} else {
+					// for bots, get the owner name as follows:
+					owner = Game1.getFarmerMaybeOffline(sh.bot.owner.Value).displayName;
+				}
+				return new Intrinsic.Result(owner);
 			};
 			meModule["owner"] = f.GetFunc();
 
@@ -611,27 +620,26 @@ namespace Farmtronics.M1 {
 			meModule["inventory"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
-			f.AddParam("Item1", 0);
-			f.AddParam("Item2", 0);
+			f.AddParam("index1", 0);
+			f.AddParam("index2", 0);
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				if (RequireBot(sh, "swapItem")) return Intrinsic.Result.Null;
-				if(sh.bot.inventory != null) {
-					int item1Index = context.GetLocalInt("Item1");
-					int item2Index = context.GetLocalInt("Item2");
+				if (sh.bot.inventory != null) {
+					int item1Index = context.GetLocalInt("index1");
+					int item2Index = context.GetLocalInt("index2");
 					bool index1WithinConstrants = item1Index < sh.bot.inventory.Count && item1Index >= 0;
 					bool index2WithinConstrants = item2Index < sh.bot.inventory.Count && item2Index >= 0;
-					if(index1WithinConstrants && index2WithinConstrants) {
+					if (index1WithinConstrants && index2WithinConstrants) {
 						Item item1 = sh.bot.inventory[item1Index];
 						Item item2 = sh.bot.inventory[item2Index];
 						sh.bot.inventory[item1Index] = item2;
 						sh.bot.inventory[item2Index] = item1;
-						return new Intrinsic.Result(1);
+						return Intrinsic.Result.True;
 					}
 				}
-				return new Intrinsic.Result(0);
+				return Intrinsic.Result.False;
 			};
-
 			meModule["swapItem"] = f.GetFunc();
 
 			f = Intrinsic.Create("");
