@@ -377,6 +377,11 @@ namespace Farmtronics.Bot {
 				IList<Item> sourceItems = null;
 				if (obj is Chest chest) sourceItems = chest.items;
 				else if (obj is BotObject bot) sourceItems = bot.inventory;
+				else if (obj.isForage(farmer.currentLocation)) {
+					if (!farmer.couldInventoryAcceptThisItem(obj)) return false;
+					AddItemToInventory(obj.getOne());
+					return farmer.currentLocation.objects.Remove(obj.TileLocation);
+				}
 				else Debug.Log($"Couldn't take any items from this object.");
 				if (sourceItems != null && slotNumber < sourceItems.Count && sourceItems[slotNumber] != null && AddItemToInventory(sourceItems[slotNumber])) {
 					Debug.Log($"Taking {sourceItems[slotNumber].DisplayName} from container");
