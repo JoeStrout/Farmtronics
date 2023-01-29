@@ -2072,11 +2072,11 @@ namespace Farmtronics.M1 {
 			return content.ToString().Replace("UnityEngine.", "");
 		}
 
-		public override int Hash(int recursionDepth=16) {
+		public override int Hash() {
 			return content.GetHashCode();
 		}
 
-		public override double Equality(Value rhs, int recursionDepth=16) {
+		public override double Equality(Value rhs) {
 			return rhs is ValWrapper && ((ValWrapper)rhs).content == content ? 1 : 0;
 		}
 	}

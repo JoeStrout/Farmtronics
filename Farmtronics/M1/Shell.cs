@@ -28,7 +28,7 @@ namespace Farmtronics.M1 {
 			get { return bot == null ? _name : bot.name; }
 			set {
 				_name = value;
-				if (bot == null) ModData.instance.HomeComputerName = value;
+				if (bot == null) PerPlayerData.HomeComputerName = value;
 				else bot.Name = bot.DisplayName = value;
 			}
 		}
@@ -360,24 +360,24 @@ namespace Farmtronics.M1 {
 			}
 		}
 
-		public void PrintLine(string line) {
+		public void PrintLine(string line, bool lineBreak=true) {
 			TextDisplay disp = console.display;
 			disp.Print(line);
-			disp.Print(disp.delimiter);
+			if (lineBreak) disp.Print(disp.delimiter);
 		}
 
-		public void PrintErrLine(string line) {
+		public void PrintErrLine(string line, bool lineBreak=true) {
 			if (interpreter.vm != null) {
 				stackAtLastErr = M1API.StackList(interpreter.vm);
 				interpreter.vm.globalContext.variables.SetElem(M1API._stackAtBreak, stackAtLastErr);
 			} else {
 				stackAtLastErr = new ValList();	// empty list signifies error without a VM, e.g. at compile time.
 			}
-			PrintLine(line);
+			PrintLine(line, lineBreak);
 		}
 
-		void PrintLineWithTaskCheck(string line) {
-			PrintLine(line);
+		void PrintLineWithTaskCheck(string line, bool lineBreak=true) {
+			PrintLine(line, lineBreak);
 			ToDoManager.NotePrintOutput(line);
 		}
 	}

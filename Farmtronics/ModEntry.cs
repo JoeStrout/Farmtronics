@@ -173,7 +173,7 @@ namespace Farmtronics
 			var dlog = e.NewMenu as DialogueBox;
 			if (dlog == null) return;
 			if (!dlog.isQuestion || dlog.responses[0].responseKey != "Weather") return;
-			// Only allow players to use the home computer at their own cabin
+			// Only allow players to use the home computer at their own s
 			if (Game1.player.currentLocation.NameOrUniqueName != Game1.player.homeLocation.Value) return;
 
 			// TV menu: insert a new option for the Home Computer
@@ -193,7 +193,6 @@ namespace Farmtronics
 
 		public void OnSaving(object sender, SavingEventArgs args) {
 			Monitor.Log($"OnSaving");
-			ModData.Save();
 			// Host can't save without this
 			BotManager.ConvertBotsToChests(true);
 			BotManager.ClearAll();
@@ -213,7 +212,7 @@ namespace Farmtronics
 				MultiplayerManager.hostID = Game1.player.UniqueMultiplayerID;
 			}
 			BotManager.ConvertChestsToBots();
-			if (shell != null) shell.name = ModData.instance.HomeComputerName;
+			if (shell != null) shell.name = PerPlayerData.HomeComputerName;
 		}
 
 		public void OnDayStarted(object sender, DayStartedEventArgs args) {
@@ -245,7 +244,7 @@ namespace Farmtronics
 		private void InitComputerShell() {
 			if (shell == null) {
 				shell = new Shell();
-				shell.name = ModData.instance.HomeComputerName;
+				shell.name = PerPlayerData.HomeComputerName;
 				shell.Init(Game1.player.UniqueMultiplayerID);
 			}
 		}
