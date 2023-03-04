@@ -14,3 +14,5 @@ updates:
       prefix: "dep nuget"
     schedule:
       interval: daily
+    registries:
+      - github-nuget
