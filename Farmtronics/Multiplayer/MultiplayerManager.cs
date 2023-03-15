@@ -21,9 +21,9 @@ namespace Farmtronics.Multiplayer {
 			BotManager.ClearAll();
 			
 			if (e.Peer.GetMod(ModEntry.instance.ModManifest.UniqueID) == null) {
-				Debug.Log($"Couldn't find Farmtronics for player {e.Peer.PlayerID}. Make sure the mod is correctly installed.", LogLevel.Error);
+				ModEntry.instance.Monitor.Log($"Couldn't find Farmtronics for player {e.Peer.PlayerID}. Make sure the mod is correctly installed.", LogLevel.Error);
 			} else if (e.Peer.IsHost) {
-				Debug.Log($"Found host player ID: {e.Peer.PlayerID}");
+				ModEntry.instance.Monitor.Log($"Found host player ID: {e.Peer.PlayerID}");
 				hostID = e.Peer.PlayerID;
 			}
 		}
@@ -68,7 +68,7 @@ namespace Farmtronics.Multiplayer {
 		public static void OnModMessageReceived(object sender, ModMessageReceivedEventArgs e) {
 			if (e.FromModID != ModEntry.instance.ModManifest.UniqueID) return;
 			
-			Debug.Log($"Receiving message from '{e.FromPlayerID}' of type: {e.Type}");
+			ModEntry.instance.Monitor.Log($"Receiving message from '{e.FromPlayerID}' of type: {e.Type}");
 
 			switch (e.Type) {
 			case nameof(AddBotInstance):
@@ -107,7 +107,7 @@ namespace Farmtronics.Multiplayer {
 				addBotChatMessage.Apply();
 				return;
 			default:
-				Debug.Log($"Couldn't receive message of unknown type: {e.Type}", LogLevel.Error);
+				ModEntry.instance.Monitor.Log($"Couldn't receive message of unknown type: {e.Type}", LogLevel.Error);
 				return;
 			}
 		}
@@ -115,10 +115,10 @@ namespace Farmtronics.Multiplayer {
 		public static void SendMessage<T>(T message, long[] playerIDs = null) where T : BaseMessage<T> {
 			if (!Context.IsMultiplayer) return;
 			
-			if (playerIDs != null) Debug.Log($"Sending message: {message} to {string.Join(',', playerIDs)}");
-			else Debug.Log($"Broadcasting message: {message}");
+			if (playerIDs != null) ModEntry.instance.Monitor.Log($"Sending message: {message} to {string.Join(',', playerIDs)}");
+			else ModEntry.instance.Monitor.Log($"Broadcasting message: {message}");
 			ModEntry.instance.Helper.Multiplayer.SendMessage(message, typeof(T).Name, modIDs: new[] { ModEntry.instance.ModManifest.UniqueID }, playerIDs: playerIDs);
-			Debug.Log("Message sent successfully!");
+			ModEntry.instance.Monitor.Log("Message sent successfully!");
 		}
 		
 		public static void SendMessageToHost<T>(T message) where T : BaseMessage<T> {

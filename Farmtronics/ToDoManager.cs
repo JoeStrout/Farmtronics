@@ -78,7 +78,7 @@ namespace Farmtronics {
 
 		static void MarkTaskDone(Task task) {
 			if (IsTaskDone(task)) return;	// (task was already done)
-			Debug.Log($"ToDoManager.MarkTaskDone({task})");
+			ModEntry.instance.Monitor.Log($"ToDoManager.MarkTaskDone({task})");
 			taskDone[task] = true;
 
 			Game1.player.modData[$"{ModEntry.instance.ModManifest.UniqueID}/task/{task}"] = "1";
@@ -94,7 +94,7 @@ namespace Farmtronics {
 
 			// Adds mail for the next day, and saves -- what we want for deployment:
 			Game1.addMailForTomorrow("FarmtronicsFirstBotMail");
-			Debug.Log("first-bot mail sent; will be delivered in the morning");
+			ModEntry.instance.Monitor.Log("first-bot mail sent; will be delivered in the morning");
 		}
 	}
 }

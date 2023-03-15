@@ -110,7 +110,7 @@ public static class MathUtils {
 	//		this.halfSize = halfSize;
 	//		this.rotation = rotation;
 	//		dirty = true;
-	//		//Debug.Log("Created new BoundingBox");
+	//		//ModEntry.instance.Monitor.Log("Created new BoundingBox");
 	//	}
 
 	//	public override string ToString() {
@@ -179,10 +179,10 @@ public static class MathUtils {
 	//			if ((tMin > 1 + origin[a]) || (tMax < origin[a])) {
 	//				// There was no intersection along this dimension;
 	//				// the boxes cannot possibly overlap.
-	//				//Debug.Log("Separation found on axis " + a + ": tMin=" + tMin + ", tMax=" + tMax + ", origin[a]=" + origin[a]);
+	//				//ModEntry.instance.Monitor.Log("Separation found on axis " + a + ": tMin=" + tMin + ", tMax=" + tMax + ", origin[a]=" + origin[a]);
 	//				return false;
 	//			}
-	//			//Debug.Log("No separation on axis " + a + ": tMin=" + tMin + ", tMax=" + tMax + ", origin[a]=" + origin[a]);
+	//			//ModEntry.instance.Monitor.Log("No separation on axis " + a + ": tMin=" + tMin + ", tMax=" + tMax + ", origin[a]=" + origin[a]);
 	//		}
 			
 	//		// No overlap yet; but if the boxes have different rotations, then we
@@ -204,10 +204,10 @@ public static class MathUtils {
 	//				if ((tMin > 1 + other.origin[a]) || (tMax < other.origin[a])) {
 	//					// There was no intersection along this dimension;
 	//					// the boxes cannot possibly overlap.
-	//					//Debug.Log("Separation found on axis " + (a+2) + ": tMin=" + tMin + ", tMax=" + tMax + ", origin[a]=" + other.origin[a]);
+	//					//ModEntry.instance.Monitor.Log("Separation found on axis " + (a+2) + ": tMin=" + tMin + ", tMax=" + tMax + ", origin[a]=" + other.origin[a]);
 	//					return false;
 	//				}
-	//				//Debug.Log("No separation on axis " + (a+2) + ": tMin=" + tMin + ", tMax=" + tMax + ", origin[a]=" + other.origin[a]);
+	//				//ModEntry.instance.Monitor.Log("No separation on axis " + (a+2) + ": tMin=" + tMin + ", tMax=" + tMax + ", origin[a]=" + other.origin[a]);
 	//			}				
 	//		}
 

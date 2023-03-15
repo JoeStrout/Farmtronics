@@ -60,7 +60,7 @@ namespace Farmtronics.Utils {
 			foreach (var clump in gameLocation.resourceClumps) {
 				var clumpBounds = clump.getBoundingBox(clump.tile.Value);
 				if (clumpBounds.Intersects(bbox)) {
-					Debug.Log($"position {absolutePosition} intersects {clump.GetName()}, because {bbox} overlaps {clumpBounds}", LogLevel.Trace);
+					ModEntry.instance.Monitor.Log($"position {absolutePosition} intersects {clump.GetName()}, because {bbox} overlaps {clumpBounds}", LogLevel.Trace);
 					return clump;
 				}
 			}

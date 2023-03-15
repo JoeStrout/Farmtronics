@@ -57,7 +57,7 @@ namespace Farmtronics.M1 {
 			f.AddParam("s");
 			f.code = (context, partialResult) => {
 				string s = context.variables.GetString("s");
-				Debug.Log(s);
+				ModEntry.instance.Monitor.Log(s);
 				return Intrinsic.Result.Null;
 			};
 
@@ -365,7 +365,7 @@ namespace Farmtronics.M1 {
 					libDirs = importPaths.ToString().Split(new char[] {';'});
 				}
 
-				//Debug.Log("Got " + libDirs.Length + " lib dirs: " + string.Join(", ", libDirs));
+				//ModEntry.instance.Monitor.Log("Got " + libDirs.Length + " lib dirs: " + string.Join(", ", libDirs));
 				List<string> lines = null;
 				foreach (string dir in libDirs) {
 					string path = dir;
@@ -730,7 +730,7 @@ namespace Farmtronics.M1 {
 			meModule.assignOverride = (key,value) => {
 				string keyStr = key.ToString();
 				if (keyStr == "_") return false;
-				//Debug.Log($"meModule {key} = {value}");
+				//ModEntry.instance.Monitor.Log($"meModule {key} = {value}");
 				if (keyStr == "name") {
 					string name = value.ToString();
 					if (!string.IsNullOrEmpty(name)) {
@@ -825,7 +825,7 @@ namespace Farmtronics.M1 {
 			f.code = (context, partialResult) => {
 				Shell sh = context.interpreter.hostData as Shell;
 				string path = context.GetLocalString("path");
-				Debug.Log("File.children: path=[" + path + "]");
+				ModEntry.instance.Monitor.Log("File.children: path=[" + path + "]");
 				string err;
 				path = sh.ResolvePath(path, out err);
 				if (path == null) return new Intrinsic.Result(err);
@@ -897,10 +897,10 @@ namespace Farmtronics.M1 {
 				string path = context.GetLocalString("path");
 				string err;
 				path = sh.ResolvePath(path, out err);
-				Debug.Log($"file.info: resolved path to {path}");
+				ModEntry.instance.Monitor.Log($"file.info: resolved path to {path}");
 				if (path == null) return new Intrinsic.Result(err);
 				M1FileInfo info = shell.Disks.GetInfo(path);
-				Debug.Log($"file.info: {path} resulted in info {info}");
+				ModEntry.instance.Monitor.Log($"file.info: {path} resulted in info {info}");
 				if (info == null) return Intrinsic.Result.Null;
 				var result = new ValMap();
 				result["path"] = new ValString(path);
@@ -1062,7 +1062,7 @@ namespace Farmtronics.M1 {
 			
 				Texture2D tex = new Texture2D(2, 2, TextureFormat.ARGB32, false);
 				if (!ImageConversion.LoadImage(tex, data, false)) return Intrinsic.Result.Null;
-				//Debug.Log("LoadImage returned true.  And size " + tex.width + " x " + tex.height);
+				//ModEntry.instance.Monitor.Log("LoadImage returned true.  And size " + tex.width + " x " + tex.height);
 				tex.anisoLevel = 1;
 				tex.filterMode = FilterMode.Point;
 				tex.wrapMode = TextureWrapMode.Clamp;
@@ -1457,7 +1457,7 @@ namespace Farmtronics.M1 {
 				try {
 					return new Intrinsic.Result(Input.GetAxis(axisName));
 				} catch (System.ArgumentException e) {
-					//Debug.Log("Invalid axis name: " + axisName);
+					//ModEntry.instance.Monitor.Log("Invalid axis name: " + axisName);
 					return Intrinsic.Result.Null;
 				}
 			};

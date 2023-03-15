@@ -84,26 +84,26 @@ namespace Farmtronics.Bot {
 			}
 			
 			// NOTE: Make sure to not use farmer.Items.Count to get the actual number of items in the inventory
-			// Debug.Log($"TileLocation: {tileLocation} Position: {farmer.Position} Location: {farmer.currentLocation}");
-			// Debug.Log($"Items: {farmer.numberOfItemsInInventory()}/{farmer.MaxItems}");
+			// ModEntry.instance.Monitor.Log($"TileLocation: {tileLocation} Position: {farmer.Position} Location: {farmer.currentLocation}");
+			// ModEntry.instance.Monitor.Log($"Items: {farmer.numberOfItemsInInventory()}/{farmer.MaxItems}");
 		}
 
 		// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
 		public BotObject() : base() {
-			//Debug.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
+			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
 			Initialize();
 
 			CreateFarmer(TileLocation, null);
 			data = new ModData(this);
 
-			Debug.Log($"Constructor 1: {Name} - Location: {TileLocation} - owner: {owner.Value}");
+			ModEntry.instance.Monitor.Log($"Constructor 1: {Name} - Location: {TileLocation} - owner: {owner.Value}");
 			// NOTE: this constructor is used for bots that are not in the world
 			// (but are in inventory, mail attachment, etc.).  So we do not add
 			// to the instances list.
 		}
 
 		public BotObject(Vector2 tileLocation, GameLocation location = null) : base(tileLocation, ItemID) {
-			//Debug.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
+			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 			Initialize();
 
 			BotManager.botCount++;
@@ -112,7 +112,7 @@ namespace Farmtronics.Bot {
 			// Prevent bots from running away
 			targetPos = Position;
 
-			Debug.Log($"Constructor 2: {Name} - Location: {TileLocation} - owner: {owner.Value}");
+			ModEntry.instance.Monitor.Log($"Constructor 2: {Name} - Location: {TileLocation} - owner: {owner.Value}");
 		}
 		
 		private void PerformOtherPlayerAction() {
@@ -122,7 +122,7 @@ namespace Farmtronics.Bot {
 		}
 		
 		public override bool performDropDownAction(Farmer who) {
-			Debug.Log($"Bot.performDropDownAction({who.Name})");
+			ModEntry.instance.Monitor.Log($"Bot.performDropDownAction({who.Name})");
 			base.performDropDownAction(who);
 			
 			return false;   // OK to set down (add to Objects list in the tile)
@@ -134,7 +134,7 @@ namespace Farmtronics.Bot {
 		/// to create a new Bot instance that matches its data.
 		/// </summary>
 		public override bool placementAction(GameLocation location, int x, int y, Farmer who = null) {
-			Debug.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
+			ModEntry.instance.Monitor.Log($"Bot.placementAction({location}, {x}, {y}, {who.Name})");
 			Vector2 placementTile = new Vector2(x, y).GetTilePosition();
 			// Create a new bot.
 			var bot = new BotObject(placementTile, location);
@@ -143,7 +143,7 @@ namespace Farmtronics.Bot {
 			// Copy other data from this item to bot.
 			bot.modData.SetFromSerialization(this.modData);
 			bot.data.Load();
-			// Debug.Log($"Placement: {bot.data.ToString()}");
+			// ModEntry.instance.Monitor.Log($"Placement: {bot.data.ToString()}");
 
 			// But have the placed bot face the same direction as the farmer placing it.
 			bot.farmer.FacingDirection = who.facingDirection;
@@ -152,11 +152,11 @@ namespace Farmtronics.Bot {
 			
 			// Save new facingDirection
 			bot.data.Update();
-			// Debug.Log($"Placement new: {bot.data.ToString()}");
+			// ModEntry.instance.Monitor.Log($"Placement new: {bot.data.ToString()}");
 
 			// Add the new bot (which is in the world) to our instances list.
 			BotManager.instances.Add(bot);
-			//Debug.Log($"Added {bot.Name} to instances; now have {instances.Count}");
+			//ModEntry.instance.Monitor.Log($"Added {bot.Name} to instances; now have {instances.Count}");
 
 			location.playSound("hammer");
 			return true;
@@ -167,18 +167,18 @@ namespace Farmtronics.Bot {
 		public void UseTool() {
 			if (farmer == null || inventory == null || farmer.CurrentTool == null) return;
 			Vector2 toolLocation = farmer.GetToolLocation(true);
-			Debug.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {toolLocation}", LogLevel.Trace);
+			ModEntry.instance.Monitor.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {toolLocation}", LogLevel.Trace);
 			
 			// Check ResourceClumps and current UpgradeLevel before hitting them
 			var clump = currentLocation.GetCollidingResourceClump(toolLocation);
 			if (clump != null && farmer.CurrentTool.UpgradeLevel < 4) {
-				Debug.Log($"Can't use tool because it's hitting clump {clump.GetName()}", LogLevel.Warn);
+				ModEntry.instance.Monitor.Log($"Can't use tool because it's hitting clump {clump.GetName()}", LogLevel.Warn);
 				return;
 			}
 			
 			float oldStamina = farmer.stamina;
 			if (farmer.CurrentTool is not MeleeWeapon) {
-				Debug.Log($"farmer.CurrentTool.DoFunction", LogLevel.Trace);
+				ModEntry.instance.Monitor.Log($"farmer.CurrentTool.DoFunction", LogLevel.Trace);
 				farmer.CurrentTool.DoFunction(farmer.currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), 1, farmer);
 				farmer.checkForExhaustion(oldStamina);
 				data.Update();
@@ -201,13 +201,13 @@ namespace Farmtronics.Bot {
 			Vector2 absoluteLocation = farmer.GetToolLocation(true);
 			Vector2 tileLocation = absoluteLocation.GetTilePosition();
 			
-			Debug.Log($"Harvest start: {tileLocation}");
+			ModEntry.instance.Monitor.Log($"Harvest start: {tileLocation}");
 
 			TerrainFeature feature = null;
 			if (loc.terrainFeatures.TryGetValue(tileLocation, out feature)) {
 				// If we can get a terrain feature, then have it do the "use" action,
 				// by temporarily setting the bot farmer to be the Game1 player.
-				Debug.Log("Harvesting: TerrainFeature");
+				ModEntry.instance.Monitor.Log("Harvesting: TerrainFeature");
 				
 				var origPlayer = Game1.player;
 				Game1.player = farmer;
@@ -215,13 +215,13 @@ namespace Farmtronics.Bot {
 				Game1.player = origPlayer;
 				return result;
 			} else if (loc.isObjectAtTile(tileLocation.GetIntX(), tileLocation.GetIntY())) {
-				Debug.Log("Harvesting: Tile");
+				ModEntry.instance.Monitor.Log("Harvesting: Tile");
 				// If we have an object in that location, harvest from it
 				// via a helper method.
 				return doBotHarvestFromObject(loc.getObjectAtTile(tileLocation.GetIntX(), tileLocation.GetIntY()));
 			} else if (loc.isCropAtTile(tileLocation.GetIntX(), tileLocation.GetIntY())) {
 				var dirtObj = loc.terrainFeatures[tileLocation] as HoeDirt;
-				Debug.Log($"Harvesting: Crop [ready = {dirtObj.readyForHarvest()}]");
+				ModEntry.instance.Monitor.Log($"Harvesting: Crop [ready = {dirtObj.readyForHarvest()}]");
 				
 				if (dirtObj.readyForHarvest()) {
 					// this starts the animation and sound
@@ -231,10 +231,10 @@ namespace Farmtronics.Bot {
 						if (dirtObj.crop.harvest(tileLocation.GetIntX(), tileLocation.GetIntY(), dirtObj)) {
 							dirtObj.destroyCrop(tileLocation, true, farmer.currentLocation);
 							return true;
-						} else Debug.Log("fail 1");
-					} else Debug.Log("fail 2");
-				} else Debug.Log("fail 3");
-			} else Debug.Log("fail 4");
+						} else ModEntry.instance.Monitor.Log("fail 1");
+					} else ModEntry.instance.Monitor.Log("fail 2");
+				} else ModEntry.instance.Monitor.Log("fail 3");
+			} else ModEntry.instance.Monitor.Log("fail 4");
 
 			return false;
 		}
@@ -252,12 +252,12 @@ namespace Farmtronics.Bot {
 						}
 					}
 				}
-				Debug.Log("Adding item");
+				ModEntry.instance.Monitor.Log("Adding item");
 				Utility.addItemToThisInventoryList(item, farmer.Items, farmer.MaxItems);
 				if (Context.IsMultiplayer && item is Hat && farmer.getIndexOfInventoryItem(item) == GetActualCapacity() - 1) data.Update();
 				return true;
 			} else {
-				Debug.Log("Can't add item");
+				ModEntry.instance.Monitor.Log("Can't add item");
 				return false;
 			}
 		}
@@ -373,7 +373,7 @@ namespace Farmtronics.Bot {
 
 			if (farmer.currentLocation.isObjectAt(tileLocation.GetIntX(), tileLocation.GetIntY())) {
 				StardewValley.Object obj = farmer.currentLocation.getObjectAt(tileLocation.GetIntX(), tileLocation.GetIntY());
-				Debug.Log($"Taking item from slot {slotNumber} of {obj.Name}");
+				ModEntry.instance.Monitor.Log($"Taking item from slot {slotNumber} of {obj.Name}");
 				IList<Item> sourceItems = null;
 				if (obj is Chest chest) sourceItems = chest.items;
 				else if (obj is BotObject bot) sourceItems = bot.inventory;
@@ -384,12 +384,12 @@ namespace Farmtronics.Bot {
 				}
 				else Debug.Log($"Couldn't take any items from this object.");
 				if (sourceItems != null && slotNumber < sourceItems.Count && sourceItems[slotNumber] != null && AddItemToInventory(sourceItems[slotNumber])) {
-					Debug.Log($"Taking {sourceItems[slotNumber].DisplayName} from container");
+					ModEntry.instance.Monitor.Log($"Taking {sourceItems[slotNumber].DisplayName} from container");
 					Utility.removeItemFromInventory(slotNumber, sourceItems);
 					return true;
 				}
 			} else {
-				Debug.Log("Not facing anything");
+				ModEntry.instance.Monitor.Log("Not facing anything");
 			}
 
 			return false;
@@ -401,10 +401,10 @@ namespace Farmtronics.Bot {
 		public int PlaceItem() {
 			var item = farmer.CurrentItem;
 			if (item == null) {
-				Debug.Log($"No item equipped in slot {currentToolIndex}");
+				ModEntry.instance.Monitor.Log($"No item equipped in slot {currentToolIndex}");
 				return 0;
 			}
-			Debug.Log($"Placing {item.DisplayName} from slot {currentToolIndex}");
+			ModEntry.instance.Monitor.Log($"Placing {item.DisplayName} from slot {currentToolIndex}");
 			Location tileLocation = farmer.GetToolLocation(true).ToLocation();
 
 			// if we can place the item via standard Utility/item methods, do so
@@ -412,7 +412,7 @@ namespace Farmtronics.Bot {
 			if (itemAsObj != null && Utility.playerCanPlaceItemHere(farmer.currentLocation, item, tileLocation.X, tileLocation.Y, farmer)) {
 				//Place it
 				bool result = itemAsObj.placementAction(currentLocation, tileLocation.X, tileLocation.Y, farmer);
-				Debug.Log($"placementAction result: {result}");
+				ModEntry.instance.Monitor.Log($"placementAction result: {result}");
 				// reduce inventory by one, and clear the inventory if the stack is empty
 				item.Stack--;
 				if (item.Stack <= 0) inventory[currentToolIndex] = null;
@@ -426,7 +426,7 @@ namespace Farmtronics.Bot {
 				// This method is patched by mods like PFM to get custom machines working,
                 // so we get compatibility with that by default.
 				bool result = obj.performObjectDropInAction(item, false, farmer);
-				Debug.Log($"performObjectDropInAction({item.DisplayName}) result: {result}");
+				ModEntry.instance.Monitor.Log($"performObjectDropInAction({item.DisplayName}) result: {result}");
 				if (result) {
 					// reduce inventory by one, and clear the inventory if the stack is empty
 					item.Stack--;
@@ -451,23 +451,23 @@ namespace Farmtronics.Bot {
 					return 1;
 				}
 				if (obj is Chest chest) {
-					Debug.Log($"Adding {item.DisplayName} to chest.");
+					ModEntry.instance.Monitor.Log($"Adding {item.DisplayName} to chest.");
 					int beforeCount = item.Stack;
 					inventory[currentToolIndex] = chest.addItem(item);
 					int afterCount = (inventory[currentToolIndex] == null ? 0 : inventory[currentToolIndex].Stack);
 					return beforeCount - afterCount;
 				} else if (obj is BotObject bot) {
-					Debug.Log($"Adding {item.DisplayName} to bot.");
+					ModEntry.instance.Monitor.Log($"Adding {item.DisplayName} to bot.");
 					int beforeCount = item.Stack;
 					if (!bot.AddItemToInventory(item)) return 0;
 					inventory[currentToolIndex] = null;
 					return beforeCount;
                 } else {
-					Debug.Log($"Object ahead of bot is neither Chest nor Bot");
+					ModEntry.instance.Monitor.Log($"Object ahead of bot is neither Chest nor Bot");
 					return 0;
 				}
 			}
-			else Debug.Log($"No object found at {tileLocation}");
+			else ModEntry.instance.Monitor.Log($"No object found at {tileLocation}");
 			return 0;
 		}
 		
@@ -496,14 +496,14 @@ namespace Farmtronics.Bot {
 			// make sure the terrain in that direction isn't blocked
 			bool isPassable = TileInfo.IsPassable(currentLocation, newTile);
 			if (!isPassable) {
-				Debug.Log($"MoveForward: tile {newTile} is not passable");
+				ModEntry.instance.Monitor.Log($"MoveForward: tile {newTile} is not passable");
 				targetPos = Position;
 				return;
 			}
 
 			// start moving
 			targetPos = newTile.GetAbsolutePosition();
-			Debug.Log($"MoveForward: Facing: {facingDirection}; Position: {Position}; newTile: {newTile}; targetPos: {targetPos}");
+			ModEntry.instance.Monitor.Log($"MoveForward: Facing: {facingDirection}; Position: {Position}; newTile: {newTile}; targetPos: {targetPos}");
 
 			// Do collision actions (shake the grass, etc.)
 			if (currentLocation.terrainFeatures.ContainsKey(newTile)) {
@@ -525,7 +525,7 @@ namespace Farmtronics.Bot {
 		public void Rotate(int stepsClockwise) {
 			farmer.faceDirection((farmer.FacingDirection + 4 + stepsClockwise) % 4);
 			data.Update();
-			Debug.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
+			ModEntry.instance.Monitor.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
 		}
 
 		void ApplyScytheToTile() {
@@ -541,12 +541,12 @@ namespace Farmtronics.Bot {
 			// Big pain in the neck time.
 
 			// Apply it to the location itself.
-			Debug.Log($"{name} Performing {tool.Name} action at {tile}");
+			ModEntry.instance.Monitor.Log($"{name} Performing {tool.Name} action at {tile}");
 			location.performToolAction(tool, tile.GetIntX(), tile.GetIntY());
 
 			// Then, apply it to any terrain feature (grass, weeds, etc.) at this location.
 			if (location.terrainFeatures.ContainsKey(tile) && location.terrainFeatures[tile].performToolAction(tool, 1, tile, location)) {
-				Debug.Log($"Performed tool action on the terrain feature {location.terrainFeatures[tile]}; removing it");
+				ModEntry.instance.Monitor.Log($"Performed tool action on the terrain feature {location.terrainFeatures[tile]}; removing it");
 				location.terrainFeatures.Remove(tile);
 			}
 			if (location.largeTerrainFeatures is not null) {
@@ -554,7 +554,7 @@ namespace Farmtronics.Bot {
 				var tileRect = new Rectangle(absoluteTile.GetIntX(), absoluteTile.GetIntY(), Game1.tileSize, Game1.tileSize);
 				for (int i = location.largeTerrainFeatures.Count - 1; i >= 0; i--) {
 					if (location.largeTerrainFeatures[i].getBoundingBox().Intersects(tileRect) && location.largeTerrainFeatures[i].performToolAction(tool, 1, tile, location)) {
-						//Debug.Log($"Performed tool action on the LARGE terrain feature {location.terrainFeatures[tile]}; removing it");
+						//ModEntry.instance.Monitor.Log($"Performed tool action on the LARGE terrain feature {location.terrainFeatures[tile]}; removing it");
 						location.largeTerrainFeatures.RemoveAt(i);
 					}
 				}
@@ -566,11 +566,11 @@ namespace Farmtronics.Bot {
 				if (obj != null && obj.Type != null && obj.performToolAction(tool, location)) {
 					if (obj.Type.Equals("Crafting") && (int)obj.Fragility != 2) {
 						var center = farmer.GetBoundingBox().Center;
-						//Debug.Log($"Performed tool action on the object {obj}; adding debris");
+						//ModEntry.instance.Monitor.Log($"Performed tool action on the object {obj}; adding debris");
 						location.debris.Add(new Debris(obj.bigCraftable.Value ? (-obj.ParentSheetIndex) : obj.ParentSheetIndex,
 							farmer.GetToolLocation(true), new Vector2(center.X, center.Y)));
 					}
-					//Debug.Log($"Performing {obj} remove action, then removing it from {tile}");
+					//ModEntry.instance.Monitor.Log($"Performing {obj} remove action, then removing it from {tile}");
 					obj.performRemoveAction(tile, location);
 					location.Objects.Remove(tile);
 				}
@@ -583,7 +583,7 @@ namespace Farmtronics.Bot {
 
 		public void Update(GameTime gameTime) {
 			// bool debug = false;//ModEntry.instance.Helper.Input.IsDown(SButton.RightShift);
-			// if (debug) Debug.Log($"{Name} updating with farmer in {farmer.currentLocation?.Name}, here is {Game1.currentLocation.Name}, shell is {shell}");
+			// if (debug) ModEntry.instance.Monitor.Log($"{Name} updating with farmer in {farmer.currentLocation?.Name}, here is {Game1.currentLocation.Name}, shell is {shell}");
 
 
 			// Weird things happen if we try to update bots in locations other than
@@ -608,7 +608,7 @@ namespace Farmtronics.Bot {
 				int prevDir = farmer.FacingDirection;
 				if (MathF.Abs(dx) > MathF.Abs(dy)) farmer.FacingDirection = dx > 0 ? 1 : 3;
 				else farmer.FacingDirection = dy > 0 ? 2 : 0;
-				if (farmer.FacingDirection != prevDir) Debug.Log($"Update: changed facing from {prevDir} to {farmer.FacingDirection} because dx={dx}, dy={dy}");
+				if (farmer.FacingDirection != prevDir) ModEntry.instance.Monitor.Log($"Update: changed facing from {prevDir} to {farmer.FacingDirection} because dx={dx}, dy={dy}");
 				// try to move; if fail, abandon movement
 				var oldPos = farmer.Position;
 				farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
@@ -624,18 +624,18 @@ namespace Farmtronics.Bot {
 					TileLocation = farmer.getTileLocation();
 					currentLocation.setObject(TileLocation, this);
 				}
-				// Debug.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
+				// ModEntry.instance.Monitor.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
 			}
 
 			farmer.Update(gameTime, farmer.currentLocation);
 		}
 
 		public override bool checkForAction(Farmer who, bool justCheckingForActivity = false) {
-			//Debug.Log($"Bot.checkForAction({who.Name}, {justCheckingForActivity}), tool {who.CurrentTool}");
+			//ModEntry.instance.Monitor.Log($"Bot.checkForAction({who.Name}, {justCheckingForActivity}), tool {who.CurrentTool}");
 			if (justCheckingForActivity) return true;
 			// all this overriding... just to change the open sound.
 			if (!Game1.didPlayerJustRightClick(ignoreNonMouseHeldInput: true)) {
-				//Debug.Log($"Bailing because didPlayerJustRightClick is false");
+				//ModEntry.instance.Monitor.Log($"Bailing because didPlayerJustRightClick is false");
 				return false;
 			}
 
@@ -654,14 +654,14 @@ namespace Farmtronics.Bot {
 		}
 
 		public override void updateWhenCurrentLocation(GameTime time, GameLocation environment) {
-			// Debug.Log($"UpdateWhenCurrentLocation: {time} {environment}");
+			// ModEntry.instance.Monitor.Log($"UpdateWhenCurrentLocation: {time} {environment}");
 			if (shakeTimer > 0) shakeTimer--;
 			
 			if (Context.IsMultiplayer && owner.Value != Game1.player.UniqueMultiplayerID) data.Load(false);
 		}
 
 		public override bool performToolAction(Tool t, GameLocation location) {
-			Debug.Log($"{name} Bot.performToolAction({t}, {location})");
+			ModEntry.instance.Monitor.Log($"{name} Bot.performToolAction({t}, {location})");
 			var who = t.getLastFarmerToUse();
 			if (who.UniqueMultiplayerID != owner.Value) {
 				shakeTimer = 20;
@@ -670,16 +670,16 @@ namespace Farmtronics.Bot {
 				return false;
 			}
 
-			Debug.Log($"Bot.performToolAction: Checking tool");
+			ModEntry.instance.Monitor.Log($"Bot.performToolAction: Checking tool");
 			
 			// NOTE: If a player holds left click it will eventually trigger a toolAction with a pickaxe
 			// 		 This could be checked like this: t != t.getLastFarmerToUse().CurrentTool
 			if (t is Pickaxe or Axe or Hoe) {
 				
-				//Debug.Log("{name} Bot.performToolAction: creating custom debris");
+				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
 				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
 				location.debris.Add(deb);
-				Debug.Log($"{name} Created debris with item {deb.item} and energy {energy}");
+				ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
 				location.removeObject(TileLocation, true);
 				if (shell != null) shell.interpreter.Stop();
@@ -690,7 +690,7 @@ namespace Farmtronics.Bot {
 			// previous code, that called the base... this sometimes resulted
 			// in picking up a chest, while leaving a ghost bot behind:
 			//bool result = base.performToolAction(t, location);
-			//Debug.Log($"{name} Bot.performToolAction: My TileLocation is now {this.TileLocation}");
+			//ModEntry.instance.Monitor.Log($"{name} Bot.performToolAction: My TileLocation is now {this.TileLocation}");
 			//return result;
 			// I'm not aware of any use case for doing the default tool action on a bot.
 			// So now we're going to avoid that whole issue by always doing:
@@ -698,7 +698,7 @@ namespace Farmtronics.Bot {
 		}
 
 		public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1) {
-			// Debug.Log($"draw 1 at {x},{y}, {alpha} - pos: {position} tileLocation: {TileLocation}");
+			// ModEntry.instance.Monitor.Log($"draw 1 at {x},{y}, {alpha} - pos: {position} tileLocation: {TileLocation}");
 			// Drawing with alpha=0.5 is done when the player is placing the bot down
 			// in the world.  In this case, our internal position doesn't matter;
 			// we want to update that to match the given tile position.			
@@ -754,13 +754,13 @@ namespace Farmtronics.Bot {
 		/// Draw the bot as it should appear above the player's head when held.
 		/// </summary>
 		public override void drawWhenHeld(SpriteBatch spriteBatch, Vector2 objectPosition, Farmer f) {
-			//Debug.Log($"Bot.drawWhenHeld");
+			//ModEntry.instance.Monitor.Log($"Bot.drawWhenHeld");
 			Rectangle srcRect = new Rectangle(16 * f.facingDirection, 0, 16, 24);
 			spriteBatch.Draw(Assets.BotSprites, objectPosition, srcRect, Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingY() + 3) / 10000f));
 		}
 
 		public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow) {
-			//Debug.Log($"Bot.drawInMenu with scaleSize {scaleSize}");
+			//ModEntry.instance.Monitor.Log($"Bot.drawInMenu with scaleSize {scaleSize}");
 			if ((bool)this.IsRecipe) {
 				transparency = 0.5f;
 				scaleSize *= 0.75f;
@@ -779,7 +779,7 @@ namespace Farmtronics.Bot {
 		}
 
 		public override void drawAsProp(SpriteBatch b) {
-			//Debug.Log($"Bot.drawAsProp");
+			//ModEntry.instance.Monitor.Log($"Bot.drawAsProp");
 			if (this.isTemporarilyInvisible) return;
 			Vector2 tileLocation = farmer.getTileLocation();
 
@@ -843,7 +843,7 @@ namespace Farmtronics.Bot {
 		}
 
 		public void ShowMenu() {
-			Debug.Log($"{Name} ShowMenu()");
+			ModEntry.instance.Monitor.Log($"{Name} ShowMenu()");
 
 			// Make sure the bot is booted up when showing the menu.
 			InitShell();

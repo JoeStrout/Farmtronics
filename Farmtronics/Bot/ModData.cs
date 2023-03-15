@@ -47,11 +47,11 @@ namespace Farmtronics.Bot {
 			var stream = new MemoryStream();
 			var netInventory = new NetObjectList<Item>(inventory);
 			// foreach (var item in inventory.Where(item => item != null)) {
-			// 	Debug.Log($"Serializing item: {item.Name} with id {item.ParentSheetIndex}");
+			// 	ModEntry.instance.Monitor.Log($"Serializing item: {item.Name} with id {item.ParentSheetIndex}");
 			// }
 			serializer.Serialize(stream, netInventory);
 			var xml = Encoding.Default.GetString(stream.ToArray());
-			// Debug.Log($"Serialized inventory: {xml}");
+			// ModEntry.instance.Monitor.Log($"Serialized inventory: {xml}");
 			return xml;
 		}
 		
@@ -61,7 +61,7 @@ namespace Farmtronics.Bot {
 			var stream = new MemoryStream(Encoding.Default.GetBytes(inventoryXml));
 			var inventory = serializer.Deserialize(stream) as NetObjectList<Item>;
 			// foreach (var item in inventory.Where(item => item != null)) {
-			// 	Debug.Log($"Deserialized item {item.Name} with id {item.ParentSheetIndex}");
+			// 	ModEntry.instance.Monitor.Log($"Deserialized item {item.Name} with id {item.ParentSheetIndex}");
 			// }
 			return inventory;
 		}
@@ -123,10 +123,10 @@ namespace Farmtronics.Bot {
 		
 		public ModData(BotObject bot) {
 			this.bot = bot;
-			//this.bot.modData.OnValueAdded += (key, value) => Debug.Log($"{Name} ModData OnValueAdded: {key}: {value}");
-			//this.bot.modData.OnValueRemoved += (key, value) => Debug.Log($"{Name} ModData OnValueRemoved: {key}: {value}");
-			//this.bot.modData.OnValueTargetUpdated += (key, oldValue, newValue) => Debug.Log($"{Name} ModData OnValueUpdated: {key}: {oldValue} -> {newValue}");
-			//this.bot.modData.OnConflictResolve += (key, rejected, accepted) => Debug.Log($"{Name} ModData OnConflictResolve: {key}: Rejected: {rejected} Accepted: {accepted}");
+			//this.bot.modData.OnValueAdded += (key, value) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueAdded: {key}: {value}");
+			//this.bot.modData.OnValueRemoved += (key, value) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueRemoved: {key}: {value}");
+			//this.bot.modData.OnValueTargetUpdated += (key, oldValue, newValue) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueUpdated: {key}: {oldValue} -> {newValue}");
+			//this.bot.modData.OnConflictResolve += (key, rejected, accepted) => ModEntry.instance.Monitor.Log($"{Name} ModData OnConflictResolve: {key}: Rejected: {rejected} Accepted: {accepted}");
 			this.serializer = SaveGame.GetSerializer(typeof(NetObjectList<Item>));
 			this.Load(false);
 			this.Save(false);

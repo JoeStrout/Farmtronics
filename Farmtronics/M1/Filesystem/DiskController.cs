@@ -16,7 +16,7 @@ namespace Farmtronics.M1.Filesystem {
 			string diskName = path.Substring(1);
 			int slashPos = diskName.IndexOf('/');
 			if (slashPos >= 0) diskName = diskName.Substring(0, slashPos);
-			// Debug.Log($"Returning diskName: {diskName}");
+			// ModEntry.instance.Monitor.Log($"Returning diskName: {diskName}");
 			return diskName;
 		}
 
@@ -68,7 +68,7 @@ namespace Farmtronics.M1.Filesystem {
 		/// <param name="path"></param>
 		/// <returns></returns>
 		public Disk GetDisk(ref string path) {
-			Debug.Log($"DiskController.GetDisk({path})", StardewModdingAPI.LogLevel.Trace);
+			ModEntry.instance.Monitor.Log($"DiskController.GetDisk({path})", StardewModdingAPI.LogLevel.Trace);
 			var diskName = GetDiskName(path);
 
 			if (path.Length <= diskName.Length + 2) path = "";
@@ -77,9 +77,9 @@ namespace Farmtronics.M1.Filesystem {
 			if (diskName == "sys") return ModEntry.sysDisk;
 			
 			foreach (string volName in disks.Keys) {
-				//Debug.Log("Checking " + volName + " -> " + disks[volName] + " against " + diskName);
+				//ModEntry.instance.Monitor.Log("Checking " + volName + " -> " + disks[volName] + " against " + diskName);
 				if (diskName == volName) {
-					//Debug.Log("Matches " + disks[volName] + " with remainder " + path);
+					//ModEntry.instance.Monitor.Log("Matches " + disks[volName] + " with remainder " + path);
 					return disks[volName];
 				}
 			}
@@ -103,7 +103,7 @@ namespace Farmtronics.M1.Filesystem {
 		}
 
 		public M1FileInfo GetInfo(string path) {
-			Debug.Log($"DiskController.GetInfo({path})", StardewModdingAPI.LogLevel.Trace);
+			ModEntry.instance.Monitor.Log($"DiskController.GetInfo({path})", StardewModdingAPI.LogLevel.Trace);
 			if (path == "/") {
 				// Special case: return info on all disks
 				var result = new M1FileInfo();
@@ -112,7 +112,7 @@ namespace Farmtronics.M1.Filesystem {
 			}
 			Disk disk = GetDisk(ref path);
 			if (disk == null) return null;
-			// Debug.Log($"Getting info for: {path}");
+			// ModEntry.instance.Monitor.Log($"Getting info for: {path}");
 			return disk.GetFileInfo(path);
 		}
 
