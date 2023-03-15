@@ -52,6 +52,8 @@ namespace Farmtronics
 			helper.Events.Multiplayer.PeerDisconnected += MultiplayerManager.OnPeerDisconnected;
 			helper.Events.Player.Warped += BotManager.FindLostInstancesOnWarp;
 			
+			ModData.Initialize();
+			
 			Assets.Initialize(helper);
 			Monitor.Log($"Loaded fontAtlas with size {Assets.FontAtlas.Width}x{Assets.FontAtlas.Height}");
 			Monitor.Log($"read {Assets.FontList.Length} lines from fontList, starting with {Assets.FontList[0]}");
