@@ -34,7 +34,7 @@ namespace Farmtronics.Multiplayer.Messages {
 			var location = GetLocation();
 			var bot = GetBotFromLocation(location);
 			if (bot == null && attempt < maxAttempts) {
-				Debug.Log($"Could not add new bot instance. Trying again later.", LogLevel.Warn);
+				ModEntry.instance.Monitor.Log($"Could not add new bot instance. Trying again later.", LogLevel.Warn);
 				if (!BotManager.lostInstances.Contains(this)) BotManager.lostInstances.Add(this);
 				attempt++;
 				return;
@@ -42,7 +42,7 @@ namespace Farmtronics.Multiplayer.Messages {
 			else if (bot == null) {
 				// Only log this message once.
 				if (attempt == maxAttempts) {
-					Debug.Log($"Could not add new bot instance. Aborting after {attempt} attempts.", LogLevel.Error);	
+					ModEntry.instance.Monitor.Log($"Could not add new bot instance. Aborting after {attempt} attempts.", LogLevel.Error);	
 				}
 				attempt++;
 				return;
@@ -51,7 +51,7 @@ namespace Farmtronics.Multiplayer.Messages {
 			BotManager.instances.Add(bot);
 			bot.data.Load();
 			bot.currentLocation = location;
-			Debug.Log($"Successfully added bot to instance list: {LocationName} - {TileLocation}", LogLevel.Info);
+			ModEntry.instance.Monitor.Log($"Successfully added bot to instance list: {LocationName} - {TileLocation}", LogLevel.Info);
 			bot.InitShell();
 		}
 	}

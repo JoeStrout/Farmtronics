@@ -12,8 +12,8 @@ using StardewValley;
 namespace Farmtronics.Bot {
 	class ModData {
 		private readonly BotObject bot;
-		private XmlSerializer serializer;
-		
+		private static XmlSerializer _serializer;
+
 		// mod data keys, used for saving/loading extra data with the game save:
 		public bool 			IsBot		{ get; internal set; }
 		public ISemanticVersion ModVersion	{ get; internal set; }
@@ -29,7 +29,11 @@ namespace Farmtronics.Bot {
 		// New with 1.3.0
 		public float			PositionX	{ get; internal set; }
 		public float 			PositionY 	{ get; internal set; }
-		
+
+		public static void Initialize() {
+			_serializer ??= SaveGame.GetSerializer(typeof(NetObjectList<Item>));
+		}
+
 		private static string GetModDataValue(ModDataDictionary data, string key, string defaultValue = "") {
 			return data.TryGetValue(ModEntry.GetModDataKey(key.FirstToLower()), out string value) ? value : defaultValue;
 		}
@@ -47,11 +51,11 @@ namespace Farmtronics.Bot {
 			var stream = new MemoryStream();
 			var netInventory = new NetObjectList<Item>(inventory);
 			// foreach (var item in inventory.Where(item => item != null)) {
-			// 	Debug.Log($"Serializing item: {item.Name} with id {item.ParentSheetIndex}");
+			// 	ModEntry.instance.Monitor.Log($"Serializing item: {item.Name} with id {item.ParentSheetIndex}");
 			// }
-			serializer.Serialize(stream, netInventory);
+			_serializer.Serialize(stream, netInventory);
 			var xml = Encoding.Default.GetString(stream.ToArray());
-			// Debug.Log($"Serialized inventory: {xml}");
+			// ModEntry.instance.Monitor.Log($"Serialized inventory: {xml}");
 			return xml;
 		}
 		
@@ -59,9 +63,9 @@ namespace Farmtronics.Bot {
 			if (string.IsNullOrEmpty(inventoryXml)) return null;
 			
 			var stream = new MemoryStream(Encoding.Default.GetBytes(inventoryXml));
-			var inventory = serializer.Deserialize(stream) as NetObjectList<Item>;
+			var inventory = _serializer.Deserialize(stream) as NetObjectList<Item>;
 			// foreach (var item in inventory.Where(item => item != null)) {
-			// 	Debug.Log($"Deserialized item {item.Name} with id {item.ParentSheetIndex}");
+			// 	ModEntry.instance.Monitor.Log($"Deserialized item {item.Name} with id {item.ParentSheetIndex}");
 			// }
 			return inventory;
 		}
@@ -123,11 +127,10 @@ namespace Farmtronics.Bot {
 		
 		public ModData(BotObject bot) {
 			this.bot = bot;
-			//this.bot.modData.OnValueAdded += (key, value) => Debug.Log($"{Name} ModData OnValueAdded: {key}: {value}");
-			//this.bot.modData.OnValueRemoved += (key, value) => Debug.Log($"{Name} ModData OnValueRemoved: {key}: {value}");
-			//this.bot.modData.OnValueTargetUpdated += (key, oldValue, newValue) => Debug.Log($"{Name} ModData OnValueUpdated: {key}: {oldValue} -> {newValue}");
-			//this.bot.modData.OnConflictResolve += (key, rejected, accepted) => Debug.Log($"{Name} ModData OnConflictResolve: {key}: Rejected: {rejected} Accepted: {accepted}");
-			this.serializer = SaveGame.GetSerializer(typeof(NetObjectList<Item>));
+			//this.bot.modData.OnValueAdded += (key, value) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueAdded: {key}: {value}");
+			//this.bot.modData.OnValueRemoved += (key, value) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueRemoved: {key}: {value}");
+			//this.bot.modData.OnValueTargetUpdated += (key, oldValue, newValue) => ModEntry.instance.Monitor.Log($"{Name} ModData OnValueUpdated: {key}: {oldValue} -> {newValue}");
+			//this.bot.modData.OnConflictResolve += (key, rejected, accepted) => ModEntry.instance.Monitor.Log($"{Name} ModData OnConflictResolve: {key}: Rejected: {rejected} Accepted: {accepted}");
 			this.Load(false);
 			this.Save(false);
 		}

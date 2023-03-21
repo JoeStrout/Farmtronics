@@ -56,7 +56,7 @@ namespace Farmtronics.Utils
 
 			// Lucidity check
 			if (width < 1) return the_string;
-			//Debug.Log("WordWrap(" + the_string + ", " + width + ")");
+			//ModEntry.instance.Monitor.Log("WordWrap(" + the_string + ", " + width + ")");
 
 
 			// Parse each line of text
@@ -66,7 +66,7 @@ namespace Farmtronics.Utils
 
 				if (eol == -1) next = eol = the_string.Length;
 				else next = eol + _newline.Length;
-				//Debug.Log("next newline is at " + next);
+				//ModEntry.instance.Monitor.Log("next newline is at " + next);
 
 				// Copy this line of text, breaking into smaller lines as needed
 				if (eol > pos) {
@@ -74,28 +74,28 @@ namespace Farmtronics.Utils
 						int len = eol - pos;
 
 						if (len > width) len = BreakLine(the_string, pos, width);
-						//Debug.Log("BreakLine returned " + len);
-						//Debug.Log("Line is [" + the_string.Substring(pos, len) + "]");
+						//ModEntry.instance.Monitor.Log("BreakLine returned " + len);
+						//ModEntry.instance.Monitor.Log("Line is [" + the_string.Substring(pos, len) + "]");
 
 						sb.Append(the_string, pos, len);
 						sb.Append(_newline);
 
 						// Skip past line, plus any whitespace following break
 						pos += len;
-						//Debug.Log("Skipped line to " + pos);
+						//ModEntry.instance.Monitor.Log("Skipped line to " + pos);
 						if (pos < the_string.Length && the_string[pos] == '\n') {
 							pos++;  // special case: skip linebreak in exactly the right spot
 						} else {
 							// normal case: skip trailing whitespace up to (but not including) the line break
 							while (pos < eol && char.IsWhiteSpace(the_string[pos])) pos++;
 						}
-						//Debug.Log("Skipped whitespace to " + pos);
+						//ModEntry.instance.Monitor.Log("Skipped whitespace to " + pos);
 					} while (eol > pos);
 				} else sb.Append(_newline); // Empty line
 			}
 
 			string result = sb.ToString();
-			//Debug.Log("Final result: " + Escape(result));
+			//ModEntry.instance.Monitor.Log("Final result: " + Escape(result));
 			return result;
 		}
 

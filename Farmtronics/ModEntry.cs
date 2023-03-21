@@ -11,7 +11,6 @@ using StardewValley;
 using StardewValley.BellsAndWhistles;
 using StardewValley.Menus;
 
-
 namespace Farmtronics
 {
 	public class ModEntry : Mod {
@@ -33,19 +32,19 @@ namespace Farmtronics
 			
 #if DEBUG
 			// HACK not needed:
-			helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+			helper.Events.Input.ButtonPressed += OnButtonPressed;
 #endif
-			helper.Events.GameLoop.SaveCreated += this.OnSaveCreated;
-			helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
-			helper.Events.GameLoop.Saving += this.OnSaving;
-			helper.Events.GameLoop.Saved += this.OnSaved;
-			helper.Events.GameLoop.DayStarted += this.OnDayStarted;
-			helper.Events.GameLoop.DayEnding += this.OnDayEnding;
-			helper.Events.GameLoop.UpdateTicking += this.UpdateTicking;
-			helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
+			helper.Events.GameLoop.SaveCreated += OnSaveCreated;
+			helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
+			helper.Events.GameLoop.Saving += OnSaving;
+			helper.Events.GameLoop.Saved += OnSaved;
+			helper.Events.GameLoop.DayStarted += OnDayStarted;
+			helper.Events.GameLoop.DayEnding += OnDayEnding;
+			helper.Events.GameLoop.UpdateTicking += UpdateTicking;
+			helper.Events.GameLoop.ReturnedToTitle += OnReturnedToTitle;
 
-			helper.Events.Display.MenuChanged += this.OnMenuChanged;		
-            helper.Events.Content.AssetRequested += this.OnAssetRequested;
+			helper.Events.Display.MenuChanged += OnMenuChanged;		
+            helper.Events.Content.AssetRequested += OnAssetRequested;
 
 			helper.Events.Multiplayer.ModMessageReceived += MultiplayerManager.OnModMessageReceived;
 			helper.Events.Multiplayer.PeerContextReceived += MultiplayerManager.OnPeerContextReceived;
@@ -53,15 +52,17 @@ namespace Farmtronics
 			helper.Events.Multiplayer.PeerDisconnected += MultiplayerManager.OnPeerDisconnected;
 			helper.Events.Player.Warped += BotManager.FindLostInstancesOnWarp;
 			
+			ModData.Initialize();
+			
 			Assets.Initialize(helper);
 			Monitor.Log($"Loaded fontAtlas with size {Assets.FontAtlas.Width}x{Assets.FontAtlas.Height}");
 			Monitor.Log($"read {Assets.FontList.Length} lines from fontList, starting with {Assets.FontList[0]}");
-			sysDisk = new RealFileDisk(Path.Combine(ModEntry.instance.Helper.DirectoryPath, "assets", "sysdisk"));
+			sysDisk = new RealFileDisk(Path.Combine(instance.Helper.DirectoryPath, "assets", "sysdisk"));
 			sysDisk.readOnly = true;
 		}
 
 		private void OnSaveCreated(object sender, SaveCreatedEventArgs e) {
-			this.Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
+			Monitor.Log($"CurrentSavePath: {Constants.CurrentSavePath}");
 			SaveData.CreateSaveDataDirs();
 			SaveData.CreateUsrDisk(Game1.player.UniqueMultiplayerID);
 		}
@@ -93,9 +94,9 @@ namespace Farmtronics
 			// Check whether we have our first-bot letter waiting in the mailbox.
 			// If so, set the item to be "recovered" via the mail:
 			foreach (var msg in Game1.player.mailbox) {
-				this.Monitor.Log($"Mail in mailbox: {msg}");
+				Monitor.Log($"Mail in mailbox: {msg}");
 				if (msg == "FarmtronicsFirstBotMail") {
-					this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
+					Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 					var bot = new BotObject();
 					bot.owner.Value = Game1.player.UniqueMultiplayerID;
 					Game1.player.recoveredItem = bot;
@@ -126,32 +127,32 @@ namespace Farmtronics
 			
 			case SButton.PageDown:
 				ToDoManager.MarkAllTasksDone();
-				this.Monitor.Log("All tasks solved!");
+				Monitor.Log("All tasks solved!");
 				break;
 
 			case SButton.Insert:
-				this.Monitor.Log("Logging ModData of your bots...");
+				Monitor.Log("Logging ModData of your bots...");
 				foreach (var instance in BotManager.instances) {
-					this.Monitor.Log($"Bot instance {instance.data.ToString()}");
+					Monitor.Log($"Bot instance {instance.data}");
 				}
-				this.Monitor.Log("Done!");
+				Monitor.Log("Done!");
 				break;
 				
 			case SButton.NumPad0:
-				Vector2 mousePos = this.Helper.Input.GetCursorPosition().Tile;
-				this.Monitor.Log($"Performing lookup at mouse position: {mousePos}");
+				Vector2 mousePos = Helper.Input.GetCursorPosition().Tile;
+				Monitor.Log($"Performing lookup at mouse position: {mousePos}");
 				bool occupied = Game1.player.currentLocation.isTileOccupied(mousePos);
 				string name = "null";
 				var obj = Game1.player.currentLocation.getObjectAtTile(mousePos.GetIntX(), mousePos.GetIntY());
 				if (obj != null) name = obj.Name;
-				this.Monitor.Log($"Object Lookup result [occupied: {occupied}]: {name}");
+				Monitor.Log($"Object Lookup result [occupied: {occupied}]: {name}");
 				break;
 			}
 		}
 #endif
 		
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
-			this.Monitor.Log($"Menu opened: {e.NewMenu}");
+			Monitor.Log($"Menu opened: {e.NewMenu}");
 			if (e.NewMenu is ShopMenu shop) {
 				if (shop.portraitPerson != Game1.getCharacterFromName("Pierre")) return;
 				if (Game1.player.mailReceived.Contains("FarmtronicsFirstBotMail")) {
@@ -160,7 +161,7 @@ namespace Farmtronics
 					int index = 0;
 					for (; index < shop.forSale.Count; index++) {
 						var item = shop.forSale[index];
-						this.Monitor.Log($"Shop item {index}: {item} with {item.Name}");
+						Monitor.Log($"Shop item {index}: {item} with {item.Name}");
 						if (item.Name == "Catalogue" || (index>0 && shop.forSale[index-1].Name == "Flooring")) break;
 					}
 					var botForSale = new BotObject();
@@ -185,30 +186,30 @@ namespace Farmtronics
 			// intercept the handler (but call the original one for other responses)
 			var prevHandler = Game1.currentLocation.afterQuestion;
 			Game1.currentLocation.afterQuestion = (who, whichAnswer) => {
-				this.Monitor.Log($"{who} selected channel {whichAnswer}");
+				Monitor.Log($"{who} selected channel {whichAnswer}");
 				if (whichAnswer == "Farmtronics") PresentComputer();
 				else prevHandler(who, whichAnswer);
 			};
 		}
 
 		public void OnSaving(object sender, SavingEventArgs args) {
-			Monitor.Log($"OnSaving");
+			Monitor.Log("OnSaving");
 			// Host can't save without this
 			BotManager.ConvertBotsToChests(true);
 			BotManager.ClearAll();
 		}
 
 		public void OnSaved(object sender, SavedEventArgs args) {
-			Monitor.Log($"OnSaved");
+			Monitor.Log("OnSaved");
 			BotManager.ConvertChestsToBots();
 		}
 
 		public void OnSaveLoaded(object sender, SaveLoadedEventArgs args) {
-			Monitor.Log($"OnSaveLoaded");
+			Monitor.Log("OnSaveLoaded");
 			if (Context.IsMainPlayer) {
 				SaveData.CreateSaveDataDirs();
 				if (SaveData.IsOldSaveDirPresent()) SaveData.MoveOldSaveDir();
-				Debug.Log($"Setting host player ID: {Game1.player.UniqueMultiplayerID}");
+				Monitor.Log($"Setting host player ID: {Game1.player.UniqueMultiplayerID}");
 				MultiplayerManager.hostID = Game1.player.UniqueMultiplayerID;
 			}
 			BotManager.ConvertChestsToBots();
@@ -216,7 +217,7 @@ namespace Farmtronics
 		}
 
 		public void OnDayStarted(object sender, DayStartedEventArgs args) {
-			Monitor.Log($"OnDayStarted");
+			Monitor.Log("OnDayStarted");
 			Helper.Events.Player.Warped += OnPlayerWarped;
 
 			// Initialize the home computer and all bots for autostart.
@@ -227,7 +228,7 @@ namespace Farmtronics
 		}
 
 		private void OnDayEnding(object sender, DayEndingEventArgs e) {
-			Monitor.Log($"OnDayEnding");
+			Monitor.Log("OnDayEnding");
 			// Other players need to convert their inventory before OnSaving happens
 			BotManager.ConvertBotsToChests(true);
 			BotManager.ClearAll();
@@ -261,13 +262,13 @@ namespace Farmtronics
         private void OnAssetRequested(object sender, AssetRequestedEventArgs e) {
             if (e.NameWithoutLocale.IsEquivalentTo("Data/mail")) {
                 e.Edit(asset => {
-                    this.Monitor.Log($"ModEntry.Edit(Mail)");
+                    Monitor.Log("ModEntry.Edit(Mail)");
                     var data = asset.AsDictionary<string, string>().Data;
                     data["FarmtronicsFirstBotMail"] = I18n.Mail_Text("%item itemRecovery %%");
                     foreach (var msg in Game1.player.mailbox) {
-                        this.Monitor.Log($"mail in mailbox: {msg}");
+                        Monitor.Log($"mail in mailbox: {msg}");
                         if (msg == "FarmtronicsFirstBotMail") {
-                            this.Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
+                            Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 							var bot = new BotObject();
 							bot.owner.Value = Game1.player.UniqueMultiplayerID;
                             Game1.player.recoveredItem = bot;

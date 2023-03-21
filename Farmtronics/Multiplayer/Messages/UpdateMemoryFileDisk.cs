@@ -14,18 +14,18 @@ namespace Farmtronics.Multiplayer.Messages {
 			switch(Action) {
 			case MemoryFileDiskAction.Write:
 				Disk.WriteBinary(FilePath, Data);
-				Debug.Log($"UpdateMemoryFileDisk Write: Finished");
+				ModEntry.instance.Monitor.Log($"UpdateMemoryFileDisk Write: Finished");
 				return;
 			case MemoryFileDiskAction.MakeDir:
 				var makeDirResult = Disk.MakeDir(FilePath, out string makeDirError);
-				Debug.Log($"UpdateMemoryFileDisk MakeDir result: {makeDirResult} - {makeDirError}");
+				ModEntry.instance.Monitor.Log($"UpdateMemoryFileDisk MakeDir result: {makeDirResult} - {makeDirError}");
 				return;
 			case MemoryFileDiskAction.Delete:
 				var deleteResult = Disk.Delete(FilePath, out string deleteError);
-				Debug.Log($"UpdateMemoryFileDisk Delete result: {deleteResult} - {deleteError}");
+				ModEntry.instance.Monitor.Log($"UpdateMemoryFileDisk Delete result: {deleteResult} - {deleteError}");
 				return;
 			default:
-				Debug.Log("Invalid MemoryFileDisk action provided.", LogLevel.Error);
+				ModEntry.instance.Monitor.Log("Invalid MemoryFileDisk action provided.", LogLevel.Error);
 				return;
 			}
 		}
