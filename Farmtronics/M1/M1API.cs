@@ -2076,7 +2076,7 @@ namespace Farmtronics.M1 {
 		}
 
 		public override double Equality(Value rhs) {
-			return rhs is ValWrapper && ((ValWrapper)rhs).content == content ? 1 : 0;
+			return rhs is ValWrapper wrapper && wrapper.content == content ? 1 : 0;
 		}
 	}
 

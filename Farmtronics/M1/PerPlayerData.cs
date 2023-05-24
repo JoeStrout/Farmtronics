@@ -6,7 +6,6 @@
 // We keep around a singleton instance of this (instance), whiche any code that
 // has the need can read or update and the changes will get saved with the game.
 
-using System;
 using StardewValley;
 
 namespace Farmtronics {
