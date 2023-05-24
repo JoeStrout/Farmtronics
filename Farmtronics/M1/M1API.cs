@@ -5,7 +5,6 @@ custom intrinsic functions/classes for use on the M-1.
 
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using Farmtronics.M1.Filesystem;
 using Farmtronics.M1.GUI;
 using Farmtronics.Multiplayer.Messages;
@@ -2077,7 +2076,7 @@ namespace Farmtronics.M1 {
 		}
 
 		public override double Equality(Value rhs) {
-			return rhs is ValWrapper && ((ValWrapper)rhs).content == content ? 1 : 0;
+			return rhs is ValWrapper wrapper && wrapper.content == content ? 1 : 0;
 		}
 	}
 

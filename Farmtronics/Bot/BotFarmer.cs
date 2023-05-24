@@ -1,6 +1,4 @@
-﻿using Farmtronics.Utils;
-using Microsoft.Xna.Framework;
-using StardewValley;
+﻿using StardewValley;
 using xTile.Dimensions;
 
 namespace Farmtronics.Bot

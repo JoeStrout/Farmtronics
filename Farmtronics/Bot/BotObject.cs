@@ -11,7 +11,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Locations;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
@@ -382,7 +381,7 @@ namespace Farmtronics.Bot {
 					bool removedItem = farmer.currentLocation.Objects.Remove(obj.TileLocation);
 					if(removedItem) return AddItemToInventory(obj);
 				}
-				else Debug.Log($"Couldn't take any items from this object.");
+				else ModEntry.instance.Monitor.Log($"Couldn't take any items from this object.");
 				if (sourceItems != null && slotNumber < sourceItems.Count && sourceItems[slotNumber] != null && AddItemToInventory(sourceItems[slotNumber])) {
 					ModEntry.instance.Monitor.Log($"Taking {sourceItems[slotNumber].DisplayName} from container");
 					Utility.removeItemFromInventory(slotNumber, sourceItems);

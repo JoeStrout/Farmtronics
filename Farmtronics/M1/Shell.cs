@@ -5,7 +5,6 @@ the user.
 */
 
 using System.Collections.Generic;
-using Farmtronics;
 using Farmtronics.Bot;
 using Farmtronics.M1.Filesystem;
 using Farmtronics.M1.GUI;

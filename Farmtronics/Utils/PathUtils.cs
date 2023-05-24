@@ -2,7 +2,6 @@
 This module provides utilities for manipulating MiniScript file paths
 (which always use a '/' as the path separator, even on Windows).
 */
-using System;
 namespace Farmtronics.Utils {
 	public static class PathUtils {
 		/// <summary>

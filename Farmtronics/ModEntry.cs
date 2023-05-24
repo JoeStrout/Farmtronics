@@ -3,8 +3,6 @@ using Farmtronics.Bot;
 using Farmtronics.M1;
 using Farmtronics.M1.Filesystem;
 using Farmtronics.Multiplayer;
-using Farmtronics.Utils;
-using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
