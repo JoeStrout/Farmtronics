@@ -1,18 +1,11 @@
 version: 2
-registries:
-  github-nuget:
-    type: nuget-feed
-    url: https://nuget.pkg.github.com/JoeStrout/index.json
-    username: JoeStrout
-    password: ${{ secrets.NUGET_GH_TOKEN }}
-
 updates:
   - directory: "/Farmtronics"
     open-pull-requests-limit: 5
     package-ecosystem: "nuget"
+    reviewers:
+      - "JoeStrout"      
     commit-message:
       prefix: "dep nuget"
     schedule:
       interval: daily
-    registries:
-      - github-nuget
