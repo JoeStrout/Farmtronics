@@ -293,7 +293,7 @@ namespace Farmtronics.Bot {
 					if (what.heldObject.Value != null) {
 						what.heldObject.Value.name = honeyName + " Honey";
 						what.heldObject.Value.displayName = what.DisplayName;
-						what.heldObject.Value.Price = Game1.objectData["(O)340"].Price + honeyPriceAddition;
+						what.heldObject.Value.Price = Game1.objectData["340"].Price + honeyPriceAddition;
 						what.heldObject.Value.preservedParentSheetIndex.Value = honey_type;
 						if (Game1.GetSeasonForLocation(Game1.currentLocation).Equals("winter")) {
 							what.heldObject.Value = null;
@@ -355,14 +355,14 @@ namespace Farmtronics.Bot {
 				what.readyForHarvest.Value = false;
 				what.showNextIndex.Value = false;
 				if (what.name.Equals("Bee House") && !Game1.GetSeasonForLocation(who.currentLocation).Equals("winter")) {
-					StardewValley.Object tempObject = new StardewValley.Object(Vector2.Zero, "(O)340");
+					StardewValley.Object tempObject = (StardewValley.Object) ItemRegistry.Create("(O)340", 1);
 					tempObject.CanBeSetDown = false; 
 					tempObject.CanBeGrabbed = true;
 					tempObject.IsSpawnedObject = false;
 					what.heldObject.Value = tempObject;
 					what.MinutesUntilReady = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 4);
 				} else if (what.name.Equals("Worm Bin")) {
-					what.heldObject.Value = new StardewValley.Object("(O)685", Game1.random.Next(2, 6));                                                                                                                                                                  
+					what.heldObject.Value = (StardewValley.Object) ItemRegistry.Create("(O)685", Game1.random.Next(2, 6));                                                                                                                                                                  
 					what.MinutesUntilReady = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 1);
 				}
 				if (check_for_reload) {
