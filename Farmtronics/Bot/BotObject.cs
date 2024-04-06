@@ -24,8 +24,8 @@ namespace Farmtronics.Bot {
 		// Stardew Valley craftables store 576 parentSheetIndices, so we choose a number after that to avoid conflicts.
 		// The wiki recommends not to do that: https://stardewvalleywiki.com/Modding:Items#Define_a_custom_item
 		// LookupAnything suggests that everything is fine in game.
-		const int parentSheetIndex = 0xB07;
-		const string internalID = "Farmtronics_Bot";
+		const int parentSheetIndex_c = 0xB07;
+		const string internalID_c = "Farmtronics_Bot";
 
 		// We need a Farmer to be able to use tools.  So, we're going to
 		// create our own invisible Farmer instance and store it here:
@@ -60,8 +60,8 @@ namespace Farmtronics.Bot {
 			displayName = I18n.Bot_Name(BotManager.botCount);
 			Type = "Crafting";
 			Category = StardewValley.Object.BigCraftableCategory;
-			ParentSheetIndex = parentSheetIndex;
-			ItemId = internalID;
+			ParentSheetIndex = parentSheetIndex_c;
+			ItemId = internalID_c;
 			bigCraftable.Value = true;
 			CanBeSetDown = true;
 		}
