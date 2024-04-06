@@ -107,7 +107,7 @@ namespace Farmtronics.Bot {
 			// to the instances list.
 		}
 
-		public BotObject(Vector2 tileLocation, GameLocation location = null) : base(tileLocation, internalID) {
+		public BotObject(Vector2 tileLocation, GameLocation location = null) : base(tileLocation, internalID_c) {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 			Initialize();
 
