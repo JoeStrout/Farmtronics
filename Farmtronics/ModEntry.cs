@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Farmtronics.Bot;
 using Farmtronics.M1;
 using Farmtronics.M1.Filesystem;
@@ -116,7 +118,7 @@ namespace Farmtronics
 			switch (e.Button) {
 			case SButton.PageUp:
 				// Create a bot.
-				Vector2 pos = Game1.player.position;
+				Vector2 pos = Game1.player.position.Value;
 				pos.X -= Game1.tileSize;
 				Vector2 tilePos = pos.GetTilePosition();
 				var bot = new BotObject(tilePos);
@@ -143,7 +145,7 @@ namespace Farmtronics
 			case SButton.NumPad0:
 				Vector2 mousePos = Helper.Input.GetCursorPosition().Tile;
 				Monitor.Log($"Performing lookup at mouse position: {mousePos}");
-				bool occupied = Game1.player.currentLocation.isTileOccupied(mousePos);
+				bool occupied = Game1.player.currentLocation.IsTileOccupiedBy(mousePos);
 				string name = "null";
 				var obj = Game1.player.currentLocation.getObjectAtTile(mousePos.GetIntX(), mousePos.GetIntY());
 				if (obj != null) name = obj.Name;
@@ -156,7 +158,7 @@ namespace Farmtronics
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
 			Monitor.Log($"Menu opened: {e.NewMenu}");
 			if (e.NewMenu is ShopMenu shop) {
-				if (shop.portraitPerson != Game1.getCharacterFromName("Pierre")) return;
+				if (!shop.ShopData.Owners.OfType<NPC>().ToList().Contains(Game1.getCharacterFromName("Pierre"))) return;
 				if (Game1.player.mailReceived.Contains("FarmtronicsFirstBotMail")) {
 					// Add a bot to the store inventory.
 					// Let's insert it after Flooring but before Catalogue.
@@ -169,7 +171,7 @@ namespace Farmtronics
 					var botForSale = new BotObject();
 					botForSale.owner.Value = Game1.player.UniqueMultiplayerID;
 					shop.forSale.Insert(index, botForSale);
-					shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });	// sale price and available stock
+					shop.itemPriceAndStock.Add(botForSale, new ItemStockInformation(2500, int.MaxValue));	// sale price and available stock
 				}
 			}
 
@@ -181,7 +183,9 @@ namespace Farmtronics
 
 			// TV menu: insert a new option for the Home Computer
 			Response r = new Response("Farmtronics", I18n.TvChannel_Label());
-			dlog.responses.Insert(dlog.responses.Count-1, r);
+			List<Response> tempResponses = new List<Response>(dlog.responses);
+			tempResponses.Add(r);
+			dlog.responses = tempResponses.ToArray();
 			// adjust the dialog height
 			var h = SpriteText.getHeightOfString(r.responseText, dlog.width) + 16;
 			dlog.heightForQuestions += h; dlog.height += h;

@@ -2,17 +2,17 @@
 
   <PropertyGroup>
     <Copyright>Copyright © $([System.DateTime]::UtcNow.Year) Joe Strout ($([System.DateTime]::UtcNow.ToString("s")))</Copyright>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <ModFolderName>Farmtronics</ModFolderName>
     <BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.0" />
     <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.0.1" />
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="org.miniscript.MiniScript" Version="1.5.1-p5c068bf" />
+    <PackageReference Include="org.miniscript.MiniScript" Version="1.6.1" />
   </ItemGroup>
 </Project>

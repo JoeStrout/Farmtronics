@@ -1,10 +1,10 @@
 ﻿{
   "Name": "Farmtronics",
   "Author": "Joe Strout",
-  "Version": "1.3.3",
+  "Version": "1.4.0",
   "Description": "Adds a \"home computer\" and programmable bots!",
   "UniqueID": "strout.farmtronics",
   "EntryDll": "Farmtronics.dll",
-  "MinimumApiVersion": "3.0.0",
+  "MinimumApiVersion": "4.0.0",
   "UpdateKeys": ["Nexus:10634", "GitHub:JoeStrout/Farmtronics"]
 }
