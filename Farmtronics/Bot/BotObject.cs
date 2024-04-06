@@ -281,19 +281,19 @@ namespace Farmtronics.Bot {
 				}
 				bool check_for_reload = false;
 				if (what.name.Equals("Bee House")) {
-					int honey_type = -1;
+					string honey_type = "-1";
 					string honeyName = "Wild";
 					int honeyPriceAddition = 0;
 					Crop c = Utility.findCloseFlower(who.currentLocation, what.TileLocation, 5, (Crop crop) => (!crop.forageCrop.Value) ? true : false);
 					if (c != null) {
-						honeyName = Game1.objectData[c.indexOfHarvest.Value].Split('/')[0];
+						honeyName = Game1.objectData[c.indexOfHarvest.Value].Name;
 						honey_type = c.indexOfHarvest.Value;
-						honeyPriceAddition = Convert.ToInt32(Game1.objectInformation[c.indexOfHarvest.Value].Split('/')[1]) * 2;
+						honeyPriceAddition = Game1.objectData[c.indexOfHarvest.Value].Price*2;
 					}
 					if (what.heldObject.Value != null) {
 						what.heldObject.Value.name = honeyName + " Honey";
-						//what.heldObject.Value.displayName = what.loadDisplayName();
-						what.heldObject.Value.Price = Convert.ToInt32(Game1.objectInformation[340].Split('/')[1]) + honeyPriceAddition;
+						what.heldObject.Value.displayName = what.DisplayName;
+						what.heldObject.Value.Price = Game1.objectData["(O)340"].Price + honeyPriceAddition;
 						what.heldObject.Value.preservedParentSheetIndex.Value = honey_type;
 						if (Game1.GetSeasonForLocation(Game1.currentLocation).Equals("winter")) {
 							what.heldObject.Value = null;
@@ -355,10 +355,14 @@ namespace Farmtronics.Bot {
 				what.readyForHarvest.Value = false;
 				what.showNextIndex.Value = false;
 				if (what.name.Equals("Bee House") && !Game1.GetSeasonForLocation(who.currentLocation).Equals("winter")) {
-					what.heldObject.Value = new StardewValley.Object(Vector2.Zero, 340, null, canBeSetDown: false, CanBeGrabbed: true, isHoedirt: false, isSpawnedObject: false);
+					StardewValley.Object tempObject = new StardewValley.Object(Vector2.Zero, "(O)340");
+					tempObject.CanBeSetDown = false; 
+					tempObject.CanBeGrabbed = true;
+					tempObject.IsSpawnedObject = false;
+					what.heldObject.Value = tempObject;
 					what.MinutesUntilReady = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 4);
 				} else if (what.name.Equals("Worm Bin")) {
-					what.heldObject.Value = new StardewValley.Object(685, Game1.random.Next(2, 6));
+					what.heldObject.Value = new StardewValley.Object("(O)685", Game1.random.Next(2, 6));                                                                                                                                                                  
 					what.MinutesUntilReady = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 1);
 				}
 				if (check_for_reload) {
