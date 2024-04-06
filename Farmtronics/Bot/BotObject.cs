@@ -286,7 +286,6 @@ namespace Farmtronics.Bot {
 					int honeyPriceAddition = 0;
 					Crop c = Utility.findCloseFlower(who.currentLocation, what.TileLocation, 5, (Crop crop) => (!crop.forageCrop.Value) ? true : false);
 					if (c != null) {
-						Game1.object
 						honeyName = Game1.objectData[c.indexOfHarvest.Value].Split('/')[0];
 						honey_type = c.indexOfHarvest.Value;
 						honeyPriceAddition = Convert.ToInt32(Game1.objectInformation[c.indexOfHarvest.Value].Split('/')[1]) * 2;
