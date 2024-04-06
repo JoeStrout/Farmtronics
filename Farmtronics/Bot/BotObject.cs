@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Crops;
+using StardewValley.GameData.Objects;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
@@ -286,14 +287,14 @@ namespace Farmtronics.Bot {
 					int honeyPriceAddition = 0;
 					Crop c = Utility.findCloseFlower(who.currentLocation, what.TileLocation, 5, (Crop crop) => (!crop.forageCrop.Value) ? true : false);
 					if (c != null) {
-						honeyName = Game1.objectData[c.indexOfHarvest.Value].Name;
 						honey_type = c.indexOfHarvest.Value;
-						honeyPriceAddition = Game1.objectData[c.indexOfHarvest.Value].Price*2;
+						honeyName = (ItemRegistry.GetData("(O)" + honey_type).RawData as ObjectData).Name;
+						honeyPriceAddition = (ItemRegistry.GetData("(O)" + honey_type).RawData as ObjectData).Price*2;
 					}
 					if (what.heldObject.Value != null) {
 						what.heldObject.Value.name = honeyName + " Honey";
 						what.heldObject.Value.displayName = what.DisplayName;
-						what.heldObject.Value.Price = Game1.objectData["340"].Price + honeyPriceAddition;
+						what.heldObject.Value.Price = (ItemRegistry.GetData("(O)340").RawData as ObjectData).Price + honeyPriceAddition;
 						what.heldObject.Value.preservedParentSheetIndex.Value = honey_type;
 						if (Game1.GetSeasonForLocation(Game1.currentLocation).Equals("winter")) {
 							what.heldObject.Value = null;
