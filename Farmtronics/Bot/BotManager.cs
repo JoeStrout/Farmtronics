@@ -151,15 +151,15 @@ namespace Farmtronics.Bot {
 			chest.Stack = bot.Stack;
 
 			bot.data.Update();
-			bot.data.Save(ref chest.modData, saving);
+			bot.data.Save(chest.modData, saving);
 			// Remove "energy" from the data, since this method happens at night, and
 			// we actually want our bots to wake up refreshed.
-			if (saving) bot.data.RemoveEnergy(ref chest.modData);
+			if (saving) bot.data.RemoveEnergy(chest.modData);
 
 			var inventory = bot.inventory;
 			if (inventory != null) {
-				if (chest.GetActualCapacity() >= bot.GetActualCapacity()) chest.items.CopyFrom(inventory);
-				int convertedItems = ConvertBotsInListToChests(chest.items);
+				if (chest.GetActualCapacity() >= bot.GetActualCapacity()) chest.Items.AddRange(inventory);
+				int convertedItems = ConvertBotsInListToChests(chest.Items);
 				//if (convertedItems > 0) ModEntry.instance.Monitor.Log($"Converted {convertedItems} bots inside a bot");
 				inventory.Clear();
 			}
@@ -202,7 +202,7 @@ namespace Farmtronics.Bot {
 				if (kv.Value is BotObject) targetTileLocs.Add(kv.Key);
 				if (kv.Value is Chest chest) {
 					//ModEntry.instance.Monitor.Log($"Found a chest in {inLocation.Name} at {kv.Key}");
-					countInLoc += ConvertBotsInListToChests(chest.items, saving);
+					countInLoc += ConvertBotsInListToChests(chest.Items, saving);
 				}
 			}
 			foreach (var tileLoc in targetTileLocs) {
@@ -250,12 +250,12 @@ namespace Farmtronics.Bot {
 			bot.data.Load();
 
 			bot.inventory.Clear();
-			for (int i = 0; i < chest.items.Count && i < bot.GetActualCapacity(); i++) {
+			for (int i = 0; i < chest.Items.Count && i < bot.GetActualCapacity(); i++) {
 				// ModEntry.instance.Monitor.Log($"Moving {chest.items[i]?.Name} from chest to bot in slot {i}");
-				bot.inventory.Add(chest.items[i]);
+				bot.inventory.Add(chest.Items[i]);
 			}
 			
-			chest.items.Clear();
+			chest.Items.Clear();
 			
 			return bot;
 		}
@@ -278,7 +278,7 @@ namespace Farmtronics.Bot {
 				var tileLoc = kv.Key;
 				var chest = kv.Value as Chest;
 				if (chest == null) continue;
-				int inChestCount = ConvertChestsInListToBots(chest.items);
+				int inChestCount = ConvertChestsInListToBots(chest.Items);
 				//if (inChestCount > 0) ModEntry.instance.Monitor.Log($"Converted {inChestCount} chests stored in a chest into bots");
 
 				if (!ModData.IsBotData(chest.modData)) continue;
