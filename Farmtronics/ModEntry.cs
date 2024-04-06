@@ -184,7 +184,7 @@ namespace Farmtronics
 			// TV menu: insert a new option for the Home Computer
 			Response r = new Response("Farmtronics", I18n.TvChannel_Label());
 			List<Response> tempResponses = new List<Response>(dlog.responses);
-			tempResponses.Add(r);
+			tempResponses.Insert(tempResponses.Count - 1,r);
 			dlog.responses = tempResponses.ToArray();
 			// adjust the dialog height
 			var h = SpriteText.getHeightOfString(r.responseText, dlog.width) + 16;
