@@ -13,6 +13,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.BellsAndWhistles;
+using StardewValley.GameData.BigCraftables;
 using StardewValley.Menus;
 
 namespace Farmtronics
@@ -20,7 +21,9 @@ namespace Farmtronics
 	public class ModEntry : Mod {
 		private static string MOD_ID;
 		public static ModEntry instance;
-		
+		public static IModHelper localHelper;
+		const string internalID_c = "Farmtronics_Bot";
+
 		internal static RealFileDisk sysDisk;
 		
 		Shell shell;
@@ -32,6 +35,7 @@ namespace Farmtronics
 		public override void Entry(IModHelper helper) {
 			instance = this;
 			MOD_ID = ModManifest.UniqueID;
+			localHelper = helper;
 			I18n.Init(helper.Translation);
 			
 #if DEBUG
@@ -158,7 +162,7 @@ namespace Farmtronics
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
 			Monitor.Log($"Menu opened: {e.NewMenu}");
 			if (e.NewMenu is ShopMenu shop) {
-				if (!shop.ShopData.Owners.OfType<NPC>().ToList().Contains(Game1.getCharacterFromName("Pierre"))) return;
+				if (shop.ShopId != Game1.shop_generalStore) return;
 				if (Game1.player.mailReceived.Contains("FarmtronicsFirstBotMail")) {
 					// Add a bot to the store inventory.
 					// Let's insert it after Flooring but before Catalogue.
@@ -283,6 +287,23 @@ namespace Farmtronics
                     }
                 });
             }
+			else if (e.NameWithoutLocale.IsEquivalentTo("Data/BigCraftables"))
+			{
+				e.Edit(
+					apply: static (asset) =>
+					{
+						asset.AsDictionary<string, BigCraftableData>().Data[ModEntry.internalID_c] = new()
+						{
+							Name = "Farmtronics Bot",
+							Price = 1000,
+							DisplayName = I18n.Bot_Name(null),
+							Description = I18n.Bot_Description(),
+							Texture = localHelper.ModContent.GetInternalAssetName("assets/BotSprites.png").ToString(),
+							SpriteIndex = 2,
+						};
+					},
+					priority: AssetEditPriority.Early);
+			}
         }
     }
 }
