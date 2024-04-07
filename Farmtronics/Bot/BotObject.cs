@@ -57,7 +57,11 @@ namespace Farmtronics.Bot {
 		// Assign common values
 		private void Initialize() {			
 			Name = I18n.Bot_Name(BotManager.botCount);
-			displayName = I18n.Bot_Name(BotManager.botCount);
+			//displayName = I18n.Bot_Name(BotManager.botCount);
+			if (BotManager.botCount > 0) 
+				displayNameFormat = I18n.Bot_Name(BotManager.botCount+1);
+			else
+				displayNameFormat = I18n.Bot_Name(null);
 			Type = "Crafting";
 			Category = StardewValley.Object.BigCraftableCategory;
 			ParentSheetIndex = parentSheetIndex_c;
@@ -77,7 +81,6 @@ namespace Farmtronics.Bot {
 				Stamina = Farmer.startingStamina,
 				Position = tileLocation.GetAbsolutePosition(),
 				currentLocation = location,
-				
 				MaxItems = 12
 			};
 			
