@@ -55,13 +55,8 @@ namespace Farmtronics.Bot {
 		private float scytheOldStamina = -1;
 
 		// Assign common values
-		private void Initialize() {			
+		private void Initialize() {
 			Name = I18n.Bot_Name(BotManager.botCount);
-			//displayName = I18n.Bot_Name(BotManager.botCount);
-			if (BotManager.botCount > 0) 
-				displayNameFormat = I18n.Bot_Name(BotManager.botCount+1);
-			else
-				displayNameFormat = I18n.Bot_Name(null);
 			Type = "Crafting";
 			Category = StardewValley.Object.BigCraftableCategory;
 			ParentSheetIndex = parentSheetIndex_c;
@@ -768,7 +763,7 @@ namespace Farmtronics.Bot {
 		public override void drawWhenHeld(SpriteBatch spriteBatch, Vector2 objectPosition, Farmer f) {
 			//ModEntry.instance.Monitor.Log($"Bot.drawWhenHeld");
 			Rectangle srcRect = new Rectangle(16 * f.facingDirection.Value, 0, 16, 24);
-			spriteBatch.Draw(Assets.BotSprites, objectPosition, srcRect, Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingPosition().Y + 3) / 10000f));
+			spriteBatch.Draw(Assets.BotSprites, objectPosition, srcRect, Color.White, 0f, new(0.0f, -7.0f), 4f, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingPosition().Y + 3) / 10000f));
 		}
 
 		public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow) {
