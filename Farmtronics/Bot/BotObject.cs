@@ -92,8 +92,10 @@ namespace Farmtronics.Bot {
 		}
 
 		// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
-		public BotObject() : base() {
+		public BotObject(bool isNewBot = true) : base() {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
+			if (isNewBot) 
+				BotManager.botCount++;
 			Initialize();
 
 			CreateFarmer(TileLocation, null);
@@ -108,8 +110,6 @@ namespace Farmtronics.Bot {
 		public BotObject(Vector2 tileLocation, GameLocation location = null) : base(tileLocation, internalID_c) {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 			Initialize();
-
-			BotManager.botCount++;
 			CreateFarmer(tileLocation, location);
 			data = new ModData(this);
 			// Prevent bots from running away
@@ -822,7 +822,7 @@ namespace Farmtronics.Bot {
 		/// <returns></returns>
 		protected override Item GetOneNew() {
 			// Create a new Bot from this one, copying the modData and owner
-			var ret = new BotObject();
+			var ret = new BotObject(false);
 			ret.GetOneCopyFrom(this);
 			data.Update();
 			data.Save(ret.modData, true);
@@ -862,7 +862,7 @@ namespace Farmtronics.Bot {
 		}
 		
 		protected override string loadDisplayName() {
-			return I18n.Bot_Name(BotManager.botCount);
+			return this.Name;
 		}
 
 		#region ShopEntry
