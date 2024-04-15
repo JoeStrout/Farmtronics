@@ -689,7 +689,7 @@ namespace Farmtronics.Bot {
 			if (t is Pickaxe or Axe or Hoe) {
 				
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
-				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
+				Debris deb = new Debris(GetOneNew(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
 				Location.debris.Add(deb);
 				ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
@@ -864,6 +864,10 @@ namespace Farmtronics.Bot {
 
 		public override bool canBeGivenAsGift() {
 			return true;
+		}
+		
+		protected override string loadDisplayName() {
+			return I18n.Bot_Name(BotManager.botCount);
 		}
 
 		#region ShopEntry
