@@ -13,6 +13,7 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Crops;
 using StardewValley.GameData.Objects;
+using StardewValley.Menus;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
@@ -862,6 +863,8 @@ namespace Farmtronics.Bot {
 		}
 		
 		protected override string loadDisplayName() {
+			if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is ShopMenu)
+				return "Farmtronics Bot";
 			return this.Name;
 		}
 
