@@ -256,6 +256,7 @@ namespace Farmtronics.Bot {
 			}
 			
 			chest.Items.Clear();
+			BotManager.botCount++;
 			
 			return bot;
 		}
