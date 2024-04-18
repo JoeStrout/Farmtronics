@@ -193,13 +193,12 @@ namespace Farmtronics.M1 {
 
 			// check for buildings in the buildings list (which are not always in the buildings layer!)
 			if (loc.IsBuildableLocation()) {
-				var bl = loc as GameLocation;
-				foreach (var b in bl.buildings) {
+				foreach (var b in loc.buildings) {
 					if (xy.X >= b.tileX.Value && xy.X < b.tileX.Value + b.tilesWide.Value
 							&& xy.Y >= b.tileY.Value && xy.Y < b.tileY.Value + b.tilesHigh.Value) {
 						result.map[_type] = new ValString("Building");
 						result.map[_name] = new ValString(b.buildingType.ToString());
-						result.map[_passable] = ValNumber.zero;
+						result.map[_passable] = b.isTilePassable(xy) ? ValNumber.one : ValNumber.zero;
 						return result;
                     }
                 }
