@@ -106,6 +106,8 @@ namespace Farmtronics
 				if (msg == "FarmtronicsFirstBotMail") {
 					Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 					var bot = new BotObject();
+					bot.displayName = I18n.Bot_Name(BotManager.botCount);
+					BotManager.botCount++;
 					bot.owner.Value = Game1.player.UniqueMultiplayerID;
 					Game1.player.recoveredItem = bot;
 					break;
@@ -282,7 +284,6 @@ namespace Farmtronics
                             Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 							var bot = new BotObject();
 							bot.displayName = I18n.Bot_Name(BotManager.botCount);
-							BotManager.botCount++;
 							bot.owner.Value = Game1.player.UniqueMultiplayerID;
                             Game1.player.recoveredItem = bot;
                             break;
