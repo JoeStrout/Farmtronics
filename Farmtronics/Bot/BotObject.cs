@@ -93,10 +93,8 @@ namespace Farmtronics.Bot {
 		}
 
 		// This constructor is used for a Bot that is an Item, e.g., in inventory or as a mail attachment.
-		public BotObject(bool isNewBot = true) : base() {
+		public BotObject() : base() {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({farmer?.Name}):\n{Environment.StackTrace}");
-			if (isNewBot) 
-				BotManager.botCount++;
 			Initialize();
 
 			CreateFarmer(TileLocation, null);
@@ -823,7 +821,7 @@ namespace Farmtronics.Bot {
 		/// <returns></returns>
 		protected override Item GetOneNew() {
 			// Create a new Bot from this one, copying the modData and owner
-			var ret = new BotObject(false);
+			var ret = new BotObject();
 			ret.GetOneCopyFrom(this);
 			data.Update();
 			data.Save(ret.modData, true);
@@ -863,14 +861,28 @@ namespace Farmtronics.Bot {
 		}
 		
 		protected override string loadDisplayName() {
-			if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is ShopMenu)
-				return "Farmtronics Bot";
-			return this.Name;
+			return displayName;
 		}
 
 		#region ShopEntry
 
 		public override bool actionWhenPurchased(string shopId) {
+			if(shopId == Game1.shop_generalStore) {
+				displayName = I18n.Bot_Name(BotManager.botCount);
+				BotManager.botCount++;
+				ShopMenu shop = Game1.activeClickableMenu as ShopMenu;
+				int index = 0;
+				for(; index < shop.forSale.Count; index++) {
+					var item = shop.forSale[index];
+					if(item.Name == "Catalogue" || (index > 0 && shop.forSale[index - 1].Name == "Flooring")) break;
+				}
+				shop.forSale.RemoveAt(index);
+				var botForSale = new BotObject();
+				botForSale.owner.Value = Game1.player.UniqueMultiplayerID;
+				botForSale.displayName = I18n.Bot_Name(BotManager.botCount);
+				shop.forSale.Insert(index, botForSale);
+				shop.itemPriceAndStock.Add(botForSale, new ItemStockInformation(2500, int.MaxValue));   // sale price and available stock
+			}
 			return false;
 		}
 
