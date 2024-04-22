@@ -13,6 +13,7 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Crops;
 using StardewValley.GameData.Objects;
+using StardewValley.Menus;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
@@ -55,13 +56,8 @@ namespace Farmtronics.Bot {
 		private float scytheOldStamina = -1;
 
 		// Assign common values
-		private void Initialize() {			
+		private void Initialize() {
 			Name = I18n.Bot_Name(BotManager.botCount);
-			//displayName = I18n.Bot_Name(BotManager.botCount);
-			if (BotManager.botCount > 0) 
-				displayNameFormat = I18n.Bot_Name(BotManager.botCount+1);
-			else
-				displayNameFormat = I18n.Bot_Name(null);
 			Type = "Crafting";
 			Category = StardewValley.Object.BigCraftableCategory;
 			ParentSheetIndex = parentSheetIndex_c;
@@ -113,8 +109,6 @@ namespace Farmtronics.Bot {
 		public BotObject(Vector2 tileLocation, GameLocation location = null) : base(tileLocation, internalID_c) {
 			//ModEntry.instance.Monitor.Log($"Creating Bot({tileLocation}, {location?.Name}, {farmer?.Name}):\n{Environment.StackTrace}");
 			Initialize();
-
-			BotManager.botCount++;
 			CreateFarmer(tileLocation, location);
 			data = new ModData(this);
 			// Prevent bots from running away
@@ -689,7 +683,7 @@ namespace Farmtronics.Bot {
 			if (t is Pickaxe or Axe or Hoe) {
 				
 				//ModEntry.instance.Monitor.Log("{name} Bot.performToolAction: creating custom debris");
-				Debris deb = new Debris(this.getOne(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
+				Debris deb = new Debris(GetOneNew(), who.GetToolLocation(true), new Vector2(who.GetBoundingBox().Center.X, who.GetBoundingBox().Center.Y));
 				Location.debris.Add(deb);
 				ModEntry.instance.Monitor.Log($"{name} Created debris with item {deb.item} and energy {energy}");
 				// Remove, stop, and destroy this bot
@@ -768,7 +762,7 @@ namespace Farmtronics.Bot {
 		public override void drawWhenHeld(SpriteBatch spriteBatch, Vector2 objectPosition, Farmer f) {
 			//ModEntry.instance.Monitor.Log($"Bot.drawWhenHeld");
 			Rectangle srcRect = new Rectangle(16 * f.facingDirection.Value, 0, 16, 24);
-			spriteBatch.Draw(Assets.BotSprites, objectPosition, srcRect, Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingPosition().Y + 3) / 10000f));
+			spriteBatch.Draw(Assets.BotSprites, objectPosition, srcRect, Color.White, 0f, new(0.0f, -7.0f), 4f, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingPosition().Y + 3) / 10000f));
 		}
 
 		public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow) {
@@ -865,10 +859,30 @@ namespace Farmtronics.Bot {
 		public override bool canBeGivenAsGift() {
 			return true;
 		}
+		
+		protected override string loadDisplayName() {
+			return displayName;
+		}
 
 		#region ShopEntry
 
 		public override bool actionWhenPurchased(string shopId) {
+			if(shopId == Game1.shop_generalStore) {
+				displayName = I18n.Bot_Name(BotManager.botCount);
+				BotManager.botCount++;
+				ShopMenu shop = Game1.activeClickableMenu as ShopMenu;
+				int index = 0;
+				for(; index < shop.forSale.Count; index++) {
+					var item = shop.forSale[index];
+					if(item.Name == "Catalogue" || (index > 0 && shop.forSale[index - 1].Name == "Flooring")) break;
+				}
+				shop.forSale.RemoveAt(index);
+				var botForSale = new BotObject();
+				botForSale.owner.Value = Game1.player.UniqueMultiplayerID;
+				botForSale.displayName = I18n.Bot_Name(BotManager.botCount);
+				shop.forSale.Insert(index, botForSale);
+				shop.itemPriceAndStock.Add(botForSale, new ItemStockInformation(2500, int.MaxValue));   // sale price and available stock
+			}
 			return false;
 		}
 

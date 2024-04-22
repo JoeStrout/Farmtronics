@@ -256,6 +256,8 @@ namespace Farmtronics.Bot {
 			}
 			
 			chest.Items.Clear();
+			bot.displayName = bot.data.Name;
+			botCount++;
 			
 			return bot;
 		}

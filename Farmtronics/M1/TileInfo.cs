@@ -99,6 +99,13 @@ namespace Farmtronics.M1 {
 				result.map[_stump] = ValNumber.Truth(tree.stump.Value);
 				result.map[_tapped] = ValNumber.Truth(tree.tapped.Value);
 				result.map[_hasSeed] = ValNumber.Truth(tree.hasSeed.Value);
+			} else if(feature is FruitTree fruittree) { // https://github.com/JoeStrout/Farmtronics/issues/83
+				result.map[_passable] = ValNumber.zero;
+				if(passableOnly) return result;
+				result.map[_treeType] = new ValString(fruittree.treeId.Value);
+				result.map[_growthStage] = new ValNumber(fruittree.growthStage.Value);
+				result.map[_health] = new ValNumber(fruittree.health.Value);
+				result.map[_stump] = ValNumber.Truth(fruittree.stump.Value);
 			} else if (feature is HoeDirt hoeDirt) {
 				if (passableOnly) return result;
 				result.map[_dry] = ValNumber.Truth(hoeDirt.state.Value != 1);
@@ -193,13 +200,12 @@ namespace Farmtronics.M1 {
 
 			// check for buildings in the buildings list (which are not always in the buildings layer!)
 			if (loc.IsBuildableLocation()) {
-				var bl = loc as GameLocation;
-				foreach (var b in bl.buildings) {
+				foreach (var b in loc.buildings) {
 					if (xy.X >= b.tileX.Value && xy.X < b.tileX.Value + b.tilesWide.Value
 							&& xy.Y >= b.tileY.Value && xy.Y < b.tileY.Value + b.tilesHigh.Value) {
 						result.map[_type] = new ValString("Building");
 						result.map[_name] = new ValString(b.buildingType.ToString());
-						result.map[_passable] = ValNumber.zero;
+						result.map[_passable] = b.isTilePassable(xy) ? ValNumber.one : ValNumber.zero;
 						return result;
                     }
                 }

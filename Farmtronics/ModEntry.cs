@@ -106,6 +106,8 @@ namespace Farmtronics
 				if (msg == "FarmtronicsFirstBotMail") {
 					Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 					var bot = new BotObject();
+					bot.displayName = I18n.Bot_Name(BotManager.botCount);
+					BotManager.botCount++;
 					bot.owner.Value = Game1.player.UniqueMultiplayerID;
 					Game1.player.recoveredItem = bot;
 					break;
@@ -173,6 +175,7 @@ namespace Farmtronics
 						if (item.Name == "Catalogue" || (index>0 && shop.forSale[index-1].Name == "Flooring")) break;
 					}
 					var botForSale = new BotObject();
+					botForSale.displayName = I18n.Bot_Name(BotManager.botCount);
 					botForSale.owner.Value = Game1.player.UniqueMultiplayerID;
 					shop.forSale.Insert(index, botForSale);
 					shop.itemPriceAndStock.Add(botForSale, new ItemStockInformation(2500, int.MaxValue));	// sale price and available stock
@@ -280,6 +283,7 @@ namespace Farmtronics
                         if (msg == "FarmtronicsFirstBotMail") {
                             Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 							var bot = new BotObject();
+							bot.displayName = I18n.Bot_Name(BotManager.botCount);
 							bot.owner.Value = Game1.player.UniqueMultiplayerID;
                             Game1.player.recoveredItem = bot;
                             break;
