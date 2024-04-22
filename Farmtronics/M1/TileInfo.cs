@@ -99,6 +99,13 @@ namespace Farmtronics.M1 {
 				result.map[_stump] = ValNumber.Truth(tree.stump.Value);
 				result.map[_tapped] = ValNumber.Truth(tree.tapped.Value);
 				result.map[_hasSeed] = ValNumber.Truth(tree.hasSeed.Value);
+			} else if(feature is FruitTree fruittree) { // https://github.com/JoeStrout/Farmtronics/issues/83
+				result.map[_passable] = ValNumber.zero;
+				if(passableOnly) return result;
+				result.map[_treeType] = new ValString(fruittree.treeId.Value);
+				result.map[_growthStage] = new ValNumber(fruittree.growthStage.Value);
+				result.map[_health] = new ValNumber(fruittree.health.Value);
+				result.map[_stump] = ValNumber.Truth(fruittree.stump.Value);
 			} else if (feature is HoeDirt hoeDirt) {
 				if (passableOnly) return result;
 				result.map[_dry] = ValNumber.Truth(hoeDirt.state.Value != 1);
