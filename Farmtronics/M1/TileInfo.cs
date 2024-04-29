@@ -11,6 +11,7 @@ using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
 using Miniscript;
 using StardewValley;
+using StardewValley.GameData.Crops;
 using StardewValley.Locations;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
@@ -56,7 +57,7 @@ namespace Farmtronics.M1 {
 			result["description"] = new ValString(obj.getDescription());
 
 			IList<Item> inventory = null;
-			if (obj is Chest chest) inventory = chest.items;
+			if (obj is Chest chest) inventory = chest.Items;
 			else if(obj is BotObject bot) inventory = bot.inventory;
 			if (inventory != null) {
 				var list = new ValList();
@@ -92,12 +93,19 @@ namespace Farmtronics.M1 {
 			if (feature is Tree tree) {
 				result.map[_passable] = ValNumber.zero;
 				if (passableOnly) return result;
-				result.map[_treeType] = new ValNumber(tree.treeType.Value);
+				result.map[_treeType] = new ValString(tree.treeType.Value);
 				result.map[_growthStage] = new ValNumber(tree.growthStage.Value);
 				result.map[_health] = new ValNumber(tree.health.Value);
 				result.map[_stump] = ValNumber.Truth(tree.stump.Value);
 				result.map[_tapped] = ValNumber.Truth(tree.tapped.Value);
 				result.map[_hasSeed] = ValNumber.Truth(tree.hasSeed.Value);
+			} else if(feature is FruitTree fruittree) { // https://github.com/JoeStrout/Farmtronics/issues/83
+				result.map[_passable] = ValNumber.zero;
+				if(passableOnly) return result;
+				result.map[_treeType] = new ValString(fruittree.treeId.Value);
+				result.map[_growthStage] = new ValNumber(fruittree.growthStage.Value);
+				result.map[_health] = new ValNumber(fruittree.health.Value);
+				result.map[_stump] = ValNumber.Truth(fruittree.stump.Value);
 			} else if (feature is HoeDirt hoeDirt) {
 				if (passableOnly) return result;
 				result.map[_dry] = ValNumber.Truth(hoeDirt.state.Value != 1);
@@ -109,7 +117,7 @@ namespace Farmtronics.M1 {
 					cropInfo.map[_maxPhase] = new ValNumber(crop.phaseDays.Count - 1);
 					cropInfo.map[_mature] = ValNumber.Truth(crop.fullyGrown.Value);
 					cropInfo.map[_dead] = ValNumber.Truth(crop.dead.Value);
-					cropInfo.map[_harvestMethod] = ValNumber.Truth(crop.harvestMethod.Value);
+					cropInfo.map[_harvestMethod] = ValNumber.Truth(crop.GetHarvestMethod() == HarvestMethod.Grab);
 					bool harvestable = (int)crop.currentPhase.Value >= crop.phaseDays.Count - 1
 						&& (!crop.fullyGrown.Value || (int)crop.dayOfCurrentPhase.Value <= 0);
 					cropInfo.map[_harvestable] = ValNumber.Truth(harvestable);
@@ -169,14 +177,14 @@ namespace Farmtronics.M1 {
 			result.map[_type] = _unknown;
 
 			// check farmers
-			if (Game1.player.currentLocation == loc && Game1.player.getTileLocation() == xy) return ToMap(Game1.player, result, passableOnly);
+			if (Game1.player.currentLocation == loc && Game1.player.Tile == xy) return ToMap(Game1.player, result, passableOnly);
 			foreach (var farmer in Game1.otherFarmers.Values) {
-				if (farmer.currentLocation == loc && farmer.getTileLocation() == xy) return ToMap(farmer, result, passableOnly);
+				if (farmer.currentLocation == loc && farmer.Tile == xy) return ToMap(farmer, result, passableOnly);
 			}
 
 			// check NPCs
 			foreach (var character in loc.characters) {
-				if (character.getTileLocation() == xy) {
+				if (character.Tile == xy) {
 					return ToMap(character, result, passableOnly);
 				}
 			}
@@ -191,14 +199,13 @@ namespace Farmtronics.M1 {
 			}
 
 			// check for buildings in the buildings list (which are not always in the buildings layer!)
-			if (loc is BuildableGameLocation) {
-				var bl = loc as BuildableGameLocation;
-				foreach (var b in bl.buildings) {
+			if (loc.IsBuildableLocation()) {
+				foreach (var b in loc.buildings) {
 					if (xy.X >= b.tileX.Value && xy.X < b.tileX.Value + b.tilesWide.Value
 							&& xy.Y >= b.tileY.Value && xy.Y < b.tileY.Value + b.tilesHigh.Value) {
 						result.map[_type] = new ValString("Building");
 						result.map[_name] = new ValString(b.buildingType.ToString());
-						result.map[_passable] = ValNumber.zero;
+						result.map[_passable] = b.isTilePassable(xy) ? ValNumber.one : ValNumber.zero;
 						return result;
                     }
                 }

@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Farmtronics.Bot;
 using Farmtronics.M1;
 using Farmtronics.M1.Filesystem;
@@ -11,6 +13,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.BellsAndWhistles;
+using StardewValley.GameData.BigCraftables;
 using StardewValley.Menus;
 
 namespace Farmtronics
@@ -18,7 +21,9 @@ namespace Farmtronics
 	public class ModEntry : Mod {
 		private static string MOD_ID;
 		public static ModEntry instance;
-		
+		public static IModHelper localHelper;
+		const string internalID_c = "Farmtronics_Bot";
+
 		internal static RealFileDisk sysDisk;
 		
 		Shell shell;
@@ -30,6 +35,7 @@ namespace Farmtronics
 		public override void Entry(IModHelper helper) {
 			instance = this;
 			MOD_ID = ModManifest.UniqueID;
+			localHelper = helper;
 			I18n.Init(helper.Translation);
 			
 #if DEBUG
@@ -100,6 +106,8 @@ namespace Farmtronics
 				if (msg == "FarmtronicsFirstBotMail") {
 					Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 					var bot = new BotObject();
+					bot.displayName = I18n.Bot_Name(BotManager.botCount);
+					BotManager.botCount++;
 					bot.owner.Value = Game1.player.UniqueMultiplayerID;
 					Game1.player.recoveredItem = bot;
 					break;
@@ -116,7 +124,7 @@ namespace Farmtronics
 			switch (e.Button) {
 			case SButton.PageUp:
 				// Create a bot.
-				Vector2 pos = Game1.player.position;
+				Vector2 pos = Game1.player.position.Value;
 				pos.X -= Game1.tileSize;
 				Vector2 tilePos = pos.GetTilePosition();
 				var bot = new BotObject(tilePos);
@@ -143,7 +151,7 @@ namespace Farmtronics
 			case SButton.NumPad0:
 				Vector2 mousePos = Helper.Input.GetCursorPosition().Tile;
 				Monitor.Log($"Performing lookup at mouse position: {mousePos}");
-				bool occupied = Game1.player.currentLocation.isTileOccupied(mousePos);
+				bool occupied = Game1.player.currentLocation.IsTileOccupiedBy(mousePos);
 				string name = "null";
 				var obj = Game1.player.currentLocation.getObjectAtTile(mousePos.GetIntX(), mousePos.GetIntY());
 				if (obj != null) name = obj.Name;
@@ -156,7 +164,7 @@ namespace Farmtronics
 		public void OnMenuChanged(object sender, MenuChangedEventArgs e) {
 			Monitor.Log($"Menu opened: {e.NewMenu}");
 			if (e.NewMenu is ShopMenu shop) {
-				if (shop.portraitPerson != Game1.getCharacterFromName("Pierre")) return;
+				if (shop.ShopId != Game1.shop_generalStore) return;
 				if (Game1.player.mailReceived.Contains("FarmtronicsFirstBotMail")) {
 					// Add a bot to the store inventory.
 					// Let's insert it after Flooring but before Catalogue.
@@ -167,9 +175,10 @@ namespace Farmtronics
 						if (item.Name == "Catalogue" || (index>0 && shop.forSale[index-1].Name == "Flooring")) break;
 					}
 					var botForSale = new BotObject();
+					botForSale.displayName = I18n.Bot_Name(BotManager.botCount);
 					botForSale.owner.Value = Game1.player.UniqueMultiplayerID;
 					shop.forSale.Insert(index, botForSale);
-					shop.itemPriceAndStock.Add(botForSale, new int[2] { 2500, int.MaxValue });	// sale price and available stock
+					shop.itemPriceAndStock.Add(botForSale, new ItemStockInformation(2500, int.MaxValue));	// sale price and available stock
 				}
 			}
 
@@ -181,7 +190,9 @@ namespace Farmtronics
 
 			// TV menu: insert a new option for the Home Computer
 			Response r = new Response("Farmtronics", I18n.TvChannel_Label());
-			dlog.responses.Insert(dlog.responses.Count-1, r);
+			List<Response> tempResponses = new List<Response>(dlog.responses);
+			tempResponses.Insert(tempResponses.Count - 1,r);
+			dlog.responses = tempResponses.ToArray();
 			// adjust the dialog height
 			var h = SpriteText.getHeightOfString(r.responseText, dlog.width) + 16;
 			dlog.heightForQuestions += h; dlog.height += h;
@@ -272,6 +283,7 @@ namespace Farmtronics
                         if (msg == "FarmtronicsFirstBotMail") {
                             Monitor.Log($"Changing recoveredItem from {Game1.player.recoveredItem} to Bot");
 							var bot = new BotObject();
+							bot.displayName = I18n.Bot_Name(BotManager.botCount);
 							bot.owner.Value = Game1.player.UniqueMultiplayerID;
                             Game1.player.recoveredItem = bot;
                             break;
@@ -279,6 +291,23 @@ namespace Farmtronics
                     }
                 });
             }
+			else if (e.NameWithoutLocale.IsEquivalentTo("Data/BigCraftables"))
+			{
+				e.Edit(
+					apply: static (asset) =>
+					{
+						asset.AsDictionary<string, BigCraftableData>().Data[ModEntry.internalID_c] = new()
+						{
+							Name = "Farmtronics Bot",
+							Price = 1000,
+							DisplayName = I18n.Bot_Name(null),
+							Description = I18n.Bot_Description(),
+							Texture = localHelper.ModContent.GetInternalAssetName("assets/BotSprites.png").ToString(),
+							SpriteIndex = 2,
+						};
+					},
+					priority: AssetEditPriority.Early);
+			}
         }
     }
 }

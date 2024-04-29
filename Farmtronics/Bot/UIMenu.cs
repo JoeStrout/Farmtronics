@@ -252,7 +252,7 @@ namespace Farmtronics.Bot {
 */
 			if (hoverText != null && hoveredItem == null) {
 				if (hoverAmount > 0) {
-					IClickableMenu.drawToolTip(b, hoverText, "", null, heldItem: true, -1, 0, -1, -1, null, hoverAmount);
+					IClickableMenu.drawToolTip(b, hoverText, "", null, heldItem: true, -1, 0, null, -1, null, hoverAmount);
 				} else {
 					IClickableMenu.drawHoverText(b, hoverText, Game1.smallFont);
 				}

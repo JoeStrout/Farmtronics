@@ -1990,12 +1990,12 @@ namespace Farmtronics.M1 {
 			worldInfo["season"] = new ValNumber(SDate.Now().SeasonIndex);
 
 			// The human-readable representation for the current in-game season.
-			worldInfo["seasonName"] = new ValString(SDate.Now().Season);
+			worldInfo["seasonName"] = new ValString(SDate.Now().SeasonKey);
 
 			// The current weather
 			{
 				var loc = (Farm)Game1.getLocationFromName("Farm");
-				var weather = Game1.netWorldState.Value.GetWeatherForLocation(loc.GetLocationContext());
+				var weather = Game1.netWorldState.Value.GetWeatherForLocation(loc.GetLocationContextId());
 				string result = "sunny";
 				if (weather.isLightning.Value) result = "stormy";
 				else if (weather.isRaining.Value) result = "raining";

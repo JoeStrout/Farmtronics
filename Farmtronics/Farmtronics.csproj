@@ -2,9 +2,10 @@
 
   <PropertyGroup>
     <Copyright>Copyright © $([System.DateTime]::UtcNow.Year) Joe Strout ($([System.DateTime]::UtcNow.ToString("s")))</Copyright>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <ModFolderName>Farmtronics</ModFolderName>
     <BundleExtraAssemblies>ThirdParty</BundleExtraAssemblies>
+    <ReleaseVersion>1.3</ReleaseVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +14,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="org.miniscript.MiniScript" Version="1.5.1-p5c068bf" />
+    <PackageReference Include="org.miniscript.MiniScript" Version="1.6.2" />
   </ItemGroup>
 </Project>
