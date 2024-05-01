@@ -5,6 +5,8 @@ This class is a stardew valley Object subclass that represents a Bot.
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
 using Farmtronics.M1;
 using Farmtronics.Utils;
 using Microsoft.Xna.Framework;
@@ -163,7 +165,20 @@ namespace Farmtronics.Bot {
 			location.playSound("hammer");
 			return true;
 		}
+		
+		public bool UseBattery() {
+			if (farmer == null || inventory == null || farmer.CurrentTool == null) 
+				return false;
 
+			if (farmer.Items.Any(b => b is not null && b.QualifiedItemId.Equals("(O)787")))
+			{
+				farmer.stamina = Math.Min(Farmer.startingStamina, farmer.stamina + 100);
+				farmer.removeFirstOfThisItemFromInventory("(O)787");
+				return true;
+			}
+			return false;
+		}
+		
 		// Apply the currently-selected item as a tool (or weapon) on
 		// the square in front of the bot.
 		public void UseTool() {
