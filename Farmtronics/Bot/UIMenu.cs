@@ -193,8 +193,9 @@ namespace Farmtronics.Bot {
 		bool inDragArea(int x, int y) {
 			// ModEntry.instance.Monitor.Log($"inDragArea: x={x} y={y}, in botInventoryBounds: {botInventoryBounds().Contains(x, y)}, in consoleBounds: {consoleBounds().Contains(x, y)}");
 			if (botInventoryBounds().Contains(x,y)) return false;
-			if (consoleBounds().Contains(x,y)) return false;
-
+			//if (consoleBounds().Contains(x,y)) return false;
+			// Note: Console bounds are not being calculated correctly in SDV 1.6
+			
 			var playerInv = inventory;
 			Rectangle invRect = new Rectangle(playerInv.xPositionOnScreen, playerInv.yPositionOnScreen, width, height);
 			if (invRect.Contains(x,y)) return false;
