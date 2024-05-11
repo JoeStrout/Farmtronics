@@ -169,17 +169,10 @@ namespace Farmtronics.Bot {
 		public bool UseBattery() {
 			if (farmer == null || inventory == null || farmer.CurrentTool == null) 
 				return false;
-			
-			if (farmer.stamina >= Farmer.startingStamina) {
-				ModEntry.instance.Monitor.Log($"UseBattery called: Stamina already full, battery not used.", LogLevel.Trace);
-				return false;
-			}
-			
-			if (farmer.Items.Any(b => b != null && b.QualifiedItemId.Equals("(O)787"))) 
+
+			if (farmer.Items.Any(b => b != null && b.QualifiedItemId.Equals("(O)787")))
 			{
-				float oldStamina = farmer.stamina;
 				farmer.stamina = Math.Min(Farmer.startingStamina, farmer.stamina + 100);
-				ModEntry.instance.Monitor.Log($"UseBattery called: Stamina increased from {oldStamina} to {farmer.stamina}", LogLevel.Trace);
 				farmer.removeFirstOfThisItemFromInventory("(O)787");
 				return true;
 			}
