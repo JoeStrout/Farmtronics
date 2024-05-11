@@ -720,16 +720,6 @@ namespace Farmtronics.M1 {
 				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
 			};
 			meModule["harvest"] = f.GetFunc();
-			
-			f = Intrinsic.Create("");
-			f.code = (context, partialResult) => {
-				Shell sh = context.interpreter.hostData as Shell;
-				if (RequireBot(sh, "useBattery")) return Intrinsic.Result.Null;
-				
-				bool result = sh.bot.UseBattery();
-				return result ? Intrinsic.Result.True : Intrinsic.Result.False;
-			};
-			meModule["useBattery"] = f.GetFunc();
 
 			botProtectedKeys = new HashSet<string>();
 			foreach (Value key in meModule.Keys) {
