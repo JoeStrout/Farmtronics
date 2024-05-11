@@ -167,6 +167,20 @@ namespace Farmtronics.Bot {
 		// Apply the currently-selected item as a tool (or weapon) on
 		// the square in front of the bot.
 		public void UseTool() {
+			float oldStamina = farmer.stamina;
+			if (farmer.CurrentTool == null && 
+			    farmer.Items[farmer.CurrentToolIndex].QualifiedItemId.Equals("(O)787"))
+			{
+				if (farmer.stamina >= Farmer.startingStamina) {
+					ModEntry.instance.Monitor.Log($"UseBattery called: Stamina already full, battery not used.", LogLevel.Trace);
+					return;
+				}
+				farmer.stamina = Math.Min(Farmer.startingStamina, farmer.stamina + 100);
+				ModEntry.instance.Monitor.Log($"UseBattery called: Stamina increased from {oldStamina} to {farmer.stamina}", LogLevel.Trace);
+				farmer.removeFirstOfThisItemFromInventory("(O)787");
+				return;
+			}
+			
 			if (farmer == null || inventory == null || farmer.CurrentTool == null) return;
 			Vector2 toolLocation = farmer.GetToolLocation(true);
 			ModEntry.instance.Monitor.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {toolLocation}", LogLevel.Trace);
@@ -178,13 +192,13 @@ namespace Farmtronics.Bot {
 				return;
 			}
 			
-			float oldStamina = farmer.stamina;
 			if (farmer.CurrentTool is not MeleeWeapon) {
 				ModEntry.instance.Monitor.Log($"farmer.CurrentTool.DoFunction", LogLevel.Trace);
 				farmer.CurrentTool.DoFunction(farmer.currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), 1, farmer);
 				farmer.checkForExhaustion(oldStamina);
 				data.Update();
-			} else {
+			} 
+			else {
 				// Special case for using the Scythe
 				farmer.CurrentTool.beginUsing(currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), farmer);
 				Farmer.showToolSwipeEffect(farmer);
