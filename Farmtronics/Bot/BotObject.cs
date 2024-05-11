@@ -170,7 +170,7 @@ namespace Farmtronics.Bot {
 			if (farmer == null || inventory == null || farmer.CurrentTool == null) 
 				return false;
 
-			if (farmer.Items.Any(b => b != null && b.QualifiedItemId.Equals("(O)787")))
+			if (farmer.Items.Any(b => b is not null && b.QualifiedItemId.Equals("(O)787")))
 			{
 				farmer.stamina = Math.Min(Farmer.startingStamina, farmer.stamina + 100);
 				farmer.removeFirstOfThisItemFromInventory("(O)787");
