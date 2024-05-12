@@ -175,7 +175,7 @@ namespace Farmtronics.Bot {
 					ModEntry.instance.Monitor.Log($"UseBattery called: Stamina already full, battery not used.", LogLevel.Trace);
 					return;
 				}
-				farmer.stamina = Math.Min(Farmer.startingStamina, farmer.stamina + 100);
+				farmer.stamina = Farmer.startingStamina;
 				ModEntry.instance.Monitor.Log($"UseBattery called: Stamina increased from {oldStamina} to {farmer.stamina}", LogLevel.Trace);
 				farmer.removeFirstOfThisItemFromInventory("(O)787");
 				return;
@@ -183,8 +183,10 @@ namespace Farmtronics.Bot {
 			
 			if (farmer == null || inventory == null || farmer.CurrentTool == null) return;
 			Vector2 toolLocation = farmer.GetToolLocation(true);
+			#if DEBUG
 			ModEntry.instance.Monitor.Log($"UseTool called: {farmer.CurrentTool.Name}[{farmer.CurrentToolIndex}] {toolLocation}", LogLevel.Trace);
-			
+			#endif
+
 			// Check ResourceClumps and current UpgradeLevel before hitting them
 			var clump = currentLocation.GetCollidingResourceClump(toolLocation);
 			if (clump != null && farmer.CurrentTool.UpgradeLevel < 4) {
@@ -193,7 +195,9 @@ namespace Farmtronics.Bot {
 			}
 			
 			if (farmer.CurrentTool is not MeleeWeapon) {
+				#if DEBUG
 				ModEntry.instance.Monitor.Log($"farmer.CurrentTool.DoFunction", LogLevel.Trace);
+				#endif
 				farmer.CurrentTool.DoFunction(farmer.currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), 1, farmer);
 				farmer.checkForExhaustion(oldStamina);
 				data.Update();
@@ -523,7 +527,9 @@ namespace Farmtronics.Bot {
 
 			// start moving
 			targetPos = newTile.GetAbsolutePosition();
+			#if DEBUG
 			ModEntry.instance.Monitor.Log($"MoveForward: Facing: {facingDirection}; Position: {Position}; newTile: {newTile}; targetPos: {targetPos}");
+			#endif
 
 			// Do collision actions (shake the grass, etc.)
 			if (currentLocation.terrainFeatures.ContainsKey(newTile)) {
@@ -545,7 +551,9 @@ namespace Farmtronics.Bot {
 		public void Rotate(int stepsClockwise) {
 			farmer.faceDirection((farmer.FacingDirection + 4 + stepsClockwise) % 4);
 			data.Update();
+			#if DEBUG
 			ModEntry.instance.Monitor.Log($"{Name} Rotate({stepsClockwise}): now facing {farmer.FacingDirection}");
+			#endif
 		}
 
 		void ApplyScytheToTile() {
