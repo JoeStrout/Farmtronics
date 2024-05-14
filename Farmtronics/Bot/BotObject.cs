@@ -172,11 +172,11 @@ namespace Farmtronics.Bot {
 			    farmer.Items[farmer.CurrentToolIndex].QualifiedItemId.Equals("(O)787"))
 			{
 				if (farmer.stamina >= Farmer.startingStamina) {
-					ModEntry.instance.Monitor.Log($"UseBattery called: Stamina already full, battery not used.", LogLevel.Trace);
+					ModEntry.instance.Monitor.Log($"Battery use: Stamina already full, battery not used.", LogLevel.Trace);
 					return;
 				}
 				farmer.stamina = Farmer.startingStamina;
-				ModEntry.instance.Monitor.Log($"UseBattery called: Stamina increased from {oldStamina} to {farmer.stamina}", LogLevel.Trace);
+				ModEntry.instance.Monitor.Log($"Battery used: Stamina increased from {oldStamina} to {farmer.stamina}", LogLevel.Trace);
 				farmer.removeFirstOfThisItemFromInventory("(O)787");
 				return;
 			}
