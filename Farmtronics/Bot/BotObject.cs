@@ -448,12 +448,15 @@ namespace Farmtronics.Bot {
 				StardewValley.Object obj = farmer.currentLocation.getObjectAt(tileLocation.X, tileLocation.Y);
 				// Perform the object drop in
 				// This method is patched by mods like PFM to get custom machines working,
-                // so we get compatibility with that by default.
+				// so we get compatibility with that by default.
+				int stackSize = item.Stack;
 				bool result = obj.performObjectDropInAction(item, false, farmer);
 				ModEntry.instance.Monitor.Log($"performObjectDropInAction({item.DisplayName}) result: {result}");
 				if (result) {
-					// reduce inventory by one, and clear the inventory if the stack is empty
-					item.Stack--;
+					// reduce inventory by one if needed, and clear the inventory if the stack is empty
+					if (stackSize == item.Stack) {
+						item.Stack--;
+					}
 					if (item.Stack <= 0) inventory[currentToolIndex] = null;
 					return 1;
 				}
