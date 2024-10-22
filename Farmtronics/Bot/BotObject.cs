@@ -656,6 +656,47 @@ namespace Farmtronics.Bot {
 			}
 
 			farmer.Update(gameTime, farmer.currentLocation);
+			PickUpDebris(farmer, gameTime);
+		}
+
+		public void PickUpDebris(Farmtronics.Bot.BotFarmer farmer, GameTime gameTime) {
+			GameLocation loc = farmer.currentLocation;
+			int range = 128; // Same as default magnetism of player
+			Vector2 botPosition = farmer.GetToolLocation(true).GetTilePosition().GetAbsolutePosition();
+			float moveSpeed = 400f; // Speed at which debris moves toward the bot
+
+			for (int i = loc.debris.Count - 1; i >= 0; i--) {
+				Debris d = loc.debris[i];
+
+				if (d == null || string.IsNullOrEmpty(d.itemId) || d.timeSinceDoneBouncing <= 0)
+					continue; // Skip null or invalid debris
+
+				Item item = ItemRegistry.Create(d.itemId, 1, d.itemQuality);
+
+				if (item == null || !farmer.couldInventoryAcceptThisItem(item))
+					continue; // Skip if item is null or farmer can't accept it
+
+				Vector2 debrisPosition = d.Chunks[0].position.Value;
+				float distance = Vector2.Distance(debrisPosition, botPosition);
+
+				if (distance < range) {
+					// Move each chunk of debris toward the bot
+					foreach (var chunk in d.Chunks) {
+						Vector2 currentChunkPosition = chunk.position.Value;
+						Vector2 direction = (botPosition - currentChunkPosition);
+						direction.Normalize();
+
+						// Move debris towards the bot
+						chunk.position.Value += direction * moveSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+					}
+
+					// If debris is close enough, collect it
+					if (distance < 10f) {
+						Item itemAdded = farmer.addItemToInventory(item);
+						loc.debris.RemoveAt(i); // Remove debris once collected
+					}
+				}
+			}
 		}
 
 		public override bool checkForAction(Farmer who, bool justCheckingForActivity = false) {
