@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Crops;
+using StardewValley.GameData.Machines;
 using StardewValley.GameData.Objects;
 using StardewValley.Menus;
 using StardewValley.Objects;
@@ -382,8 +383,12 @@ namespace Farmtronics.Bot {
 					what.MinutesUntilReady = Utility.CalculateMinutesUntilMorning(Game1.timeOfDay, 1);
 				}
 				if (check_for_reload) {
+
 					what.AttemptAutoLoad(who);
 				}
+				MachineData? machineData = what.GetMachineData();
+				if (machineData != null && MachineDataUtility.TryGetMachineOutputRule(what, machineData, MachineOutputTrigger.OutputCollected, what.getOne(), null, what.Location, out MachineOutputRule outputCollectedRule, out _, out _, out _))
+					what.OutputMachine(machineData, outputCollectedRule, what.lastInputItem.Value, null, what.Location, false);
 				return true;
 
 			} else {
