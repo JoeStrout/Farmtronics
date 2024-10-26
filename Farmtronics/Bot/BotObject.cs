@@ -664,7 +664,6 @@ namespace Farmtronics.Bot {
 		public void PickUpDebris(Farmtronics.Bot.BotFarmer farmer, GameTime gameTime) {
 			GameLocation loc = farmer.currentLocation;
 			int range = 128; // Same as default magnetism of player
-			Vector2 botPosition = farmer.GetToolLocation(true).GetTilePosition().GetAbsolutePosition();
 			float moveSpeed = 400f; // Speed at which debris moves toward the bot
 
 			for (int i = loc.debris.Count - 1; i >= 0; i--) {
@@ -679,13 +678,13 @@ namespace Farmtronics.Bot {
 					continue; // Skip if item is null or farmer can't accept it
 
 				Vector2 debrisPosition = d.Chunks[0].position.Value;
-				float distance = Vector2.Distance(debrisPosition, botPosition);
+				float distance = Vector2.Distance(debrisPosition, Position);
 
 				if (distance < range) {
 					// Move each chunk of debris toward the bot
 					foreach (var chunk in d.Chunks) {
 						Vector2 currentChunkPosition = chunk.position.Value;
-						Vector2 direction = (botPosition - currentChunkPosition);
+						Vector2 direction = (Position - currentChunkPosition);
 						direction.Normalize();
 
 						// Move debris towards the bot

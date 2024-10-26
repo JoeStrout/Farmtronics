@@ -731,7 +731,7 @@ namespace Farmtronics.M1 {
 				bool shouldCollect = context.GetLocalBool("shouldCollect");
 				sh.bot.shouldPickupDebris = shouldCollect;
 
-				return Intrinsic.Result.True;
+				return Intrinsic.Result.Null;
 			};
 			meModule["collect"] = f.GetFunc();
 
