@@ -721,6 +721,20 @@ namespace Farmtronics.M1 {
 			};
 			meModule["harvest"] = f.GetFunc();
 
+			f = Intrinsic.Create("");
+			f.AddParam("shouldCollect", 0); // Default to false
+			f.code = (context, partialResult) => {
+				Shell sh = context.interpreter.hostData as Shell;
+				if (RequireBot(sh, "collect")) return Intrinsic.Result.Null;
+
+				// Get the 'shouldCollect' parameter and set it to the bot's property
+				bool shouldCollect = context.GetLocalBool("shouldCollect");
+				sh.bot.shouldPickupDebris = shouldCollect;
+
+				return Intrinsic.Result.True;
+			};
+			meModule["collect"] = f.GetFunc();
+
 			botProtectedKeys = new HashSet<string>();
 			foreach (Value key in meModule.Keys) {
 				botProtectedKeys.Add(key.ToString());

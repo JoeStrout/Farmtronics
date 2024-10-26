@@ -50,6 +50,8 @@ namespace Farmtronics.Bot {
 			}
 		}
 
+		public bool shouldPickupDebris { get; set; }
+
 		internal Vector2 Position { get =>farmer.Position; set => farmer.Position = value; }   // our current position, in pixels
 		private Vector2 targetPos;  // position we're moving to, in pixels
 		private int scytheUseFrame = 0;       // > 0 when using the scythe
@@ -656,7 +658,7 @@ namespace Farmtronics.Bot {
 			}
 
 			farmer.Update(gameTime, farmer.currentLocation);
-			PickUpDebris(farmer, gameTime);
+			if (shouldPickupDebris) PickUpDebris(farmer, gameTime);
 		}
 
 		public void PickUpDebris(Farmtronics.Bot.BotFarmer farmer, GameTime gameTime) {
