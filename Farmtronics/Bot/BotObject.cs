@@ -693,6 +693,7 @@ namespace Farmtronics.Bot {
 
 					// If debris is close enough, collect it
 					if (distance < 10f) {
+						item.Stack = d.Chunks.Count;
 						Item itemAdded = farmer.addItemToInventory(item);
 						loc.debris.RemoveAt(i); // Remove debris once collected
 					}
