@@ -5,7 +5,7 @@ namespace Farmtronics.M1.Filesystem {
 
 		public delegate void DiskActivityCallback(bool write);
 
-		public DiskActivityCallback diskActivityCallback;
+		public DiskActivityCallback diskActivityCallback = null;
 
 		protected void ShowDiskLight(bool write) {
 			if (diskActivityCallback != null) diskActivityCallback(write);

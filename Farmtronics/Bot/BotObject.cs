@@ -121,7 +121,7 @@ namespace Farmtronics.Bot {
 		}
 		
 		private void PerformOtherPlayerAction() {
-			var farmer = Game1.getFarmerMaybeOffline(owner.Value);
+			var farmer = Game1.GetPlayer(owner.Value);//getFarmerMaybeOffline(owner.Value);
 			var name = farmer.Name;
 			Game1.addHUDMessage(new HUDMessage($"{Name} belongs to {name}.", HUDMessage.error_type));
 		}
@@ -233,9 +233,9 @@ namespace Farmtronics.Bot {
 				ModEntry.instance.Monitor.Log("Harvesting: TerrainFeature");
 				
 				var origPlayer = Game1.player;
-				Game1.player = farmer;
+				// ToDo, something like:  Game1.player = farmer;
 				bool result = feature.performUseAction(tileLocation);
-				Game1.player = origPlayer;
+				// ToDo, something like:  Game1.player = origPlayer;
 				return result;
 			} else if (loc.isObjectAtTile(tileLocation.GetIntX(), tileLocation.GetIntY())) {
 				ModEntry.instance.Monitor.Log("Harvesting: Tile");
@@ -388,7 +388,7 @@ namespace Farmtronics.Bot {
 
 					what.AttemptAutoLoad(who);
 				}
-				MachineData? machineData = what.GetMachineData();
+				MachineData machineData = what.GetMachineData();
 				if (machineData != null && MachineDataUtility.TryGetMachineOutputRule(what, machineData, MachineOutputTrigger.OutputCollected, what.getOne(), null, what.Location, out MachineOutputRule outputCollectedRule, out _, out _, out _))
 					what.OutputMachine(machineData, outputCollectedRule, what.lastInputItem.Value, null, what.Location, false);
 				return true;
@@ -677,10 +677,10 @@ namespace Farmtronics.Bot {
 			for (int i = loc.debris.Count - 1; i >= 0; i--) {
 				Debris d = loc.debris[i];
 
-				if (d == null || string.IsNullOrEmpty(d.itemId) || d.timeSinceDoneBouncing <= 0)
+				if (d == null || string.IsNullOrEmpty(d.itemId.Value) || d.timeSinceDoneBouncing <= 0)
 					continue; // Skip null or invalid debris
 
-				Item item = ItemRegistry.Create(d.itemId, 1, d.itemQuality);
+				Item item = ItemRegistry.Create(d.itemId.Value, 1, d.itemQuality);
 
 				if (item == null || !farmer.couldInventoryAcceptThisItem(item))
 					continue; // Skip if item is null or farmer can't accept it

@@ -582,7 +582,7 @@ namespace Farmtronics.M1 {
 					owner = Game1.player.displayName;
 				} else {
 					// for bots, get the owner name as follows:
-					owner = Game1.getFarmerMaybeOffline(sh.bot.owner.Value).displayName;
+					owner = Game1.GetPlayer(sh.bot.owner.Value).displayName;
 				}
 				return new Intrinsic.Result(owner);
 			};

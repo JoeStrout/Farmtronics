@@ -32,7 +32,7 @@ namespace Farmtronics.Bot {
 		public float 			PositionY 	{ get; internal set; }
 
 		public static void Initialize() {
-			_serializer ??= SaveGame.GetSerializer(typeof(NetObjectList<Item>));
+			_serializer = new XmlSerializer(typeof(NetObjectList<Item>));
 		}
 
 		private static string GetModDataValue(ModDataDictionary data, string key, string defaultValue = "") {
@@ -59,7 +59,7 @@ namespace Farmtronics.Bot {
 			// ModEntry.instance.Monitor.Log($"Serialized inventory: {xml}");
 			return xml;
 		}
-		
+
 		private NetObjectList<Item> DeserializeInventory(string inventoryXml) {
 			if (string.IsNullOrEmpty(inventoryXml)) return null;
 			
