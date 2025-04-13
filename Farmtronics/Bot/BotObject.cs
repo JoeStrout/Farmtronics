@@ -639,20 +639,30 @@ namespace Farmtronics.Bot {
 				else if (scytheUseFrame == 12) scytheUseFrame = 0;  // all done!
 			}
 
-			if (Position != targetPos) {
+			Vector2 pos = Position;
+			pos.Round();
+			if (pos != targetPos) {
 				// face target position
 				float dx = targetPos.X - Position.X;
 				float dy = targetPos.Y - Position.Y;
-				int prevDir = farmer.FacingDirection;
-				if (MathF.Abs(dx) > MathF.Abs(dy)) farmer.FacingDirection = dx > 0 ? 1 : 3;
-				else farmer.FacingDirection = dy > 0 ? 2 : 0;
-				if (farmer.FacingDirection != prevDir) ModEntry.instance.Monitor.Log($"Update: changed facing from {prevDir} to {farmer.FacingDirection} because dx={dx}, dy={dy}");
-				// try to move; if fail, abandon movement
-				var oldPos = farmer.Position;
-				farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
-				if (farmer.Position == oldPos) {
-					// Movement failed
-					targetPos = Position;
+				if (MathF.Abs(dx) + MathF.Abs(dy) <= 2) {
+					farmer.Position = targetPos;
+				} else {
+					int prevDir = farmer.FacingDirection;
+					if (MathF.Abs(dx) > MathF.Abs(dy)) farmer.FacingDirection = dx > 0 ? 1 : 3;
+					else farmer.FacingDirection = dy > 0 ? 2 : 0;
+					//if (farmer.FacingDirection != prevDir) {
+					//	ModEntry.instance.Monitor.Log($"Update: changed facing from {prevDir} to {farmer.FacingDirection}; " +
+					//		$"Position={Position.X},{Position.Y}, targetPos={targetPos.X},{targetPos.Y}, dx={dx}, dy={dy}");
+					//}
+					// try to move; if fail, abandon movement
+					var oldPos = farmer.Position;
+					farmer.tryToMoveInDirection(farmer.FacingDirection, false, 0, false);
+					if (farmer.Position == oldPos) {
+						// Movement failed
+						//ModEntry.instance.Monitor.Log("Attempt to move failed");
+						targetPos = Position;
+					}
 				}
 				data.Update();
 				if (TileLocation != farmer.Tile) {
@@ -662,10 +672,12 @@ namespace Farmtronics.Bot {
 					TileLocation = farmer.Tile;
 					currentLocation.setObject(TileLocation, this);
 				}
-				// ModEntry.instance.Monitor.Log($"Updated position to {position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
+				//ModEntry.instance.Monitor.Log($"Updated position to {farmer.Position}, tileLocation to {TileLocation}; facing {farmer.FacingDirection}");
 			}
 
 			farmer.Update(gameTime, farmer.currentLocation);
+			pos = farmer.Position; pos.Round(); farmer.Position = pos;
+			//ModEntry.instance.Monitor.Log($"After farmer.Update, Position={Position.X},{Position.Y}");
 			if (shouldPickupDebris) PickUpDebris(farmer, gameTime);
 		}
 
