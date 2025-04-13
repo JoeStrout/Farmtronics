@@ -452,6 +452,7 @@ if me.isBot then
 		for tries in range(19)
 			if not me.ahead then return true
 			me.useTool
+			if me.energy <= 0 then return false
 			wait 0.2
 		end for
 		return false	// couldn't clear the obstacle

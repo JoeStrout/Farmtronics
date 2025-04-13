@@ -183,6 +183,11 @@ namespace Farmtronics.Bot {
 				farmer.removeFirstOfThisItemFromInventory("(O)787");
 				return;
 			}
+
+			if (oldStamina <= 0) {
+				shell.PrintLine("Out of energy");
+				return;
+			}
 			
 			if (farmer == null || inventory == null || farmer.CurrentTool == null) return;
 			Vector2 toolLocation = farmer.GetToolLocation(true);
@@ -206,7 +211,7 @@ namespace Farmtronics.Bot {
 				data.Update();
 			} 
 			else {
-				// Special case for using the Scythe
+				// Special case for using the Scythe (or other MeleeWeapon)
 				farmer.CurrentTool.beginUsing(currentLocation, toolLocation.GetIntX(), toolLocation.GetIntY(), farmer);
 				Farmer.showToolSwipeEffect(farmer);
 				scytheOldStamina = oldStamina;
