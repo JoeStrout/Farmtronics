@@ -117,7 +117,7 @@ namespace Farmtronics.M1 {
 					cropInfo.map[_maxPhase] = new ValNumber(crop.phaseDays.Count - 1);
 					cropInfo.map[_mature] = ValNumber.Truth(crop.fullyGrown.Value);
 					cropInfo.map[_dead] = ValNumber.Truth(crop.dead.Value);
-					cropInfo.map[_harvestMethod] = ValNumber.Truth(crop.GetHarvestMethod() == HarvestMethod.Grab);
+					cropInfo.map[_harvestMethod] = new ValNumber((int)crop.GetData().HarvestMethod);
 					bool harvestable = (int)crop.currentPhase.Value >= crop.phaseDays.Count - 1
 						&& (!crop.fullyGrown.Value || (int)crop.dayOfCurrentPhase.Value <= 0);
 					cropInfo.map[_harvestable] = ValNumber.Truth(harvestable);
